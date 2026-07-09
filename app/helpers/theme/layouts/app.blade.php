@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- ===============================================-->
+    <!--    Document Title-->
+    <!-- ===============================================-->
+    <title>@section('title') {{ get_option('site_name') }} @show</title>
+
+    <!-- ===============================================-->
+    <!--    Favicons-->
+    <!-- ===============================================-->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('dark/assets/img/favicons/favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('dark/assets/img/favicons/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('dark/assets/img/favicons/favicon-16x16.png') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('dark/assets/img/favicons/favicon.ico') }}">
+    <link rel="manifest" href="{{ asset('dark/assets/img/favicons/manifest.json') }}">
+    <meta name="msapplication-TileImage" content="{{ asset('dark/assets/img/favicons/mstile-150x150.png') }}">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- ===============================================-->
+    <!--    Stylesheets-->
+    <!-- ===============================================-->
+    <link href="{{ asset('dark/assets/css/theme.css') }}" rel="stylesheet" />
+
+    <style>
+        /* Custom Styles */
+        .navbar-nav .nav-link {
+            color: black !important; /* Set nav links color to black */
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #007bff !important; /* Change hover color to a shade of blue */
+        }
+
+        .btn-outline-dark {
+            border-color: black;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .btn-outline-dark:hover {
+            background-color: black;
+            color: white;
+        }
+
+        .lead {
+            font-size: 1.25rem; /* Increase font size for emphasis */
+        }
+    </style>
+</head>
+
+<body style="background-color: #f8f9fa;">
+
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main" id="top">
+        <nav class="navbar navbar-expand-lg navbar-light py-3 d-block" data-navbar-on-scroll="data-navbar-on-scroll">
+            <div class="container">
+                <a class="navbar-brand d-inline-flex" href="{{ url('/') }}">
+                    <span class="text-dark fs-2 fw-bold ms-2">{{ get_option('site_name') }}</span>
+                </a>
+                <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse border-top border-lg-0 mt-4 mt-lg-0" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item px-2" style="margin-left: 100px;">
+                            <a class="nav-link fw-bold active" aria-current="page" href="{{ route('product') }}" style="color: #000000;">Products</a>
+                        </li>
+                        <li class="nav-item px-2">
+                            <a class="nav-link fw-bold" href="{{ url('how-to-order') }}" style="color: #000000;">How to order</a>
+                        </li>
+                       
+                        @if(Auth::check())
+                        <li class="nav-item px-2">
+                            <a class="nav-link fw-bold" href="{{ route('account.dashboard') }}" style="color: #000000;">My Account</a>
+                        </li>
+                        @endif
+                        @guest
+                        <li class="nav-item px-2">
+                            <a class="nav-link fw-bold" href="{{ route('login') }}" style="color: #000000;">Login</a>
+                        </li>
+                        @endguest
+                        <li class="nav-item px-2">
+                            <a class="nav-link fw-bold" href="{{ route('cart.view') }}" style="color: #000000;">
+                                <i data-feather="shopping-cart"></i>
+                                ({{ array_sum(array_column(session('cart', []), 'quantity')) }})
+                            </a>
+                        </li>
+                    </ul>
+
+                    <form class="d-flex">
+                        <a class="text-primary" href="tel:+254729299439">
+                            <svg class="feather feather-phone-call" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.98v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                        </a>
+                        <div class="ms-4 text-dark fw-bold">+254 729 299 439</div>
+                    </form>
+                </div>
+            </div>
+        </nav>
+        <!-- Add other content sections here -->
+    </main>
+    
+</body>
+
+</html>

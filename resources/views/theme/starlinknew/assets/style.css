@@ -1,0 +1,82 @@
+/* General Styling for Homepage Description */
+#homepage-description {
+    overflow: hidden;
+    word-wrap: break-word;
+    padding: 2rem 1rem;
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #001b44; /* Starlink dark blue */
+    background-color: #f4f7fb;
+    border-top: 1px solid rgba(0, 27, 68, 0.05);
+    border-bottom: 1px solid rgba(0, 27, 68, 0.05);
+}
+
+
+
+/* Headings inside the description */
+#homepage-description h1,
+#homepage-description h2,
+#homepage-description h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    color: #003366; /* Strong Starlink navy blue */
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Paragraphs */
+#homepage-description p {
+    margin-bottom: 1.5rem;
+}
+
+/* Lists */
+#homepage-description ul,
+#homepage-description ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+    line-height: 1.7;
+}
+
+#homepage-description li {
+    margin-bottom: 0.75rem;
+    list-style-type: disc;
+}
+
+/* Images */
+#homepage-description img {
+    display: block;
+    max-width: 100%;
+    margin: 2rem auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 27, 68, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #homepage-description {
+        padding: 1.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    #homepage-description .container {
+        padding: 1rem;
+        box-shadow: none;
+        border-radius: 8px;
+    }
+
+    #homepage-description h1,
+    #homepage-description h2,
+    #homepage-description h3 {
+        font-size: 1.25rem;
+    }
+
+    #homepage-description p {
+        margin-bottom: 1rem;
+    }
+
+    #homepage-description ul,
+    #homepage-description ol {
+        padding-left: 1rem;
+    }
+}

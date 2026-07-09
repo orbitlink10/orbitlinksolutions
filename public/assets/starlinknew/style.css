@@ -1,0 +1,282 @@
+/* General Styling for Homepage Description */
+#homepage-description {
+    overflow: hidden;
+    word-wrap: break-word;
+    padding: 2rem 1rem;
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #001b44; /* Starlink dark blue */
+    background-color: #f4f7fb;
+    border-top: 1px solid rgba(0, 27, 68, 0.05);
+    border-bottom: 1px solid rgba(0, 27, 68, 0.05);
+}
+
+
+
+/* Headings inside the description */
+#homepage-description h1,
+#homepage-description h2,
+#homepage-description h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    color: #003366; /* Strong Starlink navy blue */
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Paragraphs */
+#homepage-description p {
+    margin-bottom: 1.5rem;
+}
+
+/* Lists */
+#homepage-description ul,
+#homepage-description ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+    line-height: 1.7;
+}
+
+#homepage-description li {
+    margin-bottom: 0.75rem;
+    list-style-type: disc;
+}
+
+/* Images */
+#homepage-description img {
+    display: block;
+    max-width: 100%;
+    margin: 2rem auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 27, 68, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #homepage-description {
+        padding: 1.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    #homepage-description .container {
+        padding: 1rem;
+        box-shadow: none;
+        border-radius: 8px;
+    }
+
+    #homepage-description h1,
+    #homepage-description h2,
+    #homepage-description h3 {
+        font-size: 1.25rem;
+    }
+
+    #homepage-description p {
+        margin-bottom: 1rem;
+    }
+
+    #homepage-description ul,
+    #homepage-description ol {
+        padding-left: 1rem;
+    }
+}
+
+/* Mobile Bottom Navbar - Professional Mini Style */
+.mobile-bottom-nav {
+  background: rgba(255, 255, 255, 0.92) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  backdrop-filter: saturate(180%) blur(16px);
+  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 6px);
+}
+
+/* Top Navigation Spacing & Hover Underline */
+.header-bottom .main-menu nav > ul {
+  display: flex;
+  gap: 18px;
+}
+
+.header-bottom .main-menu nav > ul > li > a {
+  position: relative;
+  padding: 18px 0;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #1f2937; /* slate-800 */
+  transition: color .2s ease;
+}
+
+.header-bottom .main-menu nav > ul > li > a:after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 12px;
+  height: 2px;
+  width: 0;
+  background: var(--starlink-primary);
+  transition: width .25s ease;
+}
+
+.header-bottom .main-menu nav > ul > li > a:hover,
+.header-bottom .main-menu nav > ul > li > a.active {
+  color: var(--starlink-primary);
+}
+
+.header-bottom .main-menu nav > ul > li > a:hover:after,
+.header-bottom .main-menu nav > ul > li > a.active:after {
+  width: 100%;
+}
+
+.header-bottom .main-menu nav > ul > li.menu-item-has-children > a::after {
+  content: '\25BE'; /* small down caret */
+  font-size: 0.7rem;
+  margin-left: 6px;
+  transition: transform .2s ease;
+}
+.header-bottom .main-menu nav > ul > li.menu-item-has-children:hover > a::after,
+.header-bottom .main-menu nav > ul > li.menu-item-has-children > a.active::after {
+  transform: rotate(180deg);
+}
+
+.header-bottom.sticky-bar {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+/* Unified Headings & Buttons */
+h1, h2, h3, h4 {
+  color: #0f172a; /* slate-900 */
+  letter-spacing: 0.2px;
+}
+
+.btn {
+  border-radius: 10px;
+}
+
+.btn-outline-primary {
+  border-width: 2px;
+}
+.btn-outline-primary:hover {
+  color: #fff;
+}
+
+/* Header polish: logo size, search input */
+.header-middle {
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.header-middle .logo img {
+  max-height: 48px;
+  height: auto;
+  width: auto;
+}
+.header-middle .search-style-2 form {
+  position: relative;
+}
+.header-middle .search-style-2 input[type="text"],
+.header-middle .search-style-2 input[type="search"] {
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 9999px;
+  padding: 10px 44px 10px 16px;
+  min-width: 280px;
+  max-width: 100%;
+  outline: none;
+}
+.header-middle .search-style-2 button[type="submit"] {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--starlink-primary);
+  color: #fff;
+}
+
+/* Mobile off-canvas menu polish */
+.mobile-header-active .mobile-header-wrapper-inner {
+  background: #ffffff;
+}
+.mobile-header-wrapper-inner .mobile-header-top {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.mobile-header-wrapper-inner .mobile-header-logo img {
+  max-height: 40px;
+}
+.mobile-header-wrapper-inner .mobile-menu-wrap {
+  padding: 8px 16px 0 16px;
+}
+.mobile-header-wrapper-inner .mobile-menu > li > a {
+  display: block;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  color: #1f2937;
+  font-weight: 600;
+}
+.mobile-header-wrapper-inner .mobile-menu > li > a:hover,
+.mobile-header-wrapper-inner .mobile-menu > li > a.active {
+  color: var(--starlink-primary);
+}
+.mobile-header-wrapper-inner .mobile-header-info-wrap {
+  padding: 10px 16px 16px 16px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.mobile-header-wrapper-inner .single-mobile-header-info a {
+  display: block;
+  padding: 10px 0;
+  color: #374151;
+}
+.mobile-header-wrapper-inner .mobile-social-icon {
+  padding: 10px 16px 24px 16px;
+}
+
+.mobile-bottom-nav .nav-link {
+  color: #6c757d;
+  transition: color 0.25s ease, transform 0.15s ease;
+  padding: 6px 0 2px 0;
+}
+
+.mobile-bottom-nav .nav-link i {
+  font-size: 1.2rem;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.mobile-bottom-nav .nav-link span {
+  font-size: 0.72rem; /* mini label */
+  letter-spacing: 0.2px;
+}
+
+.mobile-bottom-nav .nav-link:hover {
+  color: var(--starlink-primary);
+}
+
+.mobile-bottom-nav .nav-link.active {
+  color: var(--starlink-primary);
+  font-weight: 600;
+}
+
+.mobile-bottom-nav .nav-link.active i {
+  color: var(--starlink-primary);
+}
+
+.mobile-bottom-nav .nav-item {
+  min-width: 0;
+}
+
+/* Improve buttons and links subtly site-wide */
+.btn-primary {
+  border: none;
+  box-shadow: 0 6px 16px rgba(0, 27, 68, 0.18);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 27, 68, 0.22);
+}
+
+.card {
+  border-radius: 12px;
+}
+.card .card-title {
+  font-weight: 600;
+}

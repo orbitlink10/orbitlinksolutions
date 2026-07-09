@@ -1,0 +1,291 @@
+/* -------------------------- */
+/* Color Palette & Typography */
+/* -------------------------- */
+:root {
+    /* Soft Pastel Colors for a Beauty/Cosmetic vibe */
+    --primary-color: #f8e6ef;     /* Light pink background */
+    --secondary-color: #ffd6e7;   /* Another light pastel shade */
+    --accent-color: #fa8ca2;      /* Main accent for buttons/links */
+    --accent-hover: #fa6c88;      /* Hover state for accent elements */
+    --dark-bg: #6b3f5f;           /* Darker plum for contrast (e.g., text on hero) */
+    --text-color: #4f4f4f;        /* Neutral text color */
+    --heading-color: #3c2c3e;     /* Slightly darker for headings */
+    --light-bg: #fff9fc;          /* Very light background for sections */
+    --font-family: 'Poppins', sans-serif;
+
+    /* Custom UI Enhancements for a Beauty Shop Look */
+    --theme-color: #ffb6c1; /* Soft pastel pink */
+    --theme-light: #ffe6ea; /* Lighter variant */
+    --background-color: #fff8f8;
+}
+
+/* -------------------------- */
+/* Global Styles */
+/* -------------------------- */
+body {
+    background-color: var(--background-color);
+    font-family: 'Roboto', sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Headings override */
+h1, h2, h3, h4, h5, h6, .logo {
+    font-family: 'Playfair Display', serif;
+}
+
+/* ----------------- */
+/* Utility Classes */
+/* ----------------- */
+.text-accent {
+    color: var(--accent-color) !important;
+}
+.btn-accent {
+    background: var(--accent-color);
+    color: #fff;
+    border: none;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.btn-accent:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+/* ----------------- */
+/* Hero Section      */
+/* ----------------- */
+.hero-section {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: 80px 0 60px;
+    margin-bottom: 50px;
+    color: var(--dark-bg);
+}
+.hero-section h4,
+.hero-section h2,
+.hero-section h1 {
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+    color: var(--dark-bg);
+}
+.hero-section .btn-hero {
+    background: var(--accent-color);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    color: #fff;
+    font-weight: 600;
+}
+.hero-section .btn-hero:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+/* ----------------- */
+/* Products Section  */
+/* ----------------- */
+.products-section {
+    padding: 60px 0;
+    background-color: var(--light-bg);
+}
+.products-section h2 {
+    margin-bottom: 30px;
+    font-weight: 700;
+    color: var(--heading-color);
+    text-transform: uppercase;
+}
+
+/* Product Card */
+.product-card {
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.product-card .card-img-top {
+    transition: transform 0.3s ease;
+}
+.product-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+.product-card h5 a {
+    color: var(--heading-color);
+}
+
+/* ------------------------------ */
+/* General Styling for Homepage Description */
+/* ------------------------------ */
+#homepage-description {
+    overflow: hidden;
+    word-wrap: break-word;
+    max-width: 100%;
+    padding: 2rem 1rem;
+    box-sizing: border-box;
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #333;
+    background-color: #f9f9f9;
+}
+#homepage-description .container {
+    margin: 0 auto;
+    max-width: 1200px;
+    padding: 2rem;
+    text-align: justify;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+}
+#homepage-description h1,
+#homepage-description h2,
+#homepage-description h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    color: var(--theme-color);
+}
+#homepage-description a {
+    color: var(--theme-color);
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+#homepage-description a:hover {
+    color: var(--theme-light);
+}
+#homepage-description p {
+    margin-bottom: 1.5rem;
+}
+#homepage-description ul,
+#homepage-description ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+    line-height: 1.7;
+}
+#homepage-description li {
+    margin-bottom: 0.75rem;
+}
+#homepage-description img {
+    display: block;
+    max-width: 100%;
+    margin: 2rem auto;
+    border-radius: 5px;
+}
+
+/* Responsive Design for Homepage Description */
+@media (max-width: 768px) {
+    #homepage-description {
+        padding: 1.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    #homepage-description .container {
+        padding: 1rem;
+        box-shadow: none;
+    }
+    #homepage-description h1,
+    #homepage-description h2,
+    #homepage-description h3 {
+        font-size: 1.25rem;
+    }
+    #homepage-description p {
+        margin-bottom: 1rem;
+    }
+    #homepage-description ul,
+    #homepage-description ol {
+        padding-left: 1rem;
+    }
+}
+
+/* ------------------------------ */
+/* Header & Navigation Styling */
+/* ------------------------------ */
+.header-area {
+    background: #fff;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    border-bottom: 2px solid var(--theme-light);
+    background-image: url('{{ asset('images/beauty-header-bg.jpg') }}');
+    background-size: cover;
+    background-position: center;
+}
+.header-area.sticky {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-image: none;
+    background-color: #fff;
+}
+.header-nav ul li a {
+    transition: color 0.3s ease;
+}
+.header-nav ul li a:hover {
+    color: var(--theme-color);
+}
+
+/* Mobile Menu Styling */
+.mobile-menu a {
+    padding: 10px;
+    display: block;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    transition: background 0.3s ease;
+}
+.mobile-menu a:hover {
+    background: #f8f8f8;
+}
+
+/* Search Input Enhancements */
+.search-style-2 input {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    border-radius: 25px;
+    transition: border-color 0.3s ease;
+}
+.search-style-2 input:focus {
+    border-color: var(--theme-color);
+}
+
+/* Icon Hover Effects */
+.header-action-icon-2 img {
+    transition: transform 0.3s ease;
+}
+.header-action-icon-2:hover img {
+    transform: scale(1.1);
+}
+
+/* Override Bootstrap's btn-success for Account button */
+.btn-success {
+    background-color: var(--theme-color) !important;
+    border-color: var(--theme-color) !important;
+}
+.btn-success:hover {
+    background-color: var(--theme-light) !important;
+    border-color: var(--theme-light) !important;
+}
+
+/* Additional Styling for Buttons and Links */
+a, .btn {
+    text-decoration: none;
+}
+a:hover {
+    color: var(--theme-color);
+}
+
+  .uniform-height {
+        height: 350px; /* Adjust height as per your design */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .product-content-wrap {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }

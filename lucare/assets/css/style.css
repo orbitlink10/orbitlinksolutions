@@ -1,0 +1,87 @@
+/* General Styling for Homepage Description */
+#homepage-description {
+    overflow: hidden; /* Prevent content overflow */
+    word-wrap: break-word; /* Handle long words or links */
+    max-width: 100%; /* Ensure content does not exceed container width */
+    padding: 2rem 1rem; /* Balanced padding for all devices */
+    box-sizing: border-box; /* Include padding and borders in width/height calculations */
+    font-size: 1.125rem; /* Slightly larger font size for easier reading */
+    line-height: 1.8; /* Increase line spacing for better text clarity */
+    color: #333; /* Use a dark color for good contrast */
+    background-color: #f9f9f9; /* Light background for a clean, modern look */
+}
+
+/* Styling for the container */
+#homepage-description .container {
+    margin: 0 auto; /* Center the content horizontally */
+    max-width: 1200px; /* Restrict the maximum width for better readability */
+    padding: 2rem; /* Add spacing within the container */
+    text-align: justify; /* Align text for a polished appearance */
+    border-radius: 8px; /* Add subtle rounding for a modern feel */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    background: #ffffff; /* White container for contrast */
+}
+
+/* Headings inside the description */
+#homepage-description h1,
+#homepage-description h2,
+#homepage-description h3 {
+    margin-top: 2rem; /* Add spacing above headings */
+    margin-bottom: 1rem; /* Add spacing below headings */
+    font-weight: bold; /* Make headings stand out */
+    color: #027333; /* Use the brand green color for consistency */
+}
+
+/* Paragraphs */
+#homepage-description p {
+    margin-bottom: 1.5rem; /* Add spacing between paragraphs */
+}
+
+/* Spacing for Lists */
+#homepage-description ul,
+#homepage-description ol {
+    margin: 1rem 0; /* Add spacing above and below lists */
+    padding-left: 1.5rem; /* Indent list items */
+    line-height: 1.7; /* Space out list items */
+}
+
+#homepage-description li {
+    margin-bottom: 0.75rem; /* Add spacing between list items */
+}
+
+/* Spacing for Images */
+#homepage-description img {
+    display: block;
+    max-width: 100%; /* Ensure images are responsive */
+    margin: 2rem auto; /* Center images with spacing */
+    border-radius: 5px; /* Subtle rounding for images */
+}
+
+/* Responsive Design for Smaller Screens */
+@media (max-width: 768px) {
+    #homepage-description {
+        padding: 1.5rem 1rem; /* Adjust padding for smaller screens */
+        font-size: 1rem; /* Slightly smaller font size */
+        line-height: 1.6; /* Adjust line spacing */
+    }
+
+    #homepage-description .container {
+        padding: 1rem; /* Reduce padding within the container */
+        box-shadow: none; /* Simplify the layout for smaller screens */
+    }
+
+    #homepage-description h1,
+    #homepage-description h2,
+    #homepage-description h3 {
+        font-size: 1.25rem; /* Adjust heading size */
+    }
+
+    #homepage-description p {
+        margin-bottom: 1rem; /* Reduce paragraph spacing */
+    }
+
+    #homepage-description ul,
+    #homepage-description ol {
+        padding-left: 1rem; /* Adjust list indentation */
+    }
+}
