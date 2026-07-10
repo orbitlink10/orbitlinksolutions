@@ -78,6 +78,15 @@
                                                 @endphp
                                                 <td>{{ $productCategory?->name ?? 'Unassigned' }}</td>
                                                 <td>
+                                                    @if($product->slug)
+                                                        <a href="{{ route('product_details_preview', $product->slug) }}" class="btn btn-sm btn-outline-success mb-1" target="_blank" rel="noopener">
+                                                            <i class="fas fa-eye"></i> Preview
+                                                        </a>
+                                                    @else
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary mb-1" disabled>
+                                                            <i class="fas fa-eye-slash"></i> No Preview
+                                                        </button>
+                                                    @endif
                                                     <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary">
                                                         <i class="fas fa-edit"></i> Update
                                                     </a>

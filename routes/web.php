@@ -305,6 +305,66 @@ Route::post('/update-page/{id}', [App\Http\Controllers\HomeController::class, 'u
 
 Route::get('/enquiries', [App\Http\Controllers\HomeController::class, 'enquiries'])->name('enquiries');
 
+Route::get('/{assetPath}', function (string $assetPath) {
+    $allowedRoots = [
+        'assets' => base_path('assets'),
+        'blog' => base_path('blog'),
+        'css' => base_path('css'),
+        'dark' => base_path('dark'),
+        'gamun' => base_path('gamun'),
+        'lucare' => base_path('lucare'),
+    ];
+
+    $rootName = strtok($assetPath, '/');
+
+    if (!isset($allowedRoots[$rootName])) {
+        abort(404);
+    }
+
+    $relativePath = ltrim(substr($assetPath, strlen($rootName)), '/');
+    $root = realpath($allowedRoots[$rootName]);
+
+    if (!$root) {
+        abort(404);
+    }
+
+    $file = realpath($root . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath));
+
+    if (!$file || !is_file($file) || strpos($file, $root . DIRECTORY_SEPARATOR) !== 0) {
+        abort(404);
+    }
+
+    $mimeTypes = [
+        'css' => 'text/css; charset=UTF-8',
+        'js' => 'application/javascript; charset=UTF-8',
+        'mjs' => 'application/javascript; charset=UTF-8',
+        'json' => 'application/json; charset=UTF-8',
+        'map' => 'application/json; charset=UTF-8',
+        'svg' => 'image/svg+xml',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'ico' => 'image/x-icon',
+        'woff' => 'font/woff',
+        'woff2' => 'font/woff2',
+        'ttf' => 'font/ttf',
+        'eot' => 'application/vnd.ms-fontobject',
+        'otf' => 'font/otf',
+        'mp4' => 'video/mp4',
+        'webm' => 'video/webm',
+        'pdf' => 'application/pdf',
+        'zip' => 'application/zip',
+    ];
+
+    $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+
+    return response()->file($file, [
+        'Content-Type' => $mimeTypes[$extension] ?? 'application/octet-stream',
+    ]);
+})->where('assetPath', '(?:assets|blog|css|dark|gamun|lucare)/.*\.(?:css|js|mjs|png|jpe?g|gif|webp|svg|ico|json|map|woff2?|ttf|eot|otf|mp4|webm|pdf|zip)');
+
 Route::get('/{slug}', ['as' => 'page_single', 'uses'=>'App\Http\Controllers\WelcomeController@sitemaps']);
 
 Route::get('/admin/users/', [App\Http\Controllers\HomeController::class, 'Allusers'])->name('admin.users');

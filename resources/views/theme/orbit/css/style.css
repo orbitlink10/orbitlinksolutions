@@ -1847,10 +1847,76 @@ input:focus-visible,
     box-shadow: var(--shadow-sm);
 }
 
-.product-detail-section .description-scroll {
-    max-height: 50vh;
-    overflow: auto;
-    padding-right: 0.25rem;
+.product-description-section .tab-content {
+    margin-top: 1rem;
+}
+
+.product-description-content {
+    width: 100%;
+    max-width: 100%;
+    padding: clamp(22px, 3vw, 38px);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: var(--radius-lg);
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+    color: #334155;
+    font-size: 1.02rem;
+    line-height: 1.8;
+    overflow: visible;
+    overflow-wrap: anywhere;
+}
+
+.product-description-content h1,
+.product-description-content h2,
+.product-description-content h3,
+.product-description-content h4 {
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+    color: var(--heading-color);
+    font-weight: 700;
+}
+
+.product-description-content h1:first-child,
+.product-description-content h2:first-child,
+.product-description-content h3:first-child,
+.product-description-content h4:first-child,
+.product-description-content p:first-child {
+    margin-top: 0;
+}
+
+.product-description-content p {
+    margin-bottom: 1rem;
+    color: #475569;
+}
+
+.product-description-content ul,
+.product-description-content ol {
+    margin: 1rem 0 1.35rem;
+    padding-left: 1.35rem;
+}
+
+.product-description-content li {
+    margin-bottom: 0.55rem;
+}
+
+.product-description-content img {
+    display: block;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 1.5rem auto;
+    border-radius: 8px;
+}
+
+.product-description-content table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+}
+
+.product-description-content iframe {
+    max-width: 100%;
 }
 
 /* Product CTA */
@@ -1912,12 +1978,6 @@ input:focus-visible,
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
-}
-
-@media (min-width: 992px) {
-    .product-detail-section .description-scroll {
-        max-height: calc(100vh - 180px);
-    }
 }
 
 @media (max-width: 991px) {

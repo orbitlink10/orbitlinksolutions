@@ -344,7 +344,7 @@
         </div>
 
         <!-- Tab Section for Description -->
-        <div class="tab-style3 mt-5">
+        <div class="tab-style3 product-description-section mt-5">
             <ul class="nav nav-tabs text-uppercase">
                 <li class="nav-item">
                     <a class="nav-link active" id="Description-tab" data-bs-toggle="tab" href="#Description">Description</a>
@@ -353,7 +353,7 @@
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="Description">
                     <div class="container">
-                        <div id="homepage-description" class="description-scroll">
+                        <div id="product-description" class="product-description-content">
                             {!! $product->description !!}
                         </div>
                     </div>

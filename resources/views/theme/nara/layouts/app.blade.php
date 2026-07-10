@@ -42,13 +42,13 @@
     <link rel="canonical" href="{{ url()->current() }}">
 
     <!-- Preload Critical CSS -->
-    <link rel="preload" href="{{ url('/') }}/lucare/assets/css/main.css?v=3.4" as="style">
+    <link rel="preload" href="{{ url('/') }}/lucare/assets/css/main.css?v=3.5" as="style">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" as="style">
 
     <!-- Template CSS -->
-    <link rel="stylesheet" href="{{ url('/') }}/lucare/assets/css/main_nara.css?v=3.4">
+    <link rel="stylesheet" href="{{ url('/') }}/lucare/assets/css/main_nara.css?v=3.5">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url('/') }}/lucare/assets/css/style.css">
+    <link rel="stylesheet" href="{{ url('/') }}/lucare/assets/css/style.css?v=3.5">
 
     @stack('meta')
     @yield('styles')

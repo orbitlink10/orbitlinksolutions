@@ -363,14 +363,18 @@ public function reviews()
     }
 
 
-        public function product_details_preview($slug){
+    public function product_details_preview($slug){
         $product = Product::where('slug',$slug)->first();
         if(!$product){
             return back()->with('error','Not Found');
         }
 
-              $mediafiles  = Media::whereProductId($product->id)->get();
-        return view('designs.preview', compact('product', 'mediafiles'));
+        $mediafiles  = Media::whereProductId($product->id)->get();
+        $themeView = 'theme.' . get_option('theme') . '.product_details';
+
+        return view()->exists($themeView)
+            ? view($themeView, compact('product', 'mediafiles'))
+            : view('designs.preview', compact('product', 'mediafiles'));
     }
 
 
