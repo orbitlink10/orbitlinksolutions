@@ -172,7 +172,7 @@
                     <a href="{{ route('view_product_category', ['slug' => $category->slug]) }}" class="cat-item text-decoration-none text-dark">
                         <div class="cat-card border-0 shadow-sm">
                             <div class="cat-thumb">
-                                <img src="{{ $category->photo }}" alt="{{ $category->name }}" loading="lazy" decoding="async">
+                                <img src="{{ uploaded_image_url($category->photo) }}" alt="{{ $category->name }}" loading="lazy" decoding="async">
                                 <div class="cat-overlay"><span>{{ $category->name }}</span></div>
                             </div>
                             <div class="cat-title text-center">{{ $category->name }}</div>
@@ -219,8 +219,8 @@
                             <div class="product-img-action-wrap">
                                 <div class="product-img product-img-zoom">
                                     <a href="{{ route('product_details', $ad->slug) }}">
-                                        <img class="default-img" src="{{ url('/') }}/storage/{{ $ad->photo }}" alt="{{ $ad->name }}" loading="lazy" decoding="async">
-                                        <img class="hover-img" src="{{ url('/') }}/storage/{{ $ad->photo }}" alt="{{ $ad->name }}" loading="lazy" decoding="async">
+                                        <img class="default-img" src="{{ uploaded_image_url($ad->photo) }}" alt="{{ $ad->name }}" loading="lazy" decoding="async">
+                                        <img class="hover-img" src="{{ uploaded_image_url($ad->photo) }}" alt="{{ $ad->name }}" loading="lazy" decoding="async">
                                     </a>
                                 </div>
                             </div>

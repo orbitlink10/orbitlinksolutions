@@ -48,7 +48,7 @@
                         </div>
                         <div class="category-hero-image">
                             @if(!empty($category->photo))
-                                <img src="{{ $category->photo }}" alt="{{ $category->name }}">
+                                <img src="{{ uploaded_image_url($category->photo) }}" alt="{{ $category->name }}">
                             @else
                                 <div class="category-hero-image-fallback">
                                     <i class="fas fa-camera"></i>
@@ -135,4 +135,3 @@
     </section>
 </div>
 @endsection
-

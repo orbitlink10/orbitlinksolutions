@@ -7,14 +7,111 @@ function normalizeFilePath($path){
     return str_replace(['/', "\\"], DIRECTORY_SEPARATOR, $path);
 }
 
-function get_uploaded_image($path){
-    if(!isset($path)){
-        abort(404);
+function uploaded_image_relative_path($path)
+{
+    if (!isset($path)) {
+        return null;
     }
 
-    $path = normalizeFilePath(storage_path('/app/public/' . $path));
+    $path = trim((string) $path);
 
-    if(!File::exists($path)) {
+    if ($path === '') {
+        return null;
+    }
+
+    $urlParts = parse_url($path);
+
+    if (isset($urlParts['path'])) {
+        if (trim($urlParts['path'], '/') === 'images' && !empty($urlParts['query'])) {
+            parse_str($urlParts['query'], $query);
+            $path = $query['path'] ?? $path;
+        } elseif (isset($urlParts['scheme']) || str_starts_with($path, '/')) {
+            $path = $urlParts['path'];
+        }
+    }
+
+    $path = rawurldecode($path);
+    $path = str_replace('\\', '/', $path);
+    $path = preg_replace('#/+#', '/', $path);
+    $path = ltrim($path, '/');
+
+    foreach (['public/storage/', 'storage/', 'app/public/'] as $prefix) {
+        if (str_starts_with($path, $prefix)) {
+            $path = substr($path, strlen($prefix));
+            break;
+        }
+    }
+
+    if ($path === '' || str_contains($path, '..')) {
+        return null;
+    }
+
+    return $path;
+}
+
+function uploaded_image_file_path($path)
+{
+    $relativePath = uploaded_image_relative_path($path);
+
+    if (!$relativePath) {
+        return null;
+    }
+
+    $candidates = [
+        storage_path($relativePath),
+        storage_path('app/public/' . $relativePath),
+        public_path('storage/' . $relativePath),
+    ];
+
+    $allowedRoots = array_filter([
+        realpath(storage_path()),
+        realpath(public_path('storage')),
+    ]);
+
+    foreach (array_unique($candidates) as $candidate) {
+        $candidate = normalizeFilePath($candidate);
+
+        if (!File::exists($candidate) || !is_file($candidate)) {
+            continue;
+        }
+
+        $realPath = realpath($candidate);
+
+        foreach ($allowedRoots as $root) {
+            $root = rtrim(normalizeFilePath($root), DIRECTORY_SEPARATOR);
+
+            if ($realPath === $root || str_starts_with($realPath, $root . DIRECTORY_SEPARATOR)) {
+                return $realPath;
+            }
+        }
+    }
+
+    return null;
+}
+
+function uploaded_image_url($path, $fallback = null)
+{
+    if (isset($path) && filter_var($path, FILTER_VALIDATE_URL)) {
+        $urlPath = parse_url($path, PHP_URL_PATH) ?: '';
+
+        if (!str_contains($urlPath, '/storage/') && !str_contains($urlPath, '/uploads/')) {
+            return $path;
+        }
+    }
+
+    $relativePath = uploaded_image_relative_path($path);
+
+    if ($relativePath) {
+        return route('images', ['path' => $relativePath], false);
+    }
+
+    return $fallback ?: asset('assets/images/market5.png');
+}
+
+function get_uploaded_image($path){
+    $path = uploaded_image_file_path($path);
+
+    if (!$path) {
         abort(404);
     }
 

@@ -117,7 +117,7 @@
                         <div class="mb-3">
                             <label class="form-label">Current Photo</label><br>
                             <img 
-                                src="{{ $category->photo }}" 
+                                src="{{ uploaded_image_url($category->photo) }}"
                                 alt="{{ $category->name }}" 
                                 class="img-thumbnail" 
                                 style="max-width: 150px;"

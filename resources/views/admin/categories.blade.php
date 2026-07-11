@@ -73,7 +73,7 @@
                         <td>{{ $categories->firstItem() + $key }}</td>
                         <td>
                           @if($cat->photo)
-                            <img src="{{ $cat->photo }}" alt="{{ $cat->name }}" class="category-thumb">
+                            <img src="{{ uploaded_image_url($cat->photo) }}" alt="{{ $cat->name }}" class="category-thumb">
                           @else
                             <div class="category-thumb placeholder">No photo</div>
                           @endif
@@ -153,7 +153,7 @@
                     <label for="productImage{{$cat->id}}">Featured Image</label>
                     <div class="mb-2">
                         @if($cat->photo)
-                            <img src="/images?path={{ $cat->photo }}" alt="Current Category Image" width="100" height="100">
+                            <img src="{{ uploaded_image_url($cat->photo) }}" alt="Current Category Image" width="100" height="100">
                         @else
                             <div class="category-thumb placeholder" style="width: 100px; height: 100px;">No photo</div>
                         @endif

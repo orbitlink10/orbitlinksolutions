@@ -39,7 +39,7 @@
                 @if($category->photo)
                     <p>
                         <strong>Photo:</strong><br>
-                        <img src="{{ $category->photo }}" alt="{{ $category->name }}" class="img-thumbnail" style="max-width: 200px;">
+                        <img src="{{ uploaded_image_url($category->photo) }}" alt="{{ $category->name }}" class="img-thumbnail" style="max-width: 200px;">
                     </p>
                 @else
                     <p><strong>Photo:</strong> None available.</p>

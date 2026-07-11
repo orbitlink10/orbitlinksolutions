@@ -70,11 +70,7 @@ public function store(Request $request)
         // Store the file in storage/app/public/uploads/images/
         $request->file('photo')->storeAs('uploads/images', $filenameToStore, 'public');
 
-        // Option A: full URL
-        $category->photo = url('storage/uploads/images/' . $filenameToStore);
-
-        // Option B: relative path (uncomment if you prefer)
-        // $category->photo = 'uploads/images/' . $filenameToStore;
+        $category->photo = 'uploads/images/' . $filenameToStore;
     }
 
     // 5. Save the category
@@ -141,11 +137,7 @@ public function update(Request $request, Category $category)
         // Store the file in "storage/app/public/uploads/images"
         $request->file('photo')->storeAs('uploads/images', $filenameToStore, 'public');
 
-        // Option A: store the full URL
-        $category->photo = url('storage/uploads/images/' . $filenameToStore);
-
-        // Option B: store only the relative path (uncomment if you prefer)
-        // $category->photo = 'uploads/images/' . $filenameToStore;
+        $category->photo = 'uploads/images/' . $filenameToStore;
     }
 
     // 4. Save changes

@@ -67,7 +67,7 @@
                 <div class="col-lg-2 col-md-4 mb-md-3 mb-lg-0">
                     <a href="{{ route('view_product_category', ['slug' => $category->slug]) }}">
                         <div class="banner-features wow fadeIn animated hover-up">
-                            <img src="{{ $category->photo }}" alt="{{ $category->name }}">
+                            <img src="{{ uploaded_image_url($category->photo) }}" alt="{{ $category->name }}">
                             <h4 class="bg-1">{{ $category->name }}</h4>
                         </div>
                     </a>

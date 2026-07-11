@@ -16,7 +16,7 @@
                     <a href="{{ route('view_product_category', ['slug' => $category->slug]) }}" class="text-decoration-none text-dark d-block h-100">
                         <div class="card category-card border-0 shadow-sm h-100">
                             <div class="card-img-top position-relative overflow-hidden">
-                                <img src="{{ $category->photo }}"
+                                <img src="{{ uploaded_image_url($category->photo) }}"
                                      alt="{{ $category->name }}"
                                      class="img-fluid w-100 h-100 object-fit-cover"
                                      loading="lazy">

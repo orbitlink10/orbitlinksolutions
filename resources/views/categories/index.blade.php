@@ -46,7 +46,7 @@
                             <td>{{ $category->slug }}</td>
                             <td>
                                 @if($category->photo)
-                                    <img src="{{ $category->photo }}" 
+                                    <img src="{{ uploaded_image_url($category->photo) }}"
                                          alt="{{ $category->name }}" 
                                          class="img-thumbnail" 
                                          style="max-width: 100px;">

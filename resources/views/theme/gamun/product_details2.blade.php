@@ -1,6 +1,7 @@
 @extends('theme.gamun.layouts.main')
 @section('title', $product->name)
 @section('meta_description', $product->meta_description)
+@php($productImageUrl = uploaded_image_url($product->photo, get_option('hero_image')))
 
 @section('main')
 <div class="page-header breadcrumb-wrap">
@@ -35,7 +36,7 @@
                 @endforeach
             @else
                 <figure class="border-radius-10">
-                    <img src="{{ url('/') }}/storage/{{ $product->photo }}" alt="{{ $product->name }}" loading="lazy" decoding="async">
+                    <img src="{{ $productImageUrl }}" alt="{{ $product->name }}" loading="lazy" decoding="async">
                 </figure>
             @endif
         </div>

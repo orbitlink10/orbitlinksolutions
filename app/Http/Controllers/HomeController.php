@@ -216,7 +216,7 @@ public function index()
 
         
 
-            $category->photo = url('/').'/storage/uploads/images/'.$filenameToStore;
+            $category->photo = 'uploads/images/'.$filenameToStore;
                        
         }
 

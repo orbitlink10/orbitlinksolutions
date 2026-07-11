@@ -1,16 +1,17 @@
 @extends('theme.gamun.layouts.main')
 @section('title', $product->name)
 @section('meta_description', $product->meta_description)
+@php($productImageUrl = uploaded_image_url($product->photo, get_option('hero_image')))
 
 @section('og_title', $product->meta_title ?: $product->name)
 @section('og_description', $product->meta_description)
-@section('og_image', $product->photo ? url('/') . '/storage/' . $product->photo : get_option('hero_image'))
+@section('og_image', $productImageUrl)
 @section('og_url', url()->current())
 @section('og_type', 'product')
 
 @section('twitter_title', $product->meta_title ?: $product->name)
 @section('twitter_description', $product->meta_description)
-@section('twitter_image', $product->photo ? url('/') . '/storage/' . $product->photo : get_option('hero_image'))
+@section('twitter_image', $productImageUrl)
 
 @push('meta')
 @php
@@ -29,7 +30,7 @@
     if (isset($mediafiles) && $mediafiles->count() > 0) {
         foreach ($mediafiles as $m) { $images[] = asset($m->file_path); }
     } else {
-        if (!empty($product->photo)) { $images[] = url('/') . '/storage/' . $product->photo; }
+        if (!empty($product->photo)) { $images[] = $productImageUrl; }
         elseif (get_option('hero_image')) { $images[] = get_option('hero_image'); }
     }
     $brandName = \Illuminate\Support\Str::contains(\Illuminate\Support\Str::lower($product->name ?? ''), 'starlink') ? 'Starlink' : (get_option('site_name') ?: null);
@@ -80,7 +81,7 @@
                                 @endforeach
                             @else
                                 <div class="carousel-item active">
-                                    <img src="{{ url('/') }}/storage/{{ $product->photo }}" alt="{{ $product->name }}" class="d-block w-100" style="height: 600px; object-fit: cover; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="openModal('{{ url('/') }}/storage/{{ $product->photo }}', '0')">
+                                    <img src="{{ $productImageUrl }}" alt="{{ $product->name }}" class="d-block w-100" style="height: 600px; object-fit: cover; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="openModal('{{ $productImageUrl }}', '0')">
                                 </div>
                             @endif
                         </div>
@@ -108,7 +109,7 @@
                                 @endforeach
                             @else
                                 <div class="thumb-item">
-                                    <img src="{{ url('/') }}/storage/{{ $product->photo }}" alt="thumb-0" class="img-thumbnail rounded js-thumb border-primary" data-index="0">
+                                    <img src="{{ $productImageUrl }}" alt="thumb-0" class="img-thumbnail rounded js-thumb border-primary" data-index="0">
                                 </div>
                             @endif
                         </div>
@@ -135,7 +136,7 @@
                                         @endforeach
                                     @else
                                         <div class="carousel-item active">
-                                            <img src="{{ url('/') }}/storage/{{ $product->photo }}" class="d-block w-100" style="height: 500px; object-fit: cover;">
+                                            <img src="{{ $productImageUrl }}" class="d-block w-100" style="height: 500px; object-fit: cover;">
                                         </div>
                                     @endif
                                 </div>
@@ -163,7 +164,7 @@
                                         @endforeach
                                     @else
                                         <div class="thumb-item">
-                                            <img src="{{ url('/') }}/storage/{{ $product->photo }}" alt="mthumb-0" class="img-thumbnail rounded js-mthumb border-primary" data-index="0">
+                                            <img src="{{ $productImageUrl }}" alt="mthumb-0" class="img-thumbnail rounded js-mthumb border-primary" data-index="0">
                                         </div>
                                     @endif
                                 </div>

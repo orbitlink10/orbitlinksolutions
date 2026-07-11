@@ -281,7 +281,7 @@
                             <a class="category-pill" href="{{ route('view_product_category', ['slug' => $cat->slug]) }}">
                                 <span class="category-pill-icon">
                                     @if(!empty($cat->photo))
-                                        <img src="{{ $cat->photo }}" alt="{{ $cat->name }}" loading="lazy">
+                                        <img src="{{ uploaded_image_url($cat->photo) }}" alt="{{ $cat->name }}" loading="lazy">
                                     @else
                                         <i class="fas fa-plus"></i>
                                     @endif
