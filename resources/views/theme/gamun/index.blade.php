@@ -86,7 +86,9 @@
       </div>
       <div class="col-lg-8">
         <div class="areas-wrap d-flex flex-wrap gap-2">
-          @php($areas = ['Nairobi','Kiambu','Thika','Ruiru','Nakuru','Naivasha','Mombasa','Eldoret','Kisumu','Meru','Nyeri','Machakos'])
+          @php
+              $areas = ['Nairobi','Kiambu','Thika','Ruiru','Nakuru','Naivasha','Mombasa','Eldoret','Kisumu','Meru','Nyeri','Machakos'];
+          @endphp
           @foreach($areas as $a)
             <span class="badge rounded-pill bg-light text-dark border">{{ $a }}</span>
           @endforeach

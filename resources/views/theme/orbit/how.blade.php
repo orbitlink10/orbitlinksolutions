@@ -21,9 +21,12 @@ $medias = \App\Models\Media::all();
                     <div class="carousel-item @if($key == 0) active @endif">
                         <div class="row">
                             @foreach($mediaChunk as $media)
+                                @php
+                                    $mediaUrl = uploaded_image_url($media->file_path);
+                                @endphp
                                 <div class="col-md-3">
-                                    <div class="media-card" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImage('{{ $media->file_path }}')">
-                                        <img class="d-block w-100" src="{{ $media->file_path }}" alt="Installation">
+                                    <div class="media-card" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImage('{{ $mediaUrl }}')">
+                                        <img class="d-block w-100" src="{{ $mediaUrl }}" alt="Installation">
                                     </div>
                                 </div>
                             @endforeach

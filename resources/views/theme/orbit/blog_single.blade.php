@@ -98,7 +98,7 @@
                 @if($post->photo)
 
                 <img class="img-fluid rounded shadow-lg"
-                     src="{{ url('/') }}/storage/{{ $post->photo }}"
+                     src="{{ uploaded_image_url($post->photo) }}"
                      alt="{{ $post->title }} image" style="max-width: 90%; border-radius: 20px;">
                      @else
 
@@ -132,8 +132,8 @@ $products = \App\Models\Product::limit(4)->get();
                             <div class="product-img-action-wrap">
                                 <div class="product-img product-img-zoom">
                                     <a href="{{ route('product_details', $ad->slug) }}">
-                                        <img class="default-img" src="{{ url('/') }}/storage/{{ $ad->photo }}" alt="">
-                                        <img class="hover-img" src="{{ url('/') }}/storage/{{ $ad->photo }}" alt="">
+                                        <img class="default-img" src="{{ uploaded_image_url($ad->photo) }}" alt="">
+                                        <img class="hover-img" src="{{ uploaded_image_url($ad->photo) }}" alt="">
                                     </a>
                                 </div>
                             </div>

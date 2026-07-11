@@ -287,8 +287,8 @@
                                 <div class="product-img-action-wrap">
                                     <div class="product-img product-img-zoom">
                                         <a href="{{ route('product_details', $ad->slug) }}">
-                                            <img class="default-img" src="{{ url('/') }}/storage/{{ $ad->photo }}" alt="{{ $ad->name }}" loading="lazy">
-                                            <img class="hover-img"   src="{{ url('/') }}/storage/{{ $ad->photo }}" alt="{{ $ad->name }}" loading="lazy">
+                                            <img class="default-img" src="{{ uploaded_image_url($ad->photo) }}" alt="{{ $ad->name }}" loading="lazy">
+                                            <img class="hover-img" src="{{ uploaded_image_url($ad->photo) }}" alt="{{ $ad->name }}" loading="lazy">
                                         </a>
                                     </div>
                                 </div>
@@ -461,6 +461,5 @@
   // Removed sticky pass-through: default page scroll behavior restored
 </script>
 @endsection
-
 
 

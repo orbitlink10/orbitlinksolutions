@@ -1,12 +1,15 @@
 @extends('theme.orbit.layouts.main')
 @section('title', $product->name)
 @section('meta_description', $product->meta_description)
+@php
+    $productImageUrl = uploaded_image_url($product->photo, asset('default-image.jpg'));
+@endphp
 
 @push('meta')
 <!-- Open Graph Meta Tags -->
 <meta property="og:title" content="{{ $product->meta_title }}" />
 <meta property="og:description" content="{{ $product->meta_description }}" />
-<meta property="og:image" content="{{ $product->photo ? url('/') . '/storage/' . $product->photo : asset('default-image.jpg') }}" />
+<meta property="og:image" content="{{ $productImageUrl }}" />
 <meta property="og:image:width" content="1478" />
 <meta property="og:image:height" content="1108" />
 <meta property="og:url" content="{{ url()->current() }}" />
@@ -22,19 +25,17 @@
 <meta name="twitter:site" content="{{ url('/') }}" />
 <meta name="twitter:title" content="{{ $product->meta_title }}" />
 <meta name="twitter:description" content="{{ $product->meta_description }}" />
-<meta name="twitter:image" content="{{ $product->photo ? url('/') . '/storage/' . $product->photo : asset('default-image.jpg') }}" />
+<meta name="twitter:image" content="{{ $productImageUrl }}" />
 @php
     $schemaImages = [];
     if ($mediafiles->count() > 0) {
         foreach ($mediafiles as $media) {
             if (!empty($media->file_path)) {
-                $schemaImages[] = \Illuminate\Support\Str::startsWith($media->file_path, ['http://', 'https://', '//'])
-                    ? $media->file_path
-                    : url($media->file_path);
+                $schemaImages[] = uploaded_image_url($media->file_path);
             }
         }
     } elseif (!empty($product->photo)) {
-        $schemaImages[] = url('/') . '/storage/' . $product->photo;
+        $schemaImages[] = $productImageUrl;
     }
     $schemaDesc = $product->meta_description ?: \Illuminate\Support\Str::words(strip_tags($product->description), 30, '');
     $currencyCode = get_option('currency_code', 'KES');
@@ -104,16 +105,19 @@
                         <div class="carousel-inner">
                             @if($mediafiles->count() > 0)
                                 @foreach($mediafiles as $index => $media)
+                                    @php
+                                        $mediaUrl = uploaded_image_url($media->file_path);
+                                    @endphp
                                     <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
                                         <div class="ratio ratio-1x1 rounded overflow-hidden">
-                                            <img src="{{ $media->file_path }}" alt="{{ $product->name }}" class="w-100 h-100 product-detail-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="openModal('{{ $media->file_path }}', '{{ $index }}')">
+                                            <img src="{{ $mediaUrl }}" alt="{{ $product->name }}" class="w-100 h-100 product-detail-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="openModal('{{ $mediaUrl }}', '{{ $index }}')">
                                         </div>
                                     </div>
                                 @endforeach
                             @else
                                 <div class="carousel-item active">
                                     <div class="ratio ratio-1x1 rounded overflow-hidden">
-                                        <img src="{{ url('/') }}/storage/{{ $product->photo }}" alt="{{ $product->name }}" class="w-100 h-100 product-detail-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="openModal('{{ url('/') }}/storage/{{ $product->photo }}', '0')">
+                                        <img src="{{ $productImageUrl }}" alt="{{ $product->name }}" class="w-100 h-100 product-detail-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="openModal('{{ $productImageUrl }}', '0')">
                                     </div>
                                 </div>
                             @endif
@@ -136,13 +140,16 @@
                         <div id="thumbsTrack" class="d-flex gap-2 flex-nowrap thumbs-scroll px-4">
                             @if($mediafiles->count() > 0)
                                 @foreach($mediafiles as $index => $media)
+                                    @php
+                                        $mediaUrl = uploaded_image_url($media->file_path);
+                                    @endphp
                                     <div class="thumb-item">
-                                        <img src="{{ $media->file_path }}" alt="thumb-{{ $index }}" class="img-thumbnail rounded js-thumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
+                                        <img src="{{ $mediaUrl }}" alt="thumb-{{ $index }}" class="img-thumbnail rounded js-thumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
                                     </div>
                                 @endforeach
                             @else
                                 <div class="thumb-item">
-                                    <img src="{{ url('/') }}/storage/{{ $product->photo }}" alt="thumb-0" class="img-thumbnail rounded js-thumb border-primary" data-index="0">
+                                    <img src="{{ $productImageUrl }}" alt="thumb-0" class="img-thumbnail rounded js-thumb border-primary" data-index="0">
                                 </div>
                             @endif
                         </div>
@@ -163,16 +170,19 @@
                                 <div class="carousel-inner" id="modalCarouselInner">
                                     @if($mediafiles->count() > 0)
                                         @foreach($mediafiles as $index => $media)
+                                            @php
+                                                $mediaUrl = uploaded_image_url($media->file_path);
+                                            @endphp
                                             <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
                                                 <div class="ratio ratio-4x3">
-                                                    <img src="{{ $media->file_path }}" class="w-100 h-100 product-detail-image">
+                                                    <img src="{{ $mediaUrl }}" class="w-100 h-100 product-detail-image">
                                                 </div>
                                             </div>
                                         @endforeach
                                     @else
                                         <div class="carousel-item active">
                                             <div class="ratio ratio-4x3">
-                                                <img src="{{ url('/') }}/storage/{{ $product->photo }}" class="w-100 h-100 product-detail-image">
+                                                <img src="{{ $productImageUrl }}" class="w-100 h-100 product-detail-image">
                                             </div>
                                         </div>
                                     @endif
@@ -195,13 +205,16 @@
                                 <div id="modalThumbsTrack" class="d-flex gap-2 flex-nowrap thumbs-scroll px-4 justify-content-center">
                                     @if($mediafiles->count() > 0)
                                         @foreach($mediafiles as $index => $media)
+                                            @php
+                                                $mediaUrl = uploaded_image_url($media->file_path);
+                                            @endphp
                                             <div class="thumb-item">
-                                                <img src="{{ $media->file_path }}" alt="mthumb-{{ $index }}" class="img-thumbnail rounded js-mthumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
+                                                <img src="{{ $mediaUrl }}" alt="mthumb-{{ $index }}" class="img-thumbnail rounded js-mthumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
                                             </div>
                                         @endforeach
                                     @else
                                         <div class="thumb-item">
-                                            <img src="{{ url('/') }}/storage/{{ $product->photo }}" alt="mthumb-0" class="img-thumbnail rounded js-mthumb border-primary" data-index="0">
+                                            <img src="{{ $productImageUrl }}" alt="mthumb-0" class="img-thumbnail rounded js-mthumb border-primary" data-index="0">
                                         </div>
                                     @endif
                                 </div>

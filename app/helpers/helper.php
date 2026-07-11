@@ -102,7 +102,7 @@ function uploaded_image_url($path, $fallback = null)
     $relativePath = uploaded_image_relative_path($path);
 
     if ($relativePath) {
-        return route('images', ['path' => $relativePath], false);
+        return '/images.php?path=' . rawurlencode($relativePath);
     }
 
     return $fallback ?: asset('assets/images/market5.png');

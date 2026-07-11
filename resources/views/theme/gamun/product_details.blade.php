@@ -1,7 +1,9 @@
 @extends('theme.gamun.layouts.main')
 @section('title', $product->name)
 @section('meta_description', $product->meta_description)
-@php($productImageUrl = uploaded_image_url($product->photo, get_option('hero_image')))
+@php
+    $productImageUrl = uploaded_image_url($product->photo, get_option('hero_image'));
+@endphp
 
 @section('og_title', $product->meta_title ?: $product->name)
 @section('og_description', $product->meta_description)
