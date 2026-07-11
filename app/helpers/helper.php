@@ -22,7 +22,7 @@ function uploaded_image_relative_path($path)
     $urlParts = parse_url($path);
 
     if (isset($urlParts['path'])) {
-        if (trim($urlParts['path'], '/') === 'images' && !empty($urlParts['query'])) {
+        if (in_array(trim($urlParts['path'], '/'), ['images', 'images.php'], true) && !empty($urlParts['query'])) {
             parse_str($urlParts['query'], $query);
             $path = $query['path'] ?? $path;
         } elseif (isset($urlParts['scheme']) || str_starts_with($path, '/')) {
@@ -91,6 +91,8 @@ function uploaded_image_file_path($path)
 
 function uploaded_image_url($path, $fallback = null)
 {
+    $fallback = $fallback ?: asset('assets/images/placeholder.svg');
+
     if (isset($path) && filter_var($path, FILTER_VALIDATE_URL)) {
         $urlPath = parse_url($path, PHP_URL_PATH) ?: '';
 
@@ -101,11 +103,11 @@ function uploaded_image_url($path, $fallback = null)
 
     $relativePath = uploaded_image_relative_path($path);
 
-    if ($relativePath) {
+    if ($relativePath && uploaded_image_file_path($relativePath)) {
         return '/images.php?path=' . rawurlencode($relativePath);
     }
 
-    return $fallback ?: asset('assets/images/market5.png');
+    return $fallback;
 }
 
 function get_uploaded_image($path){

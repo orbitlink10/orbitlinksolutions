@@ -4,14 +4,31 @@
 @section('meta_description', $post->meta_description)
 
 @push('meta')
+    @php
+        $siteName = get_option('site_name', 'Orbitlink Solutions');
+        $absoluteUrl = function ($value) {
+            if (empty($value)) {
+                return null;
+            }
+
+            return \Illuminate\Support\Str::startsWith($value, ['http://', 'https://', '//'])
+                ? $value
+                : url($value);
+        };
+        $postImageUrl = uploaded_image_url($post->photo, asset('assets/images/placeholder.svg'));
+        $postImageAbsolute = $absoluteUrl($postImageUrl);
+        $siteLogoUrl = uploaded_image_url(get_option('logo'), asset('favicon.ico'));
+        $siteLogoAbsolute = $absoluteUrl($siteLogoUrl);
+    @endphp
+
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="{{ $post->meta_title }}" />
     <meta property="og:description" content="{{ $post->meta_description }}" />
-    <meta property="og:image" content="{{ $post->photo ? url('/') . '/storage/' . $post->photo : asset('default-image.jpg') }}" />
+    <meta property="og:image" content="{{ $postImageAbsolute }}" />
     <meta property="og:image:width" content="1478" />
     <meta property="og:image:height" content="1108" />
     <meta property="og:url" content="{{ url()->current() }}" />
-    <meta property="og:site_name" content="{{ get_option('site_name', 'Orbitlink Solutions') }}" />
+    <meta property="og:site_name" content="{{ $siteName }}" />
     <meta property="og:type" content="article" />
     <meta property="article:published_time" content="{{ optional($post->created_at)->toIso8601String() }}" />
     <meta property="article:modified_time" content="{{ optional($post->updated_at)->toIso8601String() }}" />
@@ -21,22 +38,14 @@
     <meta name="twitter:site" content="{{ url('/') }}" />
     <meta name="twitter:title" content="{{ $post->meta_title }}" />
     <meta name="twitter:description" content="{{ $post->meta_description }}" />
-    <meta name="twitter:image" content="{{ $post->photo ? url('/') . '/storage/' . $post->photo : asset('default-image.jpg') }}" />
+    <meta name="twitter:image" content="{{ $postImageAbsolute }}" />
     @php
-        $siteName = get_option('site_name', 'Orbitlink Solutions');
-        $rawLogo = get_option('logo');
-        $siteLogo = null;
-        if (!empty($rawLogo)) {
-            $isAbs = \Illuminate\Support\Str::startsWith($rawLogo, ['http://', 'https://', '//']);
-            $siteLogo = $isAbs ? $rawLogo : url($rawLogo);
-        }
-        $postImage = $post->photo ? url('/') . '/storage/' . $post->photo : null;
         $articleSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'BlogPosting',
             'headline' => $post->title,
             'description' => strip_tags((string) $post->meta_description),
-            'image' => $postImage ? [$postImage] : null,
+            'image' => $postImageAbsolute ? [$postImageAbsolute] : null,
             'datePublished' => optional($post->created_at)->toIso8601String(),
             'dateModified' => optional($post->updated_at)->toIso8601String(),
             'author' => [
@@ -46,9 +55,9 @@
             'publisher' => [
                 '@type' => 'Organization',
                 'name' => $siteName,
-                'logo' => $siteLogo ? [
+                'logo' => $siteLogoAbsolute ? [
                     '@type' => 'ImageObject',
-                    'url' => $siteLogo,
+                    'url' => $siteLogoAbsolute,
                 ] : null,
             ],
             'mainEntityOfPage' => url()->current(),
@@ -103,7 +112,7 @@
                      @else
 
                      <img class="img-fluid rounded shadow-lg"
-                     src="{{ get_option('hero_image', 'assets/img/default-placeholder.jpg') }}"
+                     src="{{ uploaded_image_url(get_option('hero_image'), asset('assets/images/placeholder.svg')) }}"
                      alt="{{ $post->title }} image" style="max-width: 90%; border-radius: 20px;">
  
                      @endif

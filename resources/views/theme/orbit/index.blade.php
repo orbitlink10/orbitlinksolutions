@@ -61,21 +61,23 @@
                             <!-- Media (image / local video / YouTube / Vimeo) -->
                             <div class="col-lg-6 text-center hero-media">
                                 @php
-                                    $src         = $slider->img_url;
-                                    $isVideoFile = \Illuminate\Support\Str::endsWith($src, ['.mp4', '.webm', '.ogg']);
-                                    $isYouTube   = \Illuminate\Support\Str::contains($src, ['youtube.com', 'youtu.be']);
-                                    $isVimeo     = \Illuminate\Support\Str::contains($src, 'vimeo.com');
+                                    $rawSrc = trim((string) $slider->img_url);
+                                    $mediaPath = parse_url($rawSrc, PHP_URL_PATH) ?: $rawSrc;
+                                    $isVideoFile = \Illuminate\Support\Str::endsWith($mediaPath, ['.mp4', '.webm', '.ogg']);
+                                    $isYouTube = \Illuminate\Support\Str::contains($rawSrc, ['youtube.com', 'youtu.be']);
+                                    $isVimeo = \Illuminate\Support\Str::contains($rawSrc, 'vimeo.com');
+                                    $mediaSrc = ($isYouTube || $isVimeo) ? $rawSrc : uploaded_image_url($rawSrc);
                                 @endphp
 
                                 <div class="media-frame">
                                     {{-- Local/hosted video --}}
                                     @if($isVideoFile)
-                                        <video src="{{ $src }}" class="w-100" autoplay muted loop playsinline></video>
+                                        <video src="{{ $mediaSrc }}" class="w-100" autoplay muted loop playsinline></video>
 
                                     {{-- YouTube embed --}}
                                     @elseif($isYouTube)
                                         @php
-                                            preg_match('~(youtu\.be/|v=)([^&/]+)~', $src, $m);
+                                            preg_match('~(youtu\.be/|v=)([^&/]+)~', $rawSrc, $m);
                                             $ytId = $m[2] ?? '';
                                         @endphp
                                         <iframe class="w-100"
@@ -87,7 +89,7 @@
                                     {{-- Vimeo embed --}}
                                     @elseif($isVimeo)
                                         @php
-                                            preg_match('~vimeo\.com/(?:video/)?(\d+)~', $src, $m);
+                                            preg_match('~vimeo\.com/(?:video/)?(\d+)~', $rawSrc, $m);
                                             $vmId = $m[1] ?? '';
                                         @endphp
                                         <iframe class="w-100"
@@ -98,7 +100,7 @@
 
                                     {{-- Fallback image --}}
                                     @else
-                                        <img src="{{ $src }}" alt="Hero media" class="img-fluid" loading="lazy">
+                                        <img src="{{ $mediaSrc }}" alt="Hero media" class="img-fluid" loading="lazy">
                                     @endif
                                 </div>
                             </div>
@@ -461,5 +463,4 @@
   // Removed sticky pass-through: default page scroll behavior restored
 </script>
 @endsection
-
 

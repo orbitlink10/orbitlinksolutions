@@ -16,21 +16,20 @@
         $rawLogo = get_option('logo');
         $rawFavicon = get_option('favicon');
         $rawHero = get_option('hero_image');
-        $siteLogo = null;
-        $isAbs = function ($value) {
-            return \Illuminate\Support\Str::startsWith($value, ['http://', 'https://', '//']);
+        $absoluteUrl = function ($value) {
+            if (empty($value)) {
+                return null;
+            }
+
+            return \Illuminate\Support\Str::startsWith($value, ['http://', 'https://', '//'])
+                ? $value
+                : url($value);
         };
-        if (!empty($rawLogo)) {
-            $siteLogo = $isAbs($rawLogo) ? $rawLogo : url($rawLogo);
-        } elseif (!empty($rawFavicon)) {
-            $siteLogo = $isAbs($rawFavicon) ? $rawFavicon : url($rawFavicon);
-        } else {
-            $siteLogo = asset('default-favicon.png');
-        }
-        $shareImage = $rawHero ?: $siteLogo;
-        if (!empty($shareImage) && !$isAbs($shareImage)) {
-            $shareImage = url($shareImage);
-        }
+        $faviconUrl = uploaded_image_url($rawFavicon, asset('favicon.ico'));
+        $siteLogo = !empty($rawLogo) ? uploaded_image_url($rawLogo, $faviconUrl) : $faviconUrl;
+        $shareImage = uploaded_image_url($rawHero, $siteLogo);
+        $siteLogoAbsolute = $absoluteUrl($siteLogo);
+        $shareImageAbsolute = $absoluteUrl($shareImage);
         $locale = str_replace('_', '-', app()->getLocale());
         $socialLinks = array_filter([
             get_option('facebook'),
@@ -53,7 +52,7 @@
             '@type' => 'Organization',
             'name' => $siteName,
             'url' => $siteUrl,
-            'logo' => $siteLogo,
+            'logo' => $siteLogoAbsolute,
             'email' => $contactEmail ?: null,
             'contactPoint' => $contactPoint,
             'sameAs' => !empty($socialLinks) ? array_values($socialLinks) : null
@@ -90,7 +89,7 @@
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="@yield('og_title', $siteName)" />
     <meta property="og:description" content="@yield('og_description', $siteDesc)" />
-    <meta property="og:image" content="@yield('og_image', $shareImage)" />
+    <meta property="og:image" content="@yield('og_image', $shareImageAbsolute)" />
     <meta property="og:url" content="@yield('og_url', url()->current())" />
     <meta property="og:site_name" content="{{ $siteName }}" />
     <meta property="og:type" content="@yield('og_type', 'website')" />
@@ -101,15 +100,15 @@
     <meta name="twitter:site" content="@yield('twitter_site', $siteUrl)" />
     <meta name="twitter:title" content="@yield('twitter_title', $siteName)" />
     <meta name="twitter:description" content="@yield('twitter_description', $siteDesc)" />
-    <meta name="twitter:image" content="@yield('twitter_image', $shareImage)" />
+    <meta name="twitter:image" content="@yield('twitter_image', $shareImageAbsolute)" />
 
     <!-- Favicons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ get_option('favicon', asset('default-favicon.png')) }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ get_option('favicon', asset('default-favicon.png')) }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ get_option('favicon', asset('default-favicon.png')) }}">
-    <link rel="shortcut icon" type="image/x-icon" href="{{ get_option('favicon', asset('default-favicon.png')) }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $faviconUrl }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ $faviconUrl }}">
     <link rel="manifest" href="{{ asset('dark/assets/img/favicons/manifest.json') }}">
-    <meta name="msapplication-TileImage" content="{{ get_option('favicon', asset('default-favicon.png')) }}">
+    <meta name="msapplication-TileImage" content="{{ $faviconUrl }}">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="{{ url()->current() }}">
@@ -194,8 +193,7 @@
                     $rawLogo = get_option('logo');
                     $logoUrl = null;
                     if (!empty($rawLogo)) {
-                        $isAbs = \Illuminate\Support\Str::startsWith($rawLogo, ['http://','https://','//']);
-                        $logoUrl = $isAbs ? $rawLogo : url($rawLogo);
+                        $logoUrl = uploaded_image_url($rawLogo);
                     }
                 @endphp
                 <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
