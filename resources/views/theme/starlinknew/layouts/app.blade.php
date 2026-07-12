@@ -49,7 +49,7 @@
     @php
         $siteUrl   = rtrim(config('app.url') ?: url('/'), '/');
         $siteName  = get_option('site_name', 'Starlink Kenya Installers');
-        $logo      = get_option('logo');
+        $logo      = uploaded_image_url(get_option('logo'), asset('assets/images/orbitlinks-logo.webp'));
         $heroImage = get_option('hero_image') ?: $logo;
         $phone     = get_option('contact_phone');
         $address   = get_option('address');
@@ -316,7 +316,7 @@
                 <div class="header-wrap">
                     <div class="logo logo-width-1">
                         <a href="{{ url('/')}}">
-                            <img src="{{ get_option('logo') }}" alt="logo" loading="lazy">
+                            <img src="{{ $logo }}" alt="{{ $siteName }} logo" loading="lazy">
                         </a>
                     </div>
 
@@ -381,7 +381,7 @@
             <div class="container">
                 <div class="header-wrap header-space-between position-relative">
                     <div class="logo logo-width-1 d-block d-lg-none">
-                        <a href="{{ url('/')}}"><img src="{{ get_option('logo') }}" alt="logo"></a>
+                        <a href="{{ url('/')}}"><img src="{{ $logo }}" alt="{{ $siteName }} logo"></a>
                     </div>
                     <div class="header-nav d-none d-lg-flex">
 
@@ -482,7 +482,7 @@
         <div class="mobile-header-wrapper-inner">
             <div class="mobile-header-top">
                 <div class="mobile-header-logo">
-                        <a href="{{ url('home') }}"><img src="{{ get_option('logo') }}" alt="logo" loading="lazy"></a>
+                        <a href="{{ url('/') }}"><img src="{{ $logo }}" alt="{{ $siteName }} logo" loading="lazy"></a>
                 </div>
                 <div class="mobile-menu-close close-style-wrap close-style-position-inherit">
                     <button class="close-style search-close">
@@ -563,5 +563,4 @@
 
 
    @include('flash_msg')
-
 

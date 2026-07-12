@@ -16,6 +16,7 @@
         $rawLogo = get_option('logo');
         $rawFavicon = get_option('favicon');
         $rawHero = get_option('hero_image');
+        $defaultLogo = asset('assets/images/orbitlinks-logo.webp');
         $absoluteUrl = function ($value) {
             if (empty($value)) {
                 return null;
@@ -26,11 +27,7 @@
                 : url($value);
         };
         $faviconUrl = uploaded_image_url($rawFavicon, asset('favicon.ico'));
-        $siteLogo = !empty($rawLogo)
-            ? (\Illuminate\Support\Str::startsWith($rawLogo, ['http://', 'https://', '//'])
-                ? $rawLogo
-                : uploaded_image_url($rawLogo, $faviconUrl))
-            : $faviconUrl;
+        $siteLogo = !empty($rawLogo) ? uploaded_image_url($rawLogo, $defaultLogo) : $defaultLogo;
         $shareImage = uploaded_image_url($rawHero, $siteLogo);
         $siteLogoAbsolute = $absoluteUrl($siteLogo);
         $shareImageAbsolute = $absoluteUrl($shareImage);
@@ -195,12 +192,9 @@
                 @php
                     $siteName = get_option('site_name', 'Orbitlink Solutions');
                     $rawLogo = get_option('logo');
-                    $logoUrl = null;
-                    if (!empty($rawLogo)) {
-                        $logoUrl = \Illuminate\Support\Str::startsWith($rawLogo, ['http://', 'https://', '//'])
-                            ? $rawLogo
-                            : uploaded_image_url($rawLogo);
-                    }
+                    $logoUrl = !empty($rawLogo)
+                        ? uploaded_image_url($rawLogo, asset('assets/images/orbitlinks-logo.webp'))
+                        : asset('assets/images/orbitlinks-logo.webp');
                 @endphp
                 <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
                     @if($logoUrl)

@@ -104,7 +104,7 @@ function uploaded_image_url($path, $fallback = null)
     $relativePath = uploaded_image_relative_path($path);
 
     if ($relativePath && uploaded_image_file_path($relativePath)) {
-        return '/images.php?path=' . rawurlencode($relativePath);
+        return url('images') . '?path=' . rawurlencode($relativePath);
     }
 
     return $fallback;

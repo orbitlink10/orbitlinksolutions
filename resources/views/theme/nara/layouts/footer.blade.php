@@ -7,7 +7,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="widget-about font-md mb-md-5 mb-lg-0">
                         <div class="logo logo-width-1 wow fadeIn animated">
-                            <a href="index.html"><img src="{{ get_option('logo') }}" alt="logo"></a>
+                            <a href="{{ url('/') }}"><img src="{{ uploaded_image_url(get_option('logo'), asset('assets/images/orbitlinks-logo.webp')) }}" alt="{{ get_option('site_name', 'Orbitlink Solutions') }} logo"></a>
                         </div>
                         <h5 class="mt-20 mb-10 fw-600 text-grey-4 wow fadeIn animated">Contact</h5>
                         <p class="wow fadeIn animated">

@@ -57,6 +57,11 @@
 
 <body>
 
+@php
+    $siteName = get_option('site_name', 'Orbitlink Solutions');
+    $siteLogoUrl = uploaded_image_url(get_option('logo'), asset('assets/images/orbitlinks-logo.webp'));
+@endphp
+
 
 
 
@@ -96,7 +101,7 @@
                 <div class="header-wrap">
                     <div class="logo logo-width-1">
                         <a href="{{ url('/')}}">
-                            <img src="{{ get_option('logo') }}" alt="logo">
+                            <img src="{{ $siteLogoUrl }}" alt="{{ $siteName }} logo">
                         </a>
                     </div>
 
@@ -161,7 +166,7 @@
             <div class="container">
                 <div class="header-wrap header-space-between position-relative">
                     <div class="logo logo-width-1 d-block d-lg-none">
-                        <a href="{{ url('/')}}"><img src="{{ get_option('logo') }}" alt="logo"></a>
+                        <a href="{{ url('/')}}"><img src="{{ $siteLogoUrl }}" alt="{{ $siteName }} logo"></a>
                     </div>
                     <div class="header-nav d-none d-lg-flex">
 
@@ -255,7 +260,7 @@
         <div class="mobile-header-wrapper-inner">
             <div class="mobile-header-top">
                 <div class="mobile-header-logo">
-                    <a href="{{ url('home') }}"><img src="{{ get_option('logo') }}" alt="logo"></a>
+                    <a href="{{ url('/') }}"><img src="{{ $siteLogoUrl }}" alt="{{ $siteName }} logo"></a>
                 </div>
                 <div class="mobile-menu-close close-style-wrap close-style-position-inherit">
                     <button class="close-style search-close">
