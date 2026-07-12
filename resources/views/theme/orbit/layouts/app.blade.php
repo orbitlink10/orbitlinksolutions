@@ -16,7 +16,7 @@
         $rawLogo = get_option('logo');
         $rawFavicon = get_option('favicon');
         $rawHero = get_option('hero_image');
-        $defaultLogo = asset('lucare/assets/imgs/theme/logo.svg');
+        $defaultLogo = asset('assets/images/orbitlinks-logo.webp');
         $absoluteUrl = function ($value) {
             if (empty($value)) {
                 return null;
@@ -193,8 +193,8 @@
                     $siteName = get_option('site_name', 'Orbitlink Solutions');
                     $rawLogo = get_option('logo');
                     $logoUrl = !empty($rawLogo)
-                        ? uploaded_image_url($rawLogo, asset('lucare/assets/imgs/theme/logo.svg'))
-                        : asset('lucare/assets/imgs/theme/logo.svg');
+                        ? uploaded_image_url($rawLogo, asset('assets/images/orbitlinks-logo.webp'))
+                        : asset('assets/images/orbitlinks-logo.webp');
                 @endphp
                 <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
                     @if($logoUrl)

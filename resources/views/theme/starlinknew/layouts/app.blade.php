@@ -49,7 +49,7 @@
     @php
         $siteUrl   = rtrim(config('app.url') ?: url('/'), '/');
         $siteName  = get_option('site_name', 'Starlink Kenya Installers');
-        $logo      = uploaded_image_url(get_option('logo'), asset('lucare/assets/imgs/theme/logo.svg'));
+        $logo      = uploaded_image_url(get_option('logo'), asset('assets/images/orbitlinks-logo.webp'));
         $heroImage = get_option('hero_image') ?: $logo;
         $phone     = get_option('contact_phone');
         $address   = get_option('address');

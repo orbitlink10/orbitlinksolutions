@@ -6,7 +6,7 @@
       <!-- About & Contact -->
       <div class="col-md-4">
         <a href="{{ url('/') }}" class="d-inline-block mb-3">
-          <img src="{{ uploaded_image_url(get_option('logo'), asset('lucare/assets/imgs/theme/logo.svg')) }}" alt="{{ get_option('site_name') }} logo" height="50">
+          <img src="{{ uploaded_image_url(get_option('logo'), asset('assets/images/orbitlinks-logo.webp')) }}" alt="{{ get_option('site_name') }} logo" height="50">
         </a>
         <ul class="list-unstyled mb-3">
           <li class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i>{{ get_option('address') }}</li>
