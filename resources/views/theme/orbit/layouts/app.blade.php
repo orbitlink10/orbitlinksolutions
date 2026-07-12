@@ -26,7 +26,11 @@
                 : url($value);
         };
         $faviconUrl = uploaded_image_url($rawFavicon, asset('favicon.ico'));
-        $siteLogo = !empty($rawLogo) ? uploaded_image_url($rawLogo, $faviconUrl) : $faviconUrl;
+        $siteLogo = !empty($rawLogo)
+            ? (\Illuminate\Support\Str::startsWith($rawLogo, ['http://', 'https://', '//'])
+                ? $rawLogo
+                : uploaded_image_url($rawLogo, $faviconUrl))
+            : $faviconUrl;
         $shareImage = uploaded_image_url($rawHero, $siteLogo);
         $siteLogoAbsolute = $absoluteUrl($siteLogo);
         $shareImageAbsolute = $absoluteUrl($shareImage);
@@ -193,7 +197,9 @@
                     $rawLogo = get_option('logo');
                     $logoUrl = null;
                     if (!empty($rawLogo)) {
-                        $logoUrl = uploaded_image_url($rawLogo);
+                        $logoUrl = \Illuminate\Support\Str::startsWith($rawLogo, ['http://', 'https://', '//'])
+                            ? $rawLogo
+                            : uploaded_image_url($rawLogo);
                     }
                 @endphp
                 <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
