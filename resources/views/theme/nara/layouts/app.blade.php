@@ -59,7 +59,7 @@
 
 @php
     $siteName = get_option('site_name', 'Orbitlink Solutions');
-    $siteLogoUrl = uploaded_image_url(get_option('logo'), asset('assets/images/orbitlinks-logo.webp'));
+    $siteLogoUrl = uploaded_image_url(get_option('logo'), asset('lucare/assets/imgs/theme/logo.svg'));
 @endphp
 
 
