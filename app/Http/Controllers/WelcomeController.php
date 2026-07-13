@@ -92,7 +92,7 @@ class WelcomeController extends Controller
         $options =Option::all();
         $sliders =Slider::all();
 
-        $products = Product::whereProductType('product')->orderBy('id', 'desc')->limit(8)->get();
+        $products = Product::with(['mediaFiles', 'category'])->whereProductType('product')->orderBy('id', 'desc')->limit(8)->get();
 
 $testimonials = Testimonial::all();
 $medias = Media::whereMediaType('installation')->limit(30)->get();
@@ -239,7 +239,7 @@ public function reviews()
     public function products(Request $request)
     {
         // Start with the query builder
-        $query = Product::where('product_type', 'product');
+        $query = Product::with(['mediaFiles', 'category'])->where('product_type', 'product');
 
         // Apply search filter if a query exists
         if ($request->filled('q')) {
@@ -338,7 +338,8 @@ public function reviews()
     }
 
     // Otherwise, load and paginate products in that category
-    $products = Product::where('product_type', 'product')
+    $products = Product::with(['mediaFiles', 'category'])
+        ->where('product_type', 'product')
         ->where('category_id', $category->id)
         ->orderBy('id', 'desc')
         ->paginate(12);
@@ -353,23 +354,23 @@ public function reviews()
 
 
     public function product_details($slug){
-        $product = Product::where('slug',$slug)->first();
+        $product = Product::with(['mediaFiles', 'category'])->where('slug',$slug)->first();
         if(!$product){
             return back()->with('error','Not Found');
         }
 
-              $mediafiles  = Media::whereProductId($product->id)->get();
+              $mediafiles  = $product->mediaFiles;
         return view('theme.'.get_option('theme').'.product_details', compact('product', 'mediafiles'));
     }
 
 
     public function product_details_preview($slug){
-        $product = Product::where('slug',$slug)->first();
+        $product = Product::with(['mediaFiles', 'category'])->where('slug',$slug)->first();
         if(!$product){
             return back()->with('error','Not Found');
         }
 
-        $mediafiles  = Media::whereProductId($product->id)->get();
+        $mediafiles  = $product->mediaFiles;
         $themeView = 'theme.' . get_option('theme') . '.product_details';
 
         return view()->exists($themeView)

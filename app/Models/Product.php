@@ -44,4 +44,14 @@ public function orders()
     {
         return $this->hasMany(Size::class);
     }
+
+    public function mediaFiles()
+    {
+        return $this->hasMany(Media::class, 'product_id')->orderBy('id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
 }

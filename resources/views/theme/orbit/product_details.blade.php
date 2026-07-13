@@ -2,7 +2,7 @@
 @section('title', $product->name)
 @section('meta_description', $product->meta_description)
 @php
-    $productImageUrl = uploaded_image_url($product->photo, asset('default-image.jpg'));
+    $productImageUrl = product_image_url($product, asset('default-image.jpg'));
 @endphp
 
 @push('meta')

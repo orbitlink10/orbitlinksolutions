@@ -85,9 +85,9 @@ class ProductService{
 
         
         if ($request->hasFile('photo')) {
-            $file_path = normalizeFilePath(storage_path().'/app/public/'.$product->photo);
+            $file_path = uploaded_image_file_path($product->photo);
 
-            if(File::exists($file_path)) {
+            if($file_path && File::exists($file_path)) {
                 File::delete($file_path); //delete from storage
                 // Storage::delete($file_path); //Or you can do it as well
             }
@@ -113,9 +113,9 @@ class ProductService{
         if(!$product){
             return redirect()->route('products.index')->with("errors", "Product Not Found");
         }
-        $file_path = normalizeFilePath(storage_path().'/app/public/'.$product->photo);
+        $file_path = uploaded_image_file_path($product->photo);
 
-        if(File::exists($file_path)) {
+        if($file_path && File::exists($file_path)) {
             File::delete($file_path); //delete from storage
             // Storage::delete($file_path); //Or you can do it as well
         }

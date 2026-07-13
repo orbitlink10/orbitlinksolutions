@@ -84,8 +84,8 @@
                             <div class="product-img-action-wrap">
                                 <div class="product-img product-img-zoom">
                                     <a href="{{ route('product_details', $ad->slug) }}">
-                                        <img class="default-img" src="{{ uploaded_image_url($ad->photo) }}" alt="{{ $ad->name }}" loading="lazy">
-                                        <img class="hover-img" src="{{ uploaded_image_url($ad->photo) }}" alt="{{ $ad->name }}" loading="lazy">
+                                        <img class="default-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
+                                        <img class="hover-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
                                     </a>
                                 </div>
                             </div>

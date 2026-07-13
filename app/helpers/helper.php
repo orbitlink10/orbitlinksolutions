@@ -111,6 +111,39 @@ function uploaded_image_url($path, $fallback = null)
     return $fallback;
 }
 
+function product_image_url($product, $fallback = null)
+{
+    $fallback = $fallback ?: asset('assets/images/placeholder.svg');
+
+    if (!$product) {
+        return $fallback;
+    }
+
+    if (!empty($product->photo) && uploaded_image_file_path($product->photo)) {
+        return uploaded_image_url($product->photo, $fallback);
+    }
+
+    $mediaFiles = method_exists($product, 'relationLoaded') && $product->relationLoaded('mediaFiles')
+        ? $product->mediaFiles
+        : \App\Models\Media::whereProductId($product->id)->whereNotNull('file_path')->orderBy('id')->take(10)->get();
+
+    foreach ($mediaFiles as $media) {
+        if (!empty($media->file_path) && uploaded_image_file_path($media->file_path)) {
+            return uploaded_image_url($media->file_path, $fallback);
+        }
+    }
+
+    $category = method_exists($product, 'relationLoaded') && $product->relationLoaded('category')
+        ? $product->category
+        : (!empty($product->category_id) ? \App\Models\Category::find($product->category_id) : null);
+
+    if ($category && !empty($category->photo) && uploaded_image_file_path($category->photo)) {
+        return uploaded_image_url($category->photo, $fallback);
+    }
+
+    return $fallback;
+}
+
 function get_uploaded_image($path){
     $path = uploaded_image_file_path($path);
 
