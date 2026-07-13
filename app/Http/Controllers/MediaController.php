@@ -40,10 +40,7 @@ class MediaController extends Controller
 
 
 
-            $fileNameWithExt = $request->file_path->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->file_path->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
+            $filenameToStore = upload_file_name($request->file_path);
             $request->file_path->storeAs('uploads/medias/', $filenameToStore,'public');
 
          
@@ -96,10 +93,7 @@ class MediaController extends Controller
 
         // Update the file if provided
         if ($request->hasFile('file_path')) {
-                  $fileNameWithExt = $request->file_path->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->file_path->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
+            $filenameToStore = upload_file_name($request->file_path);
             $request->file_path->storeAs('uploads/medias/', $filenameToStore,'public');
 
          

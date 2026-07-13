@@ -62,15 +62,7 @@ public function store(Request $request)
 
     // 4. Optional: handle photo upload
     if ($request->hasFile('photo')) {
-        $originalName     = $request->file('photo')->getClientOriginalName();
-        $filename         = pathinfo($originalName, PATHINFO_FILENAME);
-        $extension        = $request->file('photo')->getClientOriginalExtension();
-        $filenameToStore  = $filename . '-' . time() . '.' . $extension;
-
-        // Store the file in storage/app/public/uploads/images/
-        $request->file('photo')->storeAs('uploads/images', $filenameToStore, 'public');
-
-        $category->photo = 'uploads/images/' . $filenameToStore;
+        $category->photo = upload_photo($request->file('photo'));
     }
 
     // 5. Save the category
@@ -129,15 +121,7 @@ public function update(Request $request, Category $category)
 
     // 3. Handle new photo upload (if provided)
     if ($request->hasFile('photo')) {
-        $originalName = $request->file('photo')->getClientOriginalName();
-        $filename     = pathinfo($originalName, PATHINFO_FILENAME);
-        $extension    = $request->file('photo')->getClientOriginalExtension();
-        $filenameToStore = $filename . '-' . time() . '.' . $extension;
-
-        // Store the file in "storage/app/public/uploads/images"
-        $request->file('photo')->storeAs('uploads/images', $filenameToStore, 'public');
-
-        $category->photo = 'uploads/images/' . $filenameToStore;
+        $category->photo = upload_photo($request->file('photo'));
     }
 
     // 4. Save changes

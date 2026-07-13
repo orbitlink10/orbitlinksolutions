@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
 
 function normalizeFilePath($path){
     return str_replace(['/', "\\"], DIRECTORY_SEPARATOR, $path);
@@ -138,11 +139,36 @@ function get_uploaded_image($path){
 
 
 
-function upload_photo($photo){
+function upload_file_name($photo, $maxBaseLength = 80, $suffix = null){
     $fileNameWithExt = $photo->getClientOriginalName();
     $fileName = pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-    $extension = $photo->getClientOriginalExtension();
-    $filenameToStore = $fileName . '-' . time() . '.' . $extension;
+    $extension = strtolower($photo->getClientOriginalExtension());
+    $safeBaseName = Str::slug($fileName);
+
+    if ($safeBaseName === '') {
+        $safeBaseName = 'upload';
+    }
+
+    $safeBaseName = Str::limit($safeBaseName, $maxBaseLength, '');
+    $filenameToStore = $safeBaseName . '-' . time();
+
+    if ($suffix !== null && $suffix !== '') {
+        $safeSuffix = Str::slug((string) $suffix);
+
+        if ($safeSuffix !== '') {
+            $filenameToStore .= '-' . $safeSuffix;
+        }
+    }
+
+    if ($extension !== '') {
+        $filenameToStore .= '.' . $extension;
+    }
+
+    return $filenameToStore;
+}
+
+function upload_photo($photo){
+    $filenameToStore = upload_file_name($photo);
     $photo->storeAs('uploads/images/', $filenameToStore, 'public');
     $photoPath = 'uploads/images/' . $filenameToStore;
     return $photoPath;

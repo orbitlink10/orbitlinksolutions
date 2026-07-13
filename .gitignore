@@ -10,6 +10,10 @@
 !/storage/app/.gitignore
 !/storage/app/public/
 !/storage/app/public/.gitignore
+!/storage/products/
+!/storage/products/**
+!/storage/uploads/
+!/storage/uploads/**
 !/storage/framework/
 !/storage/framework/.gitignore
 !/storage/framework/cache/

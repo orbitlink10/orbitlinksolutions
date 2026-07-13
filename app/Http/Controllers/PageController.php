@@ -126,8 +126,7 @@ class PageController extends Controller
             // Generate file name
             $fileNameWithExt = $file->getClientOriginalName();
             $fileName = pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $extension = $file->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '-' . $index . '.' . $extension;
+            $filenameToStore = upload_file_name($file, 80, $index);
 
             // Store the file
             $file->storeAs('uploads/medias/', $filenameToStore, 'public');

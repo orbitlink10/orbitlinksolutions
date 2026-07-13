@@ -204,19 +204,7 @@ public function index()
 
 
     if($request->hasFile('photo')) {
-
-          
-
-            $fileNameWithExt = $request->photo->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->photo->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
-            $request->photo->storeAs('uploads/images/', $filenameToStore,'public');
-
-
-        
-
-            $category->photo = 'uploads/images/'.$filenameToStore;
+            $category->photo = upload_photo($request->photo);
                        
         }
 
@@ -268,12 +256,7 @@ public function index()
                 // Storage::delete($file_path); //Or you can do it as well
             }
 
-            $fileNameWithExt = $request->photo->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->photo->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
-            $request->photo->storeAs('uploads/images/', $filenameToStore,'public');
-            $post->photo = 'uploads/images/'.$filenameToStore;
+            $post->photo = upload_photo($request->photo);
         }
 
 
@@ -309,12 +292,7 @@ public function index()
         $product->user_id = $user;
         $product->slug = $slug;
         if($request->hasFile('photo')) {
-            $fileNameWithExt = $request->photo->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->photo->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
-            $path = $request->photo->storeAs('uploads/images/', $filenameToStore,'public');
-            $product->photo = 'uploads/images/'.$filenameToStore;
+            $product->photo = upload_photo($request->photo);
             }
         // dd($product);
         $product->save();
@@ -456,12 +434,7 @@ public function index()
         $page->head_2 = $request->input('head_2');
         $page->slug = $slug;
         if($request->hasFile('photo')) {
-            $fileNameWithExt = $request->photo->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->photo->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
-            $path = $request->photo->storeAs('uploads/images/', $filenameToStore,'public');
-            $page->photo = 'uploads/images/'.$filenameToStore;
+            $page->photo = upload_photo($request->photo);
             }
         $page->save();
 
@@ -512,12 +485,7 @@ public function index()
                 // Storage::delete($file_path); //Or you can do it as well
             }
 
-            $fileNameWithExt = $request->photo->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->photo->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
-            $request->photo->storeAs('uploads/images/', $filenameToStore,'public');
-            $page->photo = 'uploads/images/'.$filenameToStore;
+            $page->photo = upload_photo($request->photo);
         }
         // dd($page);
         $page->update();
@@ -631,20 +599,16 @@ public function index()
 
         if($request->hasFile('photo')) {
 
-            $file_path = normalizeFilePath(storage_path().'/app/public/'.get_option('favicon'));
+            $file_path = uploaded_image_file_path(get_option('favicon'));
 
-            if(File::exists($file_path)) {
+            if($file_path && File::exists($file_path)) {
                 File::delete($file_path); //delete from storage
             }
 
-            $fileNameWithExt = $request->photo->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->photo->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
-            $request->photo->storeAs('uploads/images/', $filenameToStore,'public');
+            $photoPath = upload_photo($request->photo);
 
             $option               = Option::firstOrCreate(['option_key' => 'favicon']);
-            $option->option_value = url('/').'/storage/uploads/images/'.$filenameToStore;
+            $option->option_value = url('/').'/storage/'.$photoPath;
             $option->save();
             
         }
@@ -653,20 +617,16 @@ public function index()
 
         if($request->hasFile('logo')) {
 
-            $file_path = normalizeFilePath(storage_path().'/app/public/'.get_option('logo'));
+            $file_path = uploaded_image_file_path(get_option('logo'));
 
-            if(File::exists($file_path)) {
+            if($file_path && File::exists($file_path)) {
                 File::delete($file_path); //delete from storage
             }
 
-            $fileNameWithExt = $request->logo->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->logo->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
-            $request->logo->storeAs('uploads/images/', $filenameToStore,'public');
+            $photoPath = upload_photo($request->logo);
 
             $option               = Option::firstOrCreate(['option_key' => 'logo']);
-            $option->option_value = url('/').'/storage/uploads/images/'.$filenameToStore;
+            $option->option_value = url('/').'/storage/'.$photoPath;
             $option->save();
             
         }
@@ -674,20 +634,16 @@ public function index()
 
         if($request->hasFile('hero_image')) {
 
-            $file_path = normalizeFilePath(storage_path().'/app/public/'.get_option('hero_image'));
+            $file_path = uploaded_image_file_path(get_option('hero_image'));
 
-            if(File::exists($file_path)) {
+            if($file_path && File::exists($file_path)) {
                 File::delete($file_path); //delete from storage
             }
 
-            $fileNameWithExt = $request->hero_image->getClientOriginalName();
-            $fileName =  pathinfo($fileNameWithExt, PATHINFO_FILENAME);
-            $Extension = $request->hero_image->getClientOriginalExtension();
-            $filenameToStore = $fileName . '-' . time() . '.' . $Extension;
-            $request->hero_image->storeAs('uploads/images/', $filenameToStore,'public');
+            $photoPath = upload_photo($request->hero_image);
 
             $option               = Option::firstOrCreate(['option_key' => 'hero_image']);
-            $option->option_value = url('/').'/storage/uploads/images/'.$filenameToStore;
+            $option->option_value = url('/').'/storage/'.$photoPath;
             $option->save();
             
         }
