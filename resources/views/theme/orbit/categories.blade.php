@@ -173,20 +173,15 @@
                 </div>
                 <div class="category-hero-card">
                     <div class="category-hero-card-body">
-                        <div class="category-hero-stat">
-                            <span class="stat-label">Products</span>
-                            <span class="stat-value">{{ number_format($totalItems) }}</span>
-                        </div>
                         <div class="category-hero-image">
                             @if(!empty($category->photo))
-                                <img src="{{ uploaded_image_url($category->photo) }}" alt="{{ $category->name }}" width="240" height="240">
+                                <img src="{{ uploaded_image_url($category->photo) }}" alt="{{ $category->name }}" width="900" height="640">
                             @else
                                 <div class="category-hero-image-fallback">
                                     <i class="fas fa-camera"></i>
                                 </div>
                             @endif
                         </div>
-                        <p class="category-hero-note">Shop curated {{ $category->name }} gear with trusted brands and flexible budgets.</p>
                     </div>
                 </div>
             </div>
