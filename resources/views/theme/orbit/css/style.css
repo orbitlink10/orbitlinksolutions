@@ -466,11 +466,11 @@ input:focus-visible,
 
 .hero-section .hero-media {
     position: relative;
-    box-shadow: var(--shadow-lg);
-    border-radius: var(--radius-lg);
+    box-shadow: none;
+    border-radius: 0;
     overflow: visible;
-    background: #0b1220;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    border: 0;
 }
 
 .hero-section .hero-media::before {
@@ -489,7 +489,8 @@ input:focus-visible,
     width: 100%;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    background: #0b1220;
+    background: #ffffff;
+    box-shadow: var(--shadow-lg);
 }
 
 .hero-section .hero-media .media-frame > img,
