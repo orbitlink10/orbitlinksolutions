@@ -563,6 +563,17 @@ public function reviews()
         ])->header('Content-Type', 'text/xml');
     }
 
+    public function categoriesSitemap()
+    {
+        $categories = Category::whereNotNull('slug')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return response()->view('category_sitemap', [
+            'categories' => $categories,
+        ])->header('Content-Type', 'text/xml');
+    }
+
 
     public function sitemaps($sitemap)
     {

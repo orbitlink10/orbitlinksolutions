@@ -1,19 +1,150 @@
 @extends('theme.orbit.layouts.main')
 
-@section('title')
-    {{ $category->name }}
-@endsection
-
-@section('meta_description')
-    {{ $category->meta_description }}
-@endsection
-@section('main')
-
 @php
     $totalItems = method_exists($products, 'total') ? $products->total() : $products->count();
     $firstItem = method_exists($products, 'firstItem') ? ($products->firstItem() ?? 0) : ($products->count() > 0 ? 1 : 0);
     $lastItem = method_exists($products, 'lastItem') ? ($products->lastItem() ?? $products->count()) : $products->count();
+    $currentPage = method_exists($products, 'currentPage') ? $products->currentPage() : 1;
+    $categoryUrl = route('view_product_category', ['slug' => $category->slug]);
+    $canonicalUrl = $currentPage > 1 && method_exists($products, 'url') ? $products->url($currentPage) : $categoryUrl;
+    $baseTitle = $category->name;
+    $pageTitle = $currentPage > 1 ? $baseTitle . ' - Page ' . $currentPage : $baseTitle;
+    $metaDescription = trim((string) $category->meta_description);
+
+    if ($metaDescription === '') {
+        $metaDescription = 'Shop ' . $category->name . ' products in Kenya with fast delivery, genuine warranty, and expert support from Orbitlink Solutions.';
+    }
+
+    $metaDescription = \Illuminate\Support\Str::limit(strip_tags($metaDescription), 155, '');
+    $categoryImage = !empty($category->photo) ? uploaded_image_url($category->photo) : null;
+    $shareImage = $categoryImage ?: asset('assets/images/orbitlinks-logo.webp');
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Home',
+                'item' => url('/'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => 'Shop',
+                'item' => url('shop'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $category->name,
+                'item' => $categoryUrl,
+            ],
+        ],
+    ];
+    $itemListElements = [];
+
+    foreach ($products as $index => $product) {
+        $productItem = [
+            '@type' => 'Product',
+            'name' => $product->name,
+            'url' => route('product_details', $product->slug),
+            'image' => product_image_url($product),
+        ];
+
+        if ($product->has_price && $product->price !== null) {
+            $productItem['offers'] = [
+                '@type' => 'Offer',
+                'priceCurrency' => 'KES',
+                'price' => (string) $product->price,
+                'availability' => 'https://schema.org/InStock',
+                'url' => route('product_details', $product->slug),
+            ];
+        }
+
+        $itemListElements[] = [
+            '@type' => 'ListItem',
+            'position' => $firstItem + $index,
+            'item' => $productItem,
+        ];
+    }
+
+    $itemListSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'ItemList',
+        'name' => $category->name,
+        'url' => $canonicalUrl,
+        'numberOfItems' => $totalItems,
+        'itemListElement' => $itemListElements,
+    ];
+    $faqSchema = null;
+
+    if ($category->slug === 'starlink-kenya-prices') {
+        $faqSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => [
+                [
+                    '@type' => 'Question',
+                    'name' => 'How much is a Starlink kit in Kenya?',
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => 'Starlink kit pricing in Kenya depends on the model, stock, accessories, and installation needs. Check the product prices on this category page or contact Orbitlink Solutions for a current quote.',
+                    ],
+                ],
+                [
+                    '@type' => 'Question',
+                    'name' => 'Does Orbitlink Solutions install Starlink in Kenya?',
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => 'Yes. Orbitlink Solutions supplies Starlink kits and accessories and can help with installation, mounting, alignment, WiFi setup, and support for homes and businesses in Kenya.',
+                    ],
+                ],
+                [
+                    '@type' => 'Question',
+                    'name' => 'Are Starlink monthly subscription prices included in the kit price?',
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => 'No. Hardware and installation are separate from Starlink monthly service plans. Subscription plans can change, so confirm the active plan price during activation or with Orbitlink Solutions before purchase.',
+                    ],
+                ],
+            ],
+        ];
+    }
 @endphp
+
+@section('title', $pageTitle)
+@section('meta_description', $metaDescription)
+@section('canonical', $canonicalUrl)
+@section('og_title', $pageTitle . ' | Orbitlink Solutions')
+@section('og_description', $metaDescription)
+@section('og_image', $shareImage)
+@section('og_url', $canonicalUrl)
+@section('twitter_title', $pageTitle . ' | Orbitlink Solutions')
+@section('twitter_description', $metaDescription)
+@section('twitter_image', $shareImage)
+
+@push('meta')
+    @if($products->previousPageUrl())
+        <link rel="prev" href="{{ $currentPage === 2 ? $categoryUrl : $products->previousPageUrl() }}">
+    @endif
+    @if($products->nextPageUrl())
+        <link rel="next" href="{{ $products->nextPageUrl() }}">
+    @endif
+    <script type="application/ld+json">
+        {!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+    <script type="application/ld+json">
+        {!! json_encode($itemListSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+    @if($faqSchema)
+        <script type="application/ld+json">
+            {!! json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+        </script>
+    @endif
+@endpush
+
+@section('main')
 
 <div class="category-page">
     <section class="category-hero" id="category-hero">
@@ -48,7 +179,7 @@
                         </div>
                         <div class="category-hero-image">
                             @if(!empty($category->photo))
-                                <img src="{{ uploaded_image_url($category->photo) }}" alt="{{ $category->name }}">
+                                <img src="{{ uploaded_image_url($category->photo) }}" alt="{{ $category->name }}" width="240" height="240">
                             @else
                                 <div class="category-hero-image-fallback">
                                     <i class="fas fa-camera"></i>
@@ -84,8 +215,8 @@
                             <div class="product-img-action-wrap">
                                 <div class="product-img product-img-zoom">
                                     <a href="{{ route('product_details', $ad->slug) }}">
-                                        <img class="default-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
-                                        <img class="hover-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
+                                        <img class="default-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" width="600" height="600" loading="lazy">
+                                        <img class="hover-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" width="600" height="600" loading="lazy">
                                     </a>
                                 </div>
                             </div>
@@ -99,7 +230,7 @@
                                 <div class="product-category">
                                     <a href="{{ route('view_product_category', ['slug' => category($ad->category_id)->slug]) }}">{{ category($ad->category_id)->name }}</a>
                                 </div>
-                                <h2><a href="{{ route('product_details', $ad->slug) }}">{{ \Illuminate\Support\Str::limit($ad->name, 40) }}</a></h2>
+                                <h3><a href="{{ route('product_details', $ad->slug) }}">{{ \Illuminate\Support\Str::limit($ad->name, 40) }}</a></h3>
                                 <div class="product-price">
                                     @if($ad->has_price)
                                         <span>{{ price($ad) }} </span>
@@ -127,8 +258,7 @@
         </div>
     </section>
 
-<!-- Homepage Description Section -->
-    <section class="py-5 category-description" id="homepage-description">
+    <section class="py-5 category-description" id="category-description">
         <div class="container">
            {!! $category->description !!}
         </div>

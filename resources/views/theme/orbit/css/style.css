@@ -1383,14 +1383,16 @@ input:focus-visible,
     font-weight: 600;
 }
 
-.product-content-wrap h2 {
+.product-content-wrap h2,
+.product-content-wrap h3 {
     font-size: 1rem;
     line-height: 1.3;
     margin-top: 6px;
     min-height: 2.6rem;
 }
 
-.product-content-wrap h2 a {
+.product-content-wrap h2 a,
+.product-content-wrap h3 a {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;

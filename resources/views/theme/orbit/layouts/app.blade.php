@@ -83,7 +83,7 @@
           content="@yield('meta_description', $siteDesc)">
     <meta name="keywords"
           content="@yield('meta_keywords', $siteName . ', networking, Starlink, CCTV, WiFi, routers, access points, Kenya')">
-    <meta name="robots" content="index,follow">
+    <meta name="robots" content="@yield('robots', 'index,follow')">
     <meta name="application-name" content="{{ $siteName }}">
     <meta name="theme-color" content="#ff8a1e">
 
@@ -112,7 +112,7 @@
     <meta name="msapplication-TileImage" content="{{ $faviconUrl }}">
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="canonical" href="@yield('canonical', url()->current())">
     <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ url('/sitemap.xml') }}">
 
     <!-- Removed dark mode init -->
@@ -198,7 +198,7 @@
                 @endphp
                 <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
                     @if($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="{{ $siteName }} logo" style="height:60px; max-height:60px; width:auto; object-fit:contain;">
+                        <img src="{{ $logoUrl }}" alt="{{ $siteName }} logo" width="180" height="60" style="height:60px; max-height:60px; width:auto; object-fit:contain;">
                     @else
                         <span class="fw-bold" style="font-size:1.25rem;">{{ $siteName }}</span>
                     @endif
@@ -279,7 +279,7 @@
                             <a class="category-pill" href="{{ route('view_product_category', ['slug' => $cat->slug]) }}">
                                 <span class="category-pill-icon">
                                     @if(!empty($cat->photo))
-                                        <img src="{{ uploaded_image_url($cat->photo) }}" alt="{{ $cat->name }}" loading="lazy">
+                                        <img src="{{ uploaded_image_url($cat->photo) }}" alt="{{ $cat->name }}" width="40" height="40" loading="lazy">
                                     @else
                                         <i class="fas fa-plus"></i>
                                     @endif
