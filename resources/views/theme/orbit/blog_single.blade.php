@@ -107,10 +107,59 @@
         margin-right: 0 !important;
     }
     .page-hero-compact .hero-image {
-        max-width: 88%;
-        max-height: 560px;
+        width: 100%;
+        max-height: 520px;
         object-fit: contain;
-        border-radius: 20px;
+        object-position: center;
+        image-rendering: auto;
+    }
+    .page-hero-compact .hero-visual {
+        max-width: 640px;
+        margin-left: auto;
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 22px 52px rgba(15, 23, 42, 0.12);
+    }
+    .page-products-grid .product-cart-wrap {
+        height: 100%;
+        min-height: 0;
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+    }
+    .page-products-grid .product-img-action-wrap {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        padding: 14px;
+    }
+    .page-products-grid .product-img {
+        aspect-ratio: 4 / 3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .page-products-grid .product-img a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+    .page-products-grid .product-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+        image-rendering: auto;
+    }
+    .page-products-grid .product-content-wrap {
+        padding: 16px;
     }
     .page-section-compact {
         padding-top: 2.5rem !important;
@@ -125,8 +174,11 @@
             font-size: 2.4rem;
         }
         .page-hero-compact .hero-image {
-            max-width: 100%;
             max-height: 420px;
+        }
+        .page-hero-compact .hero-visual {
+            margin: 0 auto;
+            padding: 14px;
         }
         .page-section-compact {
             padding-top: 2rem !important;
@@ -156,14 +208,24 @@
 
                 @if($post->photo)
 
-                <img class="img-fluid rounded shadow-lg hero-image"
-                     src="{{ uploaded_image_url($post->photo) }}"
-                     alt="{{ $post->title }} image" style="border-radius: 20px;">
+                <div class="hero-visual">
+                    <img class="img-fluid hero-image"
+                         src="{{ uploaded_image_url($post->photo) }}"
+                         alt="{{ $post->alter_text ?: $post->title . ' image' }}"
+                         loading="eager"
+                         decoding="async"
+                         fetchpriority="high">
+                </div>
                      @else
 
-                     <img class="img-fluid rounded shadow-lg hero-image"
-                     src="{{ uploaded_image_url(get_option('hero_image'), asset('assets/images/placeholder.svg')) }}"
-                     alt="{{ $post->title }} image" style="border-radius: 20px;">
+                     <div class="hero-visual">
+                         <img class="img-fluid hero-image"
+                             src="{{ uploaded_image_url(get_option('hero_image'), asset('assets/images/placeholder.svg')) }}"
+                             alt="{{ $post->title }} image"
+                             loading="eager"
+                             decoding="async"
+                             fetchpriority="high">
+                     </div>
  
                      @endif
             </div>
@@ -175,7 +237,7 @@
     $selectedProductCategory = $post->product_category_id
         ? \App\Models\Category::find($post->product_category_id)
         : null;
-    $productsQuery = \App\Models\Product::where('product_type', 'product')->orderBy('id', 'desc');
+    $productsQuery = \App\Models\Product::with(['mediaFiles', 'category'])->where('product_type', 'product')->orderBy('id', 'desc');
     if ($selectedProductCategory) {
         $productsQuery->where('category_id', $selectedProductCategory->id);
     }
@@ -190,16 +252,27 @@
             {{ $selectedProductCategory ? $selectedProductCategory->name : get_option('products_section_title', 'Featured Products') }}
         </h2>
 
-        <div class="row g-4">
+        <div class="row g-4 page-products-grid">
             <!-- Product Cards -->
             @forelse($products as $ad)
+            @php
+                $productImage = product_image_url($ad, uploaded_image_url($ad->photo));
+            @endphp
            <div class="col-lg-3 col-md-4 col-12 col-sm-6">
                         <div class="product-cart-wrap mb-30 uniform-height">
                             <div class="product-img-action-wrap">
                                 <div class="product-img product-img-zoom">
                                     <a href="{{ route('product_details', $ad->slug) }}">
-                                        <img class="default-img" src="{{ uploaded_image_url($ad->photo) }}" alt="">
-                                        <img class="hover-img" src="{{ uploaded_image_url($ad->photo) }}" alt="">
+                                        <img class="default-img"
+                                             src="{{ $productImage }}"
+                                             alt="{{ $ad->name }}"
+                                             loading="lazy"
+                                             decoding="async">
+                                        <img class="hover-img"
+                                             src="{{ $productImage }}"
+                                             alt="{{ $ad->name }}"
+                                             loading="lazy"
+                                             decoding="async">
                                     </a>
                                 </div>
                             </div>
