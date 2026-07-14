@@ -83,19 +83,69 @@
         flex-direction: column;
         justify-content: space-between;
     }
+    .page-hero-compact {
+        padding: 34px 0 38px;
+        background-color: #f9fafc;
+    }
+    .page-hero-compact .hero-row {
+        min-height: 0;
+    }
+    .page-hero-compact .hero-title {
+        line-height: 1.08;
+        margin-bottom: 1rem;
+    }
+    .page-hero-compact .hero-description {
+        margin-bottom: 0;
+    }
+    .page-hero-compact .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding-top: 1rem;
+    }
+    .page-hero-compact .hero-actions .btn {
+        margin-right: 0 !important;
+    }
+    .page-hero-compact .hero-image {
+        max-width: 88%;
+        max-height: 560px;
+        object-fit: contain;
+        border-radius: 20px;
+    }
+    .page-section-compact {
+        padding-top: 2.5rem !important;
+        padding-bottom: 2.5rem !important;
+    }
+
+    @media (max-width: 767.98px) {
+        .page-hero-compact {
+            padding: 24px 0 30px;
+        }
+        .page-hero-compact .hero-title {
+            font-size: 2.4rem;
+        }
+        .page-hero-compact .hero-image {
+            max-width: 100%;
+            max-height: 420px;
+        }
+        .page-section-compact {
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+        }
+    }
 </style>
-<section id="header" class="py-5" style="background-color: #f9fafc;">
+<section id="header" class="page-hero-compact">
     <div class="bg-holder position-absolute w-100 h-100"
          style="background-image: url(assets/img/gallery/header-bg-light.png); background-position: right top; background-size: cover; opacity: 0.5; z-index: -1;">
     </div>
 
-    <div class="container py-5">
-        <div class="row align-items-center min-vh-75 min-vh-xl-100">
+    <div class="container">
+        <div class="row align-items-center hero-row">
             <!-- Header Content -->
             <div class="col-md-6 text-md-start text-center mb-4 mb-md-0">
-                <h1 class="display-4 fw-bold text-dark mb-3">{{ $post->title }}</h1>
-                <p class="lead text-secondary">{{ $post->meta_description }}</p>
-                <div class="pt-4">
+                <h1 class="display-4 fw-bold text-dark hero-title">{{ $post->title }}</h1>
+                <p class="lead text-secondary hero-description">{{ $post->meta_description }}</p>
+                <div class="hero-actions">
                     <a class="btn btn-lg btn-dark rounded-pill me-3 px-4 py-2 shadow" href="{{ url('shop') }}">Shop Now</a>
                     <a class="btn btn-lg btn-dark rounded-pill me-3 px-4 py-2 shadow" href="{{ route('contacts') }}">Talk to an Expert</a>
                 </div>
@@ -106,14 +156,14 @@
 
                 @if($post->photo)
 
-                <img class="img-fluid rounded shadow-lg"
+                <img class="img-fluid rounded shadow-lg hero-image"
                      src="{{ uploaded_image_url($post->photo) }}"
-                     alt="{{ $post->title }} image" style="max-width: 90%; border-radius: 20px;">
+                     alt="{{ $post->title }} image" style="border-radius: 20px;">
                      @else
 
-                     <img class="img-fluid rounded shadow-lg"
+                     <img class="img-fluid rounded shadow-lg hero-image"
                      src="{{ uploaded_image_url(get_option('hero_image'), asset('assets/images/placeholder.svg')) }}"
-                     alt="{{ $post->title }} image" style="max-width: 90%; border-radius: 20px;">
+                     alt="{{ $post->title }} image" style="border-radius: 20px;">
  
                      @endif
             </div>
@@ -133,7 +183,7 @@
 @endphp
 
 <!-- Products Section -->
-<section class="py-5" id="collections">
+<section class="py-5 page-section-compact" id="collections">
     <div class="container">
         <!-- Section Title -->
         <h2 class="text-center mb-5 fw-bold">
@@ -196,7 +246,7 @@
 </section>
 
 
-<section class="py-5" id="homepage-description">
+<section class="py-5 page-section-compact" id="homepage-description">
     <div class="container">
      {!! $post->description !!}
     </div>
