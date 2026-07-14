@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\Media;
 use App\Models\Page;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -47,7 +48,8 @@ class PageController extends Controller
     public function edit($id){
     $post=Page::findOrFail($id);
       $mediaFiles = Media::wherePageId($id)->get();
-        return view('admin.pages.edit',compact('post', 'mediaFiles'));
+      $categories = Category::whereNotNull('slug')->orderBy('name')->get();
+        return view('admin.pages.edit',compact('post', 'mediaFiles', 'categories'));
     }
 
     /**

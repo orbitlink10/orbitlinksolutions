@@ -21,6 +21,11 @@ class Category extends Model
         return $this->hasMany(Post::class);
     }
 
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'category_id');
+    }
+
     public static function boot(){
         parent::boot();
 

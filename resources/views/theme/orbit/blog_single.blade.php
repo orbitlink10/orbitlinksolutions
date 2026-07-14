@@ -121,21 +121,28 @@
     </div>
 </section>
 
-<?php 
-$products = \App\Models\Product::limit(4)->get();
-?>
+@php
+    $selectedProductCategory = $post->product_category_id
+        ? \App\Models\Category::find($post->product_category_id)
+        : null;
+    $productsQuery = \App\Models\Product::where('product_type', 'product')->orderBy('id', 'desc');
+    if ($selectedProductCategory) {
+        $productsQuery->where('category_id', $selectedProductCategory->id);
+    }
+    $products = $productsQuery->limit(4)->get();
+@endphp
 
 <!-- Products Section -->
 <section class="py-5" id="collections">
     <div class="container">
         <!-- Section Title -->
         <h2 class="text-center mb-5 fw-bold">
-            {{ get_option('products_section_title', 'Our Stationery Collection') }}
+            {{ $selectedProductCategory ? $selectedProductCategory->name : get_option('products_section_title', 'Featured Products') }}
         </h2>
 
         <div class="row g-4">
             <!-- Product Cards -->
-            @foreach($products as $ad)
+            @forelse($products as $ad)
            <div class="col-lg-3 col-md-4 col-12 col-sm-6">
                         <div class="product-cart-wrap mb-30 uniform-height">
                             <div class="product-img-action-wrap">
@@ -148,7 +155,9 @@ $products = \App\Models\Product::limit(4)->get();
                             </div>
                             <div class="product-content-wrap">
                                 <div class="product-category">
-                                    <a href="{{ route('view_product_category', ['slug' => category($ad->category_id)->slug]) }}">{{ category($ad->category_id)->name }}</a>
+                                    @if(category($ad->category_id))
+                                        <a href="{{ route('view_product_category', ['slug' => category($ad->category_id)->slug]) }}">{{ category($ad->category_id)->name }}</a>
+                                    @endif
                                 </div>
                                 <h2><a href="{{ route('product_details', $ad->slug) }}">{{ \Illuminate\Support\Str::limit($ad->name, 40) }}</a></h2>
                                 <div class="product-price">
@@ -162,15 +171,27 @@ $products = \App\Models\Product::limit(4)->get();
                             </div>
                         </div>
                     </div>
-            @endforeach
+            @empty
+                <div class="col-12">
+                    <p class="text-center text-muted mb-0">No products found in this category yet.</p>
+                </div>
+            @endforelse
         </div>
 
         <!-- View All Products Button -->
-        <div class="text-center mt-4">
-            <a href="/shop" class="btn btn-dark btn-lg rounded-pill px-4">
-                View All Products
-            </a>
-        </div>
+        @if($selectedProductCategory)
+            <div class="text-center mt-4">
+                <a href="{{ route('view_product_category', ['slug' => $selectedProductCategory->slug]) }}" class="btn btn-dark btn-lg rounded-pill px-4">
+                    View All {{ $selectedProductCategory->name }}
+                </a>
+            </div>
+        @else
+            <div class="text-center mt-4">
+                <a href="/shop" class="btn btn-dark btn-lg rounded-pill px-4">
+                    View All Products
+                </a>
+            </div>
+        @endif
     </div>
 </section>
 

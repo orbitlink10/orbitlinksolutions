@@ -166,7 +166,9 @@ public function index()
 
     public function newPost(){
 
-        return view('admin.posts.new');
+        $categories = Category::whereNotNull('slug')->orderBy('name')->get();
+
+        return view('admin.posts.new', compact('categories'));
     }
 
     public function saveCategory(Request $request){
@@ -410,6 +412,7 @@ public function index()
             'meta_title'=>['bail','required','max:255'],
             'description'=>['bail','required'],
             'meta_description'=>['bail','required'],
+            'product_category_id'=>['nullable','exists:categories,id'],
         ];
 
         $this->validate($request, $rule);
@@ -428,6 +431,7 @@ public function index()
         $page->title = $request->input('title');
         $page->meta_title = $request->input('meta_title');
         $page->type = $request->input('type');
+        $page->product_category_id = $request->input('product_category_id');
         $page->description = $request->input('description');
         $page->meta_description = $request->input('meta_description');
         $page->alter_text = $request->input('alter_text');
@@ -460,6 +464,7 @@ public function index()
             'meta_title'=>['bail','required','max:255'],
             'description'=>['bail','required'],
             'meta_description'=>['bail','required'],
+            'product_category_id'=>['nullable','exists:categories,id'],
         ];
 
         $this->validate($request, $rule);
@@ -472,6 +477,7 @@ public function index()
         $page->title = $request->input('title');
         $page->meta_title = $request->input('meta_title');
         $page->type = $request->input('type');
+        $page->product_category_id = $request->input('product_category_id');
         $page->description = $request->input('description');
         $page->meta_description = $request->input('meta_description');
         $page->alter_text = $request->input('alter_text');

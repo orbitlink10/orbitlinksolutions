@@ -73,6 +73,26 @@
                                                 <option value="home">home Blog</option>
                                             </select>
                                           </div>
+
+                                        <div class="form-group">
+                                            <label for="product_category_id">Product Category</label>
+                                            <select class="form-control select2" name="product_category_id" id="product_category_id" style="width: 100%;">
+                                                <option value="">Show latest products</option>
+                                                @foreach($categories as $category)
+                                                    <option value="{{ $category->id }}" {{ (int) old('product_category_id', $post->product_category_id) === (int) $category->id ? 'selected' : '' }}>
+                                                        {{ $category->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <small class="form-text text-muted">The public page will list a few products from this selected category.</small>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Product Preview</label>
+                                            <div id="categoryProductPreview" class="border rounded p-3 bg-light text-muted">
+                                                Select a category to preview products.
+                                            </div>
+                                        </div>
                                 
 
 
@@ -216,4 +236,64 @@
         <!-- /.content -->
     </div>
     <!-- /.content-wrapper -->
+    @php
+        $categoryProductPreview = $categories->mapWithKeys(function ($category) {
+            return [
+                $category->id => $category->products()
+                    ->where('product_type', 'product')
+                    ->orderBy('id', 'desc')
+                    ->limit(5)
+                    ->get(['name', 'slug'])
+                    ->map(function ($product) {
+                        return [
+                            'name' => $product->name,
+                            'url' => route('product_details', $product->slug),
+                        ];
+                    })
+                    ->values(),
+            ];
+        });
+    @endphp
+    <script>
+        window.pageCategoryProducts = @json($categoryProductPreview);
+
+        (function () {
+            var select = document.getElementById('product_category_id');
+            var preview = document.getElementById('categoryProductPreview');
+            if (!select || !preview) return;
+
+            function renderPreview() {
+                var products = window.pageCategoryProducts[select.value] || [];
+                if (!select.value) {
+                    preview.className = 'border rounded p-3 bg-light text-muted';
+                    preview.textContent = 'No category selected. The public page will show latest products.';
+                    return;
+                }
+                if (!products.length) {
+                    preview.className = 'border rounded p-3 bg-light text-muted';
+                    preview.textContent = 'No products found in this category yet.';
+                    return;
+                }
+
+                preview.className = 'border rounded p-3 bg-light';
+                preview.replaceChildren();
+                var list = document.createElement('ul');
+                list.className = 'mb-0 pl-3';
+                products.forEach(function (product) {
+                    var item = document.createElement('li');
+                    var link = document.createElement('a');
+                    link.href = product.url;
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                    link.textContent = product.name;
+                    item.appendChild(link);
+                    list.appendChild(item);
+                });
+                preview.appendChild(list);
+            }
+
+            select.addEventListener('change', renderPreview);
+            renderPreview();
+        })();
+    </script>
 @endsection
