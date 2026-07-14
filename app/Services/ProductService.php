@@ -37,7 +37,7 @@ class ProductService{
         $product=Product::where('name',$data['name'])->first();
 
         if(!empty($product)){
-            return redirect()->back()->with('errors',"Product Already Exists");
+            return redirect()->back()->withErrors(["Product Already Exists"]);
         }
 
        
@@ -67,7 +67,7 @@ class ProductService{
         } catch (\Throwable $th) {
             //throw $th;
             DB::rollBack();
-            return back()->with('errors',[$th->getMessage()]);
+            return back()->withErrors([$th->getMessage()]);
         }
     }
 
@@ -80,7 +80,7 @@ class ProductService{
 
         $validate=$this->validateProduct($data);
         if($validate->fails()){
-            return back()->with("errors", $validate->errors()->all());
+            return back()->withErrors($validate);
         }
 
         
@@ -103,7 +103,7 @@ class ProductService{
         } catch (\Throwable $th) {
             //throw $th;
             DB::rollBack();
-            return back()->with('errors',[$th->getMessage()]);
+            return back()->withErrors([$th->getMessage()]);
         }
 
     }

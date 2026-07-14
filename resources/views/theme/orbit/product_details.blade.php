@@ -20,6 +20,11 @@
         'huawei' => 'Huawei',
         'samsung' => 'Samsung',
         'bluetti' => 'BLUETTI',
+        'ecoflow' => 'EcoFlow',
+        'tenda' => 'Tenda',
+        'hikvision' => 'Hikvision',
+        'dahua' => 'Dahua',
+        'yealink' => 'Yealink',
         'd-link' => 'D-Link',
         'dlink' => 'D-Link',
         'cisco' => 'Cisco',
@@ -39,7 +44,7 @@
 @endphp
 @section('title', $productSeoTitle)
 @section('meta_description', $productSeoDescription)
-@section('meta_keywords', implode(', ', array_filter([$product->name, $productIdentifier, $brandName, optional($category)->name, 'MikroTik router Kenya', 'router price in Kenya'])))
+@section('meta_keywords', implode(', ', array_filter([$product->name, $productIdentifier, $brandName !== $siteName ? $brandName : null, optional($category)->name, 'networking products Kenya', 'product price in Kenya'])))
 @section('canonical', $currentUrl)
 @section('og_title', $productSeoTitle)
 @section('og_description', $productSeoDescription)

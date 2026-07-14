@@ -28,10 +28,18 @@
                         <!-- Product Form Card -->
                         <div class="card shadow-sm border-0">
                             <div class="card-body">
-                                @if ($errors->any())
+                                @php
+                                    $productFormErrors = [];
+                                    if (isset($errors) && is_object($errors) && method_exists($errors, 'any') && $errors->any()) {
+                                        $productFormErrors = $errors->all();
+                                    } elseif (isset($errors) && is_array($errors)) {
+                                        $productFormErrors = \Illuminate\Support\Arr::flatten($errors);
+                                    }
+                                @endphp
+                                @if (!empty($productFormErrors))
                                     <div class="alert alert-danger">
                                         <ul class="mb-0">
-                                            @foreach ($errors->all() as $error)
+                                            @foreach ($productFormErrors as $error)
                                                 <li>{{ $error }}</li>
                                             @endforeach
                                         </ul>
