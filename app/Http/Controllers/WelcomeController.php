@@ -574,6 +574,22 @@ public function reviews()
         ])->header('Content-Type', 'text/xml');
     }
 
+    public function productSitemap()
+    {
+        $products = Product::whereNotNull('slug')
+            ->where('product_type', 'product')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return response()->view('product', [
+            'posts' => $products,
+            'sitemaps' => (object) [
+                'changefreq' => 'weekly',
+                'priority' => '0.8',
+            ],
+        ])->header('Content-Type', 'text/xml');
+    }
+
 
     public function sitemaps($sitemap)
     {

@@ -13,6 +13,10 @@
     </sitemap>
     @endforeach
     <sitemap>
+        <loc>{{ route('product_sitemap') }}</loc>
+        <lastmod>{{ now()->tz('UTC')->toAtomString() }}</lastmod>
+    </sitemap>
+    <sitemap>
         <loc>{{ route('categories_sitemap') }}</loc>
         <lastmod>{{ now()->tz('UTC')->toAtomString() }}</lastmod>
     </sitemap>

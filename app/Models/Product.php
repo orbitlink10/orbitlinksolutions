@@ -21,6 +21,7 @@ class Product extends Model
         'photo',
         'slug',
         'description',
+        'meta_title',
         'meta_description',
         'category_id',
         'sub_category_id',

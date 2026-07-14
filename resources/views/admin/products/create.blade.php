@@ -176,6 +176,12 @@
                                         });
                                     </script>
 
+                                    <!-- Meta Title -->
+                                    <div class="form-group">
+                                        <label for="meta_title">Meta Title</label>
+                                        <input type="text" name="meta_title" id="meta_title" class="form-control" maxlength="255" value="{{ old('meta_title') }}" placeholder="Starlink Standard Kit V4 Price in Kenya">
+                                    </div>
+
                                     <!-- Meta Description -->
                                     <div class="form-group">
                                         <label for="meta_description">Meta Description</label>

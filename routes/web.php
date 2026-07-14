@@ -238,6 +238,7 @@ Route::get('posts/{slug}', ['as' => 'blog_single', 'uses'=>'App\Http\Controllers
 Route::get('p/{slug}', ['as' => 'view_page', 'uses'=>'App\Http\Controllers\WelcomeController@viewPage']);
 Route::post('save-message', ['as' => 'save_message', 'uses'=>'App\Http\Controllers\WelcomeController@saveMessage']);
 Route::get('/sitemap.xml', [App\Http\Controllers\WelcomeController::class, 'sitemap'])->name('sitemap');
+Route::get('/sitemap-products.xml', [App\Http\Controllers\WelcomeController::class, 'productSitemap'])->name('product_sitemap');
 Route::get('/sitemap-categories.xml', [App\Http\Controllers\WelcomeController::class, 'categoriesSitemap'])->name('categories_sitemap');
 Route::get('/robots.txt', function () {
     $content = implode("\n", [

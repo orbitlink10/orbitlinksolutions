@@ -162,10 +162,13 @@ function get_uploaded_image($path){
 
 
 
-    function get_option($option_key = ''){
+    function get_option($option_key = '', $default = null){
       $get = \App\Models\Option::where('option_key', $option_key)->first();
       if($get) {
         return $get->option_value;
+      }
+      if (func_num_args() > 1) {
+        return $default;
       }
       return $option_key;
     }

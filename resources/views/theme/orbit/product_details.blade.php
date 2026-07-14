@@ -1,31 +1,34 @@
 @extends('theme.orbit.layouts.main')
-@section('title', $product->name)
-@section('meta_description', $product->meta_description)
 @php
+    $siteName = get_option('site_name', 'Orbitlink Solutions');
+    $currentUrl = url()->current();
+    $category = $product->category ?: category($product->category_id);
     $productImageUrl = product_image_url($product, asset('default-image.jpg'));
+    $productSeoTitle = trim((string) ($product->meta_title ?: $product->name));
+    $productSeoDescription = trim((string) ($product->meta_description ?: \Illuminate\Support\Str::limit(strip_tags($product->description), 155, '')));
+    $currencyCode = strtoupper(trim((string) get_option('currency_code', 'KES')));
+    if (!preg_match('/^[A-Z]{3}$/', $currencyCode)) {
+        $currencyCode = 'KES';
+    }
 @endphp
+@section('title', $productSeoTitle)
+@section('meta_description', $productSeoDescription)
+@section('og_title', $productSeoTitle)
+@section('og_description', $productSeoDescription)
+@section('og_image', $productImageUrl)
+@section('og_url', $currentUrl)
+@section('og_type', 'product')
+@section('twitter_title', $productSeoTitle)
+@section('twitter_description', $productSeoDescription)
+@section('twitter_image', $productImageUrl)
 
 @push('meta')
-<!-- Open Graph Meta Tags -->
-<meta property="og:title" content="{{ $product->meta_title }}" />
-<meta property="og:description" content="{{ $product->meta_description }}" />
-<meta property="og:image" content="{{ $productImageUrl }}" />
 <meta property="og:image:width" content="1478" />
 <meta property="og:image:height" content="1108" />
-<meta property="og:url" content="{{ url()->current() }}" />
-<meta property="og:site_name" content="{{ get_option('site_name') }}" />
-<meta property="og:type" content="product" />
 @if($product->has_price)
     <meta property="product:price:amount" content="{{ number_format($product->price, 2, '.', '') }}" />
-    <meta property="product:price:currency" content="{{ get_option('currency_code', 'KES') }}" />
+    <meta property="product:price:currency" content="{{ $currencyCode }}" />
 @endif
-
-<!-- Twitter Card Meta Tags -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:site" content="{{ url('/') }}" />
-<meta name="twitter:title" content="{{ $product->meta_title }}" />
-<meta name="twitter:description" content="{{ $product->meta_description }}" />
-<meta name="twitter:image" content="{{ $productImageUrl }}" />
 @php
     $schemaImages = [];
     if ($mediafiles->count() > 0) {
@@ -37,39 +40,75 @@
     } elseif (!empty($product->photo)) {
         $schemaImages[] = $productImageUrl;
     }
-    $schemaDesc = $product->meta_description ?: \Illuminate\Support\Str::words(strip_tags($product->description), 30, '');
-    $currencyCode = get_option('currency_code', 'KES');
+    $brandName = \Illuminate\Support\Str::contains(\Illuminate\Support\Str::lower($product->name), 'starlink')
+        ? 'Starlink'
+        : $siteName;
     $productSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'Product',
         'name' => $product->name,
         'image' => $schemaImages,
-        'description' => $schemaDesc,
-        'sku' => (string) $product->id,
+        'description' => $productSeoDescription,
+        'sku' => $product->sku ?: (string) $product->id,
         'brand' => [
             '@type' => 'Brand',
-            'name' => get_option('site_name', 'Orbitlink Solutions'),
+            'name' => $brandName,
         ],
     ];
     if ($product->has_price) {
         $productSchema['offers'] = [
             '@type' => 'Offer',
-            'url' => url()->current(),
+            'url' => $currentUrl,
             'priceCurrency' => $currencyCode,
-            'price' => (float) $product->price,
+            'price' => number_format((float) $product->price, 2, '.', ''),
+            'priceValidUntil' => now()->addDays(30)->toDateString(),
             'availability' => $product->quantity > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
             'itemCondition' => 'https://schema.org/NewCondition',
+            'seller' => [
+                '@type' => 'Organization',
+                'name' => $siteName,
+                'url' => url('/'),
+            ],
         ];
     }
+    $breadcrumbItems = [
+        [
+            '@type' => 'ListItem',
+            'position' => 1,
+            'name' => 'Home',
+            'item' => url('/'),
+        ],
+    ];
+    if ($category) {
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => $category->name,
+            'item' => route('view_product_category', ['slug' => $category->slug]),
+        ];
+    }
+    $breadcrumbItems[] = [
+        '@type' => 'ListItem',
+        'position' => count($breadcrumbItems) + 1,
+        'name' => $product->name,
+        'item' => $currentUrl,
+    ];
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbItems,
+    ];
 @endphp
 <script type="application/ld+json">
-    @json($productSchema)
+    @json($productSchema, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)
+</script>
+<script type="application/ld+json">
+    @json($breadcrumbSchema, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)
 </script>
 @endpush
 
 @section('main')
 @php
-    $category = category($product->category_id);
     $currency = get_option('currency_symbol', 'KES');
     $hasSale = $product->has_price && $product->marked_price && $product->marked_price > $product->price;
 @endphp
@@ -144,12 +183,12 @@
                                         $mediaUrl = uploaded_image_url($media->file_path);
                                     @endphp
                                     <div class="thumb-item">
-                                        <img src="{{ $mediaUrl }}" alt="thumb-{{ $index }}" class="img-thumbnail rounded js-thumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
+                                        <img src="{{ $mediaUrl }}" alt="{{ $product->name }} thumbnail {{ $index + 1 }}" class="img-thumbnail rounded js-thumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
                                     </div>
                                 @endforeach
                             @else
                                 <div class="thumb-item">
-                                    <img src="{{ $productImageUrl }}" alt="thumb-0" class="img-thumbnail rounded js-thumb border-primary" data-index="0">
+                                    <img src="{{ $productImageUrl }}" alt="{{ $product->name }} thumbnail" class="img-thumbnail rounded js-thumb border-primary" data-index="0">
                                 </div>
                             @endif
                         </div>
@@ -175,14 +214,14 @@
                                             @endphp
                                             <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
                                                 <div class="ratio ratio-4x3">
-                                                    <img src="{{ $mediaUrl }}" class="w-100 h-100 product-detail-image">
+                                                    <img src="{{ $mediaUrl }}" alt="{{ $product->name }} image {{ $index + 1 }}" class="w-100 h-100 product-detail-image">
                                                 </div>
                                             </div>
                                         @endforeach
                                     @else
                                         <div class="carousel-item active">
                                             <div class="ratio ratio-4x3">
-                                                <img src="{{ $productImageUrl }}" class="w-100 h-100 product-detail-image">
+                                                <img src="{{ $productImageUrl }}" alt="{{ $product->name }} image" class="w-100 h-100 product-detail-image">
                                             </div>
                                         </div>
                                     @endif
@@ -209,12 +248,12 @@
                                                 $mediaUrl = uploaded_image_url($media->file_path);
                                             @endphp
                                             <div class="thumb-item">
-                                                <img src="{{ $mediaUrl }}" alt="mthumb-{{ $index }}" class="img-thumbnail rounded js-mthumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
+                                                <img src="{{ $mediaUrl }}" alt="{{ $product->name }} modal thumbnail {{ $index + 1 }}" class="img-thumbnail rounded js-mthumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
                                             </div>
                                         @endforeach
                                     @else
                                         <div class="thumb-item">
-                                            <img src="{{ $productImageUrl }}" alt="mthumb-0" class="img-thumbnail rounded js-mthumb border-primary" data-index="0">
+                                            <img src="{{ $productImageUrl }}" alt="{{ $product->name }} modal thumbnail" class="img-thumbnail rounded js-mthumb border-primary" data-index="0">
                                         </div>
                                     @endif
                                 </div>
@@ -398,6 +437,41 @@
         </div>
     </div>
 </section>
+
+{{-- Sticky CTA Bar --}}
+@php
+    $rawPhone = get_option('contact_phone');
+    $wa = preg_replace('/\D+/', '', $rawPhone ?? '');
+    if (\Illuminate\Support\Str::startsWith($wa, '0')) { $wa = '254'.\Illuminate\Support\Str::substr($wa, 1); }
+    $waMessage = urlencode("Hi, I'm interested in {$product->name} - ".url()->current());
+    $waLinkSticky = $wa ? "https://wa.me/{$wa}?text={$waMessage}" : null;
+@endphp
+<div id="stickyCTA" class="fixed-bottom bg-white border-top shadow-sm py-2 d-none">
+  <div class="container d-flex align-items-center justify-content-between gap-3">
+    <div class="d-none d-md-block text-truncate">
+      <span class="title text-truncate">{{ $product->name }}</span>
+      @if($product->has_price)
+        <span class="ms-2 fw-bold text-brand">{{ number_format($product->price, 2) }}</span>
+      @else
+        <span class="ms-2 text-muted">Get a quote</span>
+      @endif
+    </div>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      @if($product->quantity > 0)
+        @if($product->has_price)
+          <a href="#" onclick="document.querySelector('[type=\\'submit\\']')?.click(); return false;" class="btn btn-primary btn-sm"><i class="fas fa-shopping-cart me-1"></i>Buy Now</a>
+        @else
+          <a href="#quoteModal" data-bs-toggle="modal" class="btn btn-dark btn-sm">Get Quote</a>
+        @endif
+      @else
+        <a href="#notifyModal" data-bs-toggle="modal" class="btn btn-dark btn-sm">Notify Me</a>
+      @endif
+      @if($waLinkSticky)
+        <a href="{{ $waLinkSticky }}" target="_blank" rel="noopener" class="btn btn-success btn-sm d-inline-flex align-items-center"><i class="fab fa-whatsapp me-1"></i><span>WhatsApp</span></a>
+      @endif
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -514,38 +588,3 @@
   })();
 </script>
 @endsection
-
-{{-- Sticky CTA Bar --}}
-@php
-    $rawPhone = get_option('contact_phone');
-    $wa = preg_replace('/\D+/', '', $rawPhone ?? '');
-    if (\Illuminate\Support\Str::startsWith($wa, '0')) { $wa = '254'.\Illuminate\Support\Str::substr($wa, 1); }
-    $waMessage = urlencode("Hi, I'm interested in {$product->name} - ".url()->current());
-    $waLinkSticky = $wa ? "https://wa.me/{$wa}?text={$waMessage}" : null;
-@endphp
-<div id="stickyCTA" class="fixed-bottom bg-white border-top shadow-sm py-2 d-none">
-  <div class="container d-flex align-items-center justify-content-between gap-3">
-    <div class="d-none d-md-block text-truncate">
-      <span class="title text-truncate">{{ $product->name }}</span>
-      @if($product->has_price)
-        <span class="ms-2 fw-bold text-brand">{{ number_format($product->price, 2) }}</span>
-      @else
-        <span class="ms-2 text-muted">Get a quote</span>
-      @endif
-    </div>
-    <div class="ms-auto d-flex align-items-center gap-2">
-      @if($product->quantity > 0)
-        @if($product->has_price)
-          <a href="#" onclick="document.querySelector('[type=\\'submit\\']')?.click(); return false;" class="btn btn-primary btn-sm"><i class="fas fa-shopping-cart me-1"></i>Buy Now</a>
-        @else
-          <a href="#quoteModal" data-bs-toggle="modal" class="btn btn-dark btn-sm">Get Quote</a>
-        @endif
-      @else
-        <a href="#notifyModal" data-bs-toggle="modal" class="btn btn-dark btn-sm">Notify Me</a>
-      @endif
-      @if($waLinkSticky)
-        <a href="{{ $waLinkSticky }}" target="_blank" rel="noopener" class="btn btn-success btn-sm d-inline-flex align-items-center"><i class="fab fa-whatsapp me-1"></i><span>WhatsApp</span></a>
-      @endif
-    </div>
-  </div>
-</div>

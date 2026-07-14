@@ -4,7 +4,7 @@
  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
    @foreach ($posts as $post)
         <url>
-            <loc>{{ route('product_details', $post->slug) }}/</loc>
+            <loc>{{ route('product_details', $post->slug) }}</loc>
             <lastmod> {{ $post->updated_at->tz('UTC')->toAtomString() }}</lastmod>
             <changefreq>{{ $sitemaps->changefreq }}</changefreq>
             <priority>{{ $sitemaps->priority }}</priority>

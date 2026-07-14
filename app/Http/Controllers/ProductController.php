@@ -224,6 +224,7 @@ public function store(Request $request)
         'quantity'        => 'required|integer',
         'category_id'     => 'required|exists:categories,id',
         'sub_category_id' => 'nullable|exists:sub_categories,id',
+        'meta_title'      => 'nullable|string|max:255',
         'meta_description'=> 'nullable|string',
         'description'     => 'required|string',
         'photo'           => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
@@ -243,6 +244,7 @@ public function store(Request $request)
         'quantity',
         'category_id',
         'sub_category_id',
+        'meta_title',
         'meta_description',
         'description'
     ]);
