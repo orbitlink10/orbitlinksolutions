@@ -1,18 +1,46 @@
 @extends('theme.orbit.layouts.main')
 @php
     $siteName = get_option('site_name', 'Orbitlink Solutions');
-    $currentUrl = url()->current();
+    $currentUrl = route('product_details', ['slug' => $product->slug]);
     $category = $product->category ?: category($product->category_id);
     $productImageUrl = product_image_url($product, asset('default-image.jpg'));
     $productSeoTitle = trim((string) ($product->meta_title ?: $product->name));
-    $productSeoDescription = trim((string) ($product->meta_description ?: \Illuminate\Support\Str::limit(strip_tags($product->description), 155, '')));
+    $productSeoDescription = trim((string) ($product->meta_description ?: strip_tags($product->description)));
+    $productSeoDescription = \Illuminate\Support\Str::limit($productSeoDescription, 155, '');
     $currencyCode = strtoupper(trim((string) get_option('currency_code', 'KES')));
     if (!preg_match('/^[A-Z]{3}$/', $currencyCode)) {
         $currencyCode = 'KES';
     }
+    $brandCandidates = [
+        'mikrotik' => 'MikroTik',
+        'starlink' => 'Starlink',
+        'tp-link' => 'TP-Link',
+        'tplink' => 'TP-Link',
+        'ubiquiti' => 'Ubiquiti',
+        'huawei' => 'Huawei',
+        'samsung' => 'Samsung',
+        'bluetti' => 'BLUETTI',
+        'd-link' => 'D-Link',
+        'dlink' => 'D-Link',
+        'cisco' => 'Cisco',
+    ];
+    $brandSearchText = \Illuminate\Support\Str::lower($product->name . ' ' . optional($category)->name);
+    $brandName = $siteName;
+    foreach ($brandCandidates as $brandNeedle => $brandLabel) {
+        if (\Illuminate\Support\Str::contains($brandSearchText, $brandNeedle)) {
+            $brandName = $brandLabel;
+            break;
+        }
+    }
+    $productIdentifier = trim((string) $product->sku);
+    if ($productIdentifier === '' && preg_match('/\b(RB[0-9A-Za-z-]+|L[0-9][0-9A-Za-z-]+)\b/', $product->name, $identifierMatch)) {
+        $productIdentifier = $identifierMatch[1];
+    }
 @endphp
 @section('title', $productSeoTitle)
 @section('meta_description', $productSeoDescription)
+@section('meta_keywords', implode(', ', array_filter([$product->name, $productIdentifier, $brandName, optional($category)->name, 'MikroTik router Kenya', 'router price in Kenya'])))
+@section('canonical', $currentUrl)
 @section('og_title', $productSeoTitle)
 @section('og_description', $productSeoDescription)
 @section('og_image', $productImageUrl)
@@ -28,6 +56,7 @@
 @if($product->has_price)
     <meta property="product:price:amount" content="{{ number_format($product->price, 2, '.', '') }}" />
     <meta property="product:price:currency" content="{{ $currencyCode }}" />
+    <meta property="product:availability" content="{{ $product->quantity > 0 ? 'in stock' : 'out of stock' }}" />
 @endif
 @php
     $schemaImages = [];
@@ -40,21 +69,24 @@
     } elseif (!empty($product->photo)) {
         $schemaImages[] = $productImageUrl;
     }
-    $brandName = \Illuminate\Support\Str::contains(\Illuminate\Support\Str::lower($product->name), 'starlink')
-        ? 'Starlink'
-        : $siteName;
     $productSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'Product',
         'name' => $product->name,
         'image' => $schemaImages,
         'description' => $productSeoDescription,
-        'sku' => $product->sku ?: (string) $product->id,
+        'sku' => $productIdentifier ?: (string) $product->id,
         'brand' => [
             '@type' => 'Brand',
             'name' => $brandName,
         ],
     ];
+    if ($productIdentifier !== '') {
+        $productSchema['mpn'] = $productIdentifier;
+    }
+    if ($category) {
+        $productSchema['category'] = $category->name;
+    }
     if ($product->has_price) {
         $productSchema['offers'] = [
             '@type' => 'Offer',
