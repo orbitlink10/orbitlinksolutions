@@ -72,6 +72,19 @@ public function store(Request $request)
     return redirect()->route('categories.index')->with('success', 'Category created successfully!');
 }
 
+public function uploadImage(Request $request)
+{
+    $request->validate([
+        'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+    ]);
+
+    $path = upload_photo($request->file('file'));
+
+    return response()->json([
+        'location' => uploaded_image_url($path),
+    ]);
+}
+
     /**
      * Display the specified resource.
      *

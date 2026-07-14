@@ -18,6 +18,7 @@
     $metaDescription = \Illuminate\Support\Str::limit(strip_tags($metaDescription), 155, '');
     $categoryImage = !empty($category->photo) ? uploaded_image_url($category->photo) : null;
     $shareImage = $categoryImage ?: asset('assets/images/orbitlinks-logo.webp');
+    $descriptionImageFallback = $categoryImage ?: asset('assets/images/placeholder.svg');
     $breadcrumbSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'BreadcrumbList',
@@ -255,7 +256,7 @@
 
     <section class="py-5 category-description" id="category-description">
         <div class="container">
-           {!! $category->description !!}
+           {!! rich_content_html($category->description, $descriptionImageFallback) !!}
         </div>
     </section>
 </div>

@@ -103,6 +103,7 @@ Route::prefix('welding-products')->group(function () {
 
 Route::get('/welding-products/{product}', [WeldingProductController::class, 'show'])->name('welding-products.show');
 
+Route::post('/categories/upload-image', [CategoryController::class, 'uploadImage'])->name('categories.upload-image');
 Route::resource('categories', CategoryController::class);
 
 

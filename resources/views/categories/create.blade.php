@@ -16,7 +16,7 @@
         </div>
     @endif
 
-    <form action="{{ route('categories.store') }}" method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm border-0">
+    <form action="{{ route('categories.store') }}" method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm border-0" data-tinymce-upload-form>
         @csrf
 
         <!-- Category Name -->
@@ -60,41 +60,7 @@
             @enderror
         </div>
 
-        <!-- TinyMCE from CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/tinymce@6.4.2/tinymce.min.js"></script>
-        <script>
-            tinymce.init({
-                selector: '#description',
-                plugins: 'image link lists media table code wordcount fullscreen',
-                toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | link image media | code fullscreen',
-                menubar: 'file edit view insert format tools table help',
-                height: 500,
-                branding: false,
-                file_picker_types: 'image',
-                automatic_uploads: true,
-                image_title: true,
-                promotion: false,  // remove the "Powered by TinyMCE" link
-                file_picker_callback: function (cb, value, meta) {
-                    let input = document.createElement('input');
-                    input.setAttribute('type', 'file');
-                    input.setAttribute('accept', 'image/*');
-                    input.onchange = function () {
-                        let file = this.files[0];
-                        let reader = new FileReader();
-                        reader.onload = function () {
-                            let id = 'blobid' + (new Date()).getTime();
-                            let blobCache = tinymce.activeEditor.editorUpload.blobCache;
-                            let base64 = reader.result.split(',')[1];
-                            let blobInfo = blobCache.create(id, file, base64);
-                            blobCache.add(blobInfo);
-                            cb(blobInfo.blobUri(), { title: file.name });
-                        };
-                        reader.readAsDataURL(file);
-                    };
-                    input.click();
-                },
-            });
-        </script>
+        @include('categories.partials.tinymce-description')
 
         <!-- Photo Upload (Optional) -->
         <div class="mb-3">

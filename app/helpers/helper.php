@@ -111,6 +111,112 @@ function uploaded_image_url($path, $fallback = null)
     return $fallback;
 }
 
+function rich_content_image_url($src, $fallback = null)
+{
+    $fallback = $fallback ?: asset('assets/images/placeholder.svg');
+    $src = trim((string) $src);
+
+    if ($src === '' || str_starts_with(strtolower($src), 'blob:')) {
+        return $fallback;
+    }
+
+    if (str_starts_with(strtolower($src), 'data:image/')) {
+        return $src;
+    }
+
+    $urlPath = parse_url($src, PHP_URL_PATH) ?: '';
+    $localPath = ltrim($urlPath !== '' ? $urlPath : $src, '/');
+
+    if (
+        str_starts_with($src, '/') ||
+        str_contains($urlPath, '/storage/') ||
+        str_contains($urlPath, '/uploads/') ||
+        str_starts_with($localPath, 'uploads/') ||
+        str_starts_with($localPath, 'products/') ||
+        str_starts_with($localPath, 'storage/') ||
+        str_starts_with($localPath, 'public/storage/') ||
+        str_starts_with($localPath, 'app/public/') ||
+        in_array(trim($urlPath, '/'), ['images', 'images.php'], true)
+    ) {
+        return uploaded_image_url($src, $fallback);
+    }
+
+    if (str_starts_with($localPath, 'assets/')) {
+        return asset($localPath);
+    }
+
+    if (filter_var($src, FILTER_VALIDATE_URL)) {
+        return $src;
+    }
+
+    return uploaded_image_url($src, $src);
+}
+
+function rich_content_html($html, $imageFallback = null)
+{
+    $html = (string) $html;
+
+    if (trim($html) === '') {
+        return '';
+    }
+
+    $imageFallback = $imageFallback ?: asset('assets/images/placeholder.svg');
+
+    if (!class_exists(\DOMDocument::class)) {
+        return preg_replace_callback('/<img\b[^>]*\bsrc=(["\'])(.*?)\1[^>]*>/i', function ($matches) use ($imageFallback) {
+            $src = trim($matches[2]);
+            $newSrc = rich_content_image_url($src, $imageFallback);
+
+            if ($newSrc === $src) {
+                return $matches[0];
+            }
+
+            return str_replace($matches[1] . $src . $matches[1], $matches[1] . e($newSrc) . $matches[1], $matches[0]);
+        }, $html);
+    }
+
+    $previousErrors = libxml_use_internal_errors(true);
+    $dom = new \DOMDocument('1.0', 'UTF-8');
+    $dom->loadHTML(
+        '<?xml encoding="UTF-8"><!DOCTYPE html><html><body><div id="rich-content-root">' . $html . '</div></body></html>',
+        LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED
+    );
+
+    foreach ($dom->getElementsByTagName('img') as $image) {
+        $src = $image->getAttribute('src');
+        $newSrc = rich_content_image_url($src, $imageFallback);
+
+        if ($newSrc !== $src) {
+            $image->setAttribute('src', $newSrc);
+            $image->removeAttribute('srcset');
+        }
+
+        if (!$image->hasAttribute('loading')) {
+            $image->setAttribute('loading', 'lazy');
+        }
+
+        if (!$image->hasAttribute('decoding')) {
+            $image->setAttribute('decoding', 'async');
+        }
+    }
+
+    $root = $dom->getElementById('rich-content-root');
+    $output = '';
+
+    if ($root) {
+        foreach ($root->childNodes as $child) {
+            $output .= $dom->saveHTML($child);
+        }
+    } else {
+        $output = $html;
+    }
+
+    libxml_clear_errors();
+    libxml_use_internal_errors($previousErrors);
+
+    return $output;
+}
+
 function product_image_url($product, $fallback = null)
 {
     $fallback = $fallback ?: asset('assets/images/placeholder.svg');
