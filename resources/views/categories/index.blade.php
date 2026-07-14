@@ -57,10 +57,12 @@
                             <td>
                                 {{-- Action Buttons --}}
                                 <div class="btn-group" role="group">
-                                    {{-- Show details --}}
-                                    <a href="{{ route('categories.show', $category->id) }}"
+                                    {{-- Public category preview --}}
+                                    <a href="{{ route('view_product_category', ['slug' => $category->slug]) }}"
+                                       target="_blank"
+                                       rel="noopener"
                                        class="btn btn-sm btn-info text-white">
-                                        <i class="bi bi-eye"></i> Show
+                                        <i class="bi bi-eye"></i> Preview
                                     </a>
                                     
                                     {{-- Edit --}}
