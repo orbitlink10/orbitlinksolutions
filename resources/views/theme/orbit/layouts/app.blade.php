@@ -178,8 +178,12 @@
                     @endif
                 </div>
                 <div class="d-flex align-items-center gap-3">
-                    <a href="{{ route('wishlist.index') }}" class="text-decoration-none text-muted"><i class="fas fa-heart me-1"></i>Wishlist</a>
-                    <a href="{{ route('login') }}" class="text-decoration-none text-muted"><i class="fas fa-user me-1"></i>Sign in</a>
+                    @auth
+                        <a href="{{ route('wishlist.index') }}" class="text-decoration-none text-muted"><i class="fas fa-heart me-1"></i>Wishlist</a>
+                        <a href="{{ route('account.dashboard') }}" class="text-decoration-none text-muted"><i class="fas fa-user me-1"></i>My Account</a>
+                    @else
+                        <a href="{{ route('login') }}" class="text-decoration-none text-muted"><i class="fas fa-user me-1"></i>Sign in</a>
+                    @endauth
                     <span class="text-muted d-none d-md-inline"><i class="fas fa-headset me-1"></i>{{ get_option('contact_phone') }}</span>
                     
                 </div>
@@ -219,11 +223,13 @@
 
                     <!-- Icons -->
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-                        <li class="nav-item d-none d-lg-inline">
-                            <a class="nav-link" href="{{ route('wishlist.index') }}" aria-label="Wishlist">
-                                <i class="fas fa-heart"></i>
-                            </a>
-                        </li>
+                        @auth
+                            <li class="nav-item d-none d-lg-inline">
+                                <a class="nav-link" href="{{ route('wishlist.index') }}" aria-label="Wishlist">
+                                    <i class="fas fa-heart"></i>
+                                </a>
+                            </li>
+                        @endauth
                         <li class="nav-item">
                             <a class="nav-link position-relative" href="{{ route('cart.view') }}" aria-label="Cart">
                                 <i class="fas fa-shopping-cart"></i>
@@ -235,8 +241,15 @@
                                 <i class="fas fa-user"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-                                <li><a class="dropdown-item" href="{{ route('login') }}">Sign in</a></li>
-                                <li><a class="dropdown-item" href="{{ route('account.dashboard') }}">My Account</a></li>
+                                @auth
+                                    <li><a class="dropdown-item" href="{{ route('account.dashboard') }}">My Account</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('account.orders') }}">My Orders</a></li>
+                                @else
+                                    <li><a class="dropdown-item" href="{{ route('login') }}">Sign in</a></li>
+                                    @if(Route::has('register'))
+                                        <li><a class="dropdown-item" href="{{ route('register') }}">Create account</a></li>
+                                    @endif
+                                @endauth
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('contacts') }}">Help & Support</a></li>
                             </ul>
@@ -494,7 +507,7 @@
                 </div>
                 <div class="mobile-header-info-wrap mobile-header-border">
                     <div class="single-mobile-header-info mt-30">
-                        <a href="page-contact.html">Our Location</a>
+                        <a href="{{ route('contacts') }}">Our Location</a>
                     </div>
                     <div class="single-mobile-header-info">
                         <a href="{{ url('login') }}">Log In / Sign Up</a>

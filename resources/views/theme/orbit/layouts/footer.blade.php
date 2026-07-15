@@ -88,7 +88,7 @@
                         <li><a href="{{ route('cart.view') }}">View Cart</a></li>
                         <li><a href="{{ route('login') }}">Track My Order</a></li>
                         <li><a href="{{ route('contacts') }}">Help</a></li>
-                        <li><a href="{{ url('account/orders') }}">Orders</a></li>
+                        <li><a href="{{ Auth::check() ? route('account.orders') : route('login') }}">Orders</a></li>
                     </ul>
                 </div>
             </div>
@@ -231,9 +231,9 @@
       </li>
       <!-- My Account Link -->
       <li class="nav-item">
-        <a class="nav-link text-center" href="{{ route('account.dashboard') }}">
+        <a class="nav-link text-center" href="{{ Auth::check() ? route('account.dashboard') : route('login') }}">
           <i class="fas fa-user-cog fs-4 d-block"></i>
-          <span class="d-block small">My Account</span>
+          <span class="d-block small">{{ Auth::check() ? 'My Account' : 'Sign in' }}</span>
         </a>
       </li>
     </ul>
