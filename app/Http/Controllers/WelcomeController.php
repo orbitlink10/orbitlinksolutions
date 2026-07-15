@@ -356,7 +356,7 @@ public function reviews()
     public function product_details($slug){
         $product = Product::with(['mediaFiles', 'category'])->where('slug',$slug)->first();
         if(!$product){
-            return back()->with('error','Not Found');
+            abort(404);
         }
 
               $mediafiles  = $product->mediaFiles;
@@ -367,7 +367,7 @@ public function reviews()
     public function product_details_preview($slug){
         $product = Product::with(['mediaFiles', 'category'])->where('slug',$slug)->first();
         if(!$product){
-            return back()->with('error','Not Found');
+            abort(404);
         }
 
         $mediafiles  = $product->mediaFiles;

@@ -152,6 +152,161 @@ function rich_content_image_url($src, $fallback = null)
     return uploaded_image_url($src, $src);
 }
 
+function rich_content_existing_internal_url($path)
+{
+    static $cache = [];
+
+    $path = trim((string) $path);
+    $path = trim($path, '/');
+
+    if ($path === '' || str_contains($path, '..')) {
+        return null;
+    }
+
+    if (array_key_exists($path, $cache)) {
+        return $cache[$path];
+    }
+
+    $segments = explode('/', $path, 2);
+    $prefix = $segments[0] ?? '';
+    $slug = $segments[1] ?? '';
+
+    if ($prefix === 'product' && $slug !== '' && \App\Models\Product::where('slug', $slug)->exists()) {
+        return $cache[$path] = route('product_details', $slug);
+    }
+
+    if ($prefix === 'category' && $slug !== '' && \App\Models\Category::where('slug', $slug)->exists()) {
+        return $cache[$path] = route('view_product_category', ['slug' => $slug]);
+    }
+
+    if ($prefix === 'service' && $slug !== '' && \App\Models\Service::where('slug', $slug)->exists()) {
+        return $cache[$path] = route('service_single', ['slug' => $slug]);
+    }
+
+    if (!str_contains($path, '/')) {
+        if (\App\Models\Page::where('slug', $path)->exists()) {
+            return $cache[$path] = url($path);
+        }
+
+        if (\App\Models\Product::where('slug', $path)->exists()) {
+            return $cache[$path] = route('product_details', $path);
+        }
+
+        if (\App\Models\Category::where('slug', $path)->exists()) {
+            return $cache[$path] = route('view_product_category', ['slug' => $path]);
+        }
+
+        if (\App\Models\Service::where('slug', $path)->exists()) {
+            return $cache[$path] = route('service_single', ['slug' => $path]);
+        }
+    }
+
+    return $cache[$path] = null;
+}
+
+function rich_content_href_url($href)
+{
+    $href = trim((string) $href);
+
+    if ($href === '') {
+        return $href;
+    }
+
+    if (preg_match('/^(#|mailto:|tel:|sms:|javascript:|data:)/i', $href)) {
+        return $href;
+    }
+
+    $staticRoutes = [
+        'page-contact.html' => route('contacts'),
+        '/page-contact.html' => route('contacts'),
+        'shop-checkout.html' => route('cart.checkout'),
+        '/shop-checkout.html' => route('cart.checkout'),
+        'shop-cart' => route('cart.view'),
+        '/shop-cart' => route('cart.view'),
+        'shop-product' => route('product'),
+        '/shop-product' => route('product'),
+        '../' => url('/'),
+        '../../' => url('/'),
+        '../b' => url('/'),
+        '../../b' => url('/'),
+        './' => url('/'),
+    ];
+
+    if (isset($staticRoutes[$href])) {
+        return $staticRoutes[$href];
+    }
+
+    $siteHost = parse_url(url('/'), PHP_URL_HOST) ?: 'orbitlinksolutions.co.ke';
+    $knownHosts = array_unique([$siteHost, 'www.' . preg_replace('/^www\./i', '', $siteHost), 'orbitlinksolutions.co.ke', 'www.orbitlinksolutions.co.ke']);
+    $hostPattern = implode('|', array_map(fn ($host) => preg_quote($host, '/'), $knownHosts));
+
+    if (preg_match('/^(?:https?:\/\/)?(?:' . $hostPattern . ')\/?$/i', $href)) {
+        return url('/');
+    }
+
+    if (preg_match('/^(?:https?:\/\/)?(?:' . $hostPattern . ')\/(.+)$/i', $href, $matches)) {
+        $href = '/' . ltrim($matches[1], '/');
+    }
+
+    $parsed = parse_url($href);
+    $path = $parsed['path'] ?? $href;
+    $path = rawurldecode(trim((string) $path));
+    $path = ltrim($path, '/');
+    $path = preg_replace('#^(?:\./|\.\./)+#', '', $path);
+
+    if ($path === '') {
+        return $href;
+    }
+
+    $query = isset($parsed['query']) ? '?' . $parsed['query'] : '';
+    $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
+    $knownInternalRoutes = [
+        'b' => url('/'),
+        'page-contact.html' => route('contacts'),
+        'shop-checkout.html' => route('cart.checkout'),
+        'shop-cart' => route('cart.view'),
+        'shop-product' => route('product'),
+        'account/dashboard' => route('login'),
+        'account/orders' => route('login'),
+        'wishlist' => route('login'),
+        'cctv-camera-installation-in-kenya' => url('cctv-camera-cost-in-kenya'),
+        'cctv-camera-price-in-kenya' => url('cctv-camera-cost-in-kenya'),
+        'types-of-cctv-cameras' => url('cctv-camera-cost-in-kenya'),
+        'which-cctv-camera-records-voice' => url('cctv-camera-cost-in-kenya'),
+        'fire-alarm-system-installation' => route('contacts'),
+        'home-automation' => route('contacts'),
+        'kenya-solar-companies' => route('contacts'),
+        'security-system-installation' => route('contacts'),
+        'smart-homes' => route('contacts'),
+        'solar-installation-in-kenya' => route('contacts'),
+    ];
+
+    if (isset($knownInternalRoutes[$path])) {
+        return $knownInternalRoutes[$path] . $query . $fragment;
+    }
+
+    if (str_ends_with($path, '.')) {
+        $trimmedPath = rtrim($path, '.');
+        $resolvedUrl = rich_content_existing_internal_url($trimmedPath);
+
+        if ($resolvedUrl) {
+            return $resolvedUrl . $query . $fragment;
+        }
+    }
+
+    $resolvedUrl = rich_content_existing_internal_url($path);
+
+    if ($resolvedUrl && !str_starts_with($href, 'http://') && !str_starts_with($href, 'https://')) {
+        return $resolvedUrl . $query . $fragment;
+    }
+
+    if ($resolvedUrl && preg_match('/^https?:\/\//i', $href)) {
+        return $resolvedUrl . $query . $fragment;
+    }
+
+    return $href;
+}
+
 function rich_content_html($html, $imageFallback = null)
 {
     $html = (string) $html;
@@ -197,6 +352,15 @@ function rich_content_html($html, $imageFallback = null)
 
         if (!$image->hasAttribute('decoding')) {
             $image->setAttribute('decoding', 'async');
+        }
+    }
+
+    foreach ($dom->getElementsByTagName('a') as $link) {
+        $href = $link->getAttribute('href');
+        $newHref = rich_content_href_url($href);
+
+        if ($newHref !== $href) {
+            $link->setAttribute('href', $newHref);
         }
     }
 

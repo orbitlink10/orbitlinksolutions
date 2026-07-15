@@ -321,7 +321,7 @@
 
 <section class="py-5 page-section-compact" id="homepage-description">
     <div class="container">
-     {!! $post->description !!}
+     {!! rich_content_html($post->description) !!}
     </div>
 </section>
 

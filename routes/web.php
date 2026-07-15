@@ -173,9 +173,12 @@ Route::get('/terms', [WelcomeController::class, 'terms'])->name('terms');
 Route::get('/about', [WelcomeController::class, 'about'])->name('about_us');
 Route::get('/services', [WelcomeController::class, 'services'])->name('services');
 Route::get('/shop', [WelcomeController::class, 'products'])->name('product');
-Route::get('/product/{slug}', [WelcomeController::class, 'product_details'])->name('product_details');
-
-Route::get('/product/preview/{slug}', [WelcomeController::class, 'product_details_preview'])->name('product_details_preview');
+Route::get('/product/preview/{slug}', [WelcomeController::class, 'product_details_preview'])
+    ->where('slug', '.*')
+    ->name('product_details_preview');
+Route::get('/product/{slug}', [WelcomeController::class, 'product_details'])
+    ->where('slug', '.*')
+    ->name('product_details');
 
 
 use App\Http\Controllers\WishlistController;

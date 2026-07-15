@@ -246,9 +246,6 @@
                                     <li><a class="dropdown-item" href="{{ route('account.orders') }}">My Orders</a></li>
                                 @else
                                     <li><a class="dropdown-item" href="{{ route('login') }}">Sign in</a></li>
-                                    @if(Route::has('register'))
-                                        <li><a class="dropdown-item" href="{{ route('register') }}">Create account</a></li>
-                                    @endif
                                 @endauth
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('contacts') }}">Help & Support</a></li>

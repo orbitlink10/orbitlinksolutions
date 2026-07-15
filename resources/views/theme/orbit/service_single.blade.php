@@ -45,7 +45,7 @@
             <div class="row">
                 <div class="col-lg-10 mx-auto">
                     <div class="text-muted fs-5">
-                        {!! $service->description !!}
+                        {!! rich_content_html($service->description) !!}
                     </div>
                 </div>
             </div>

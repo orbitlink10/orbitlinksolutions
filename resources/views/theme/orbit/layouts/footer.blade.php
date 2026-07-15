@@ -12,6 +12,23 @@
         if ($footerDesc === '') {
             $footerDesc = 'Networking, Starlink, CCTV, WiFi, and ICT solutions across Kenya.';
         }
+        $footerResourceLinks = [
+            ['label' => 'Starlink Price Kenya', 'path' => 'starlink-price-kenya'],
+            ['label' => 'Starlink Distributor Kenya', 'path' => 'starlink-distributor-kenya'],
+            ['label' => 'Starlink Account Verification', 'path' => 'starlink-account-verification-in-kenya'],
+            ['label' => 'Starlink Installers in Nairobi', 'path' => 'starlink-accredited-installers-in-nairobi'],
+            ['label' => 'Starlink Kenya Revolution', 'path' => 'starlink-kenya-revolution'],
+            ['label' => 'ISP Billing Software in Kenya', 'path' => 'isp-billing-software-in-kenya'],
+            ['label' => 'ISP Billing and Bandwidth Management', 'path' => 'isp-billing-and-bandwidth-management-software-in-kenya'],
+            ['label' => 'Hotspot Billing System Software', 'path' => 'hotspot-billing-system-software-in-kenya'],
+            ['label' => 'Interpretation and Translation Services', 'path' => 'interpretation-and-translation-services-in-kenya'],
+            ['label' => 'Portable Power Station Nairobi', 'path' => 'portable-power-station-nairobi..'],
+            ['label' => 'BLUETTI Service Center Kenya', 'path' => 'bluetti-service-center-kenya'],
+            ['label' => 'BLUETTI EB3A Power Guide', 'path' => 'bluetti-eb3a:-what-can-it-power'],
+            ['label' => 'What Comes in a BLUETTI Power Station', 'path' => 'what-comes-in-a-bluetti-power-station'],
+            ['label' => 'Lithium Power Station Price in Kenya', 'path' => 'lithium-power-station-price-in-kenya'],
+            ['label' => 'Return and Refund Policy', 'path' => 'return-and-refund-policy'],
+        ];
     @endphp
     <section class="footer-top-chips py-4">
         <div class="container">
@@ -92,6 +109,16 @@
                     </ul>
                 </div>
             </div>
+        </div>
+    </section>
+    <section class="footer-resource-links" aria-labelledby="footer-resources-title">
+        <div class="container">
+            <h5 id="footer-resources-title" class="footer-title">Popular Resources</h5>
+            <ul class="footer-resource-list">
+                @foreach($footerResourceLinks as $link)
+                    <li><a href="{{ url($link['path']) }}">{{ $link['label'] }}</a></li>
+                @endforeach
+            </ul>
         </div>
     </section>
 <div class="footer-bottom">

@@ -9,7 +9,7 @@ redirectToHome();
 ?>
 
 
-@extends('theme.nara.layouts.main')
+@extends('theme.'.get_option('theme', 'orbit').'.layouts.main')
 
 @section('main')
 <div class="container">

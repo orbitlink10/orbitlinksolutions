@@ -443,7 +443,7 @@
                 <div class="tab-pane fade show active" id="Description">
                     <div class="container">
                         <div id="product-description" class="product-description-content">
-                            {!! $product->description !!}
+                            {!! rich_content_html($product->description, $productImageUrl) !!}
                         </div>
                     </div>
                 </div>

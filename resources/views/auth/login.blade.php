@@ -1,4 +1,4 @@
-@extends('theme.nara.layouts.main')
+@extends('theme.'.get_option('theme', 'orbit').'.layouts.main')
 @section('title') Login For {{ get_option('site_name') }} @endsection
 @section('main')
 <style>
@@ -80,9 +80,6 @@
                                 <button type="submit" class="btn btn-primary btn-lg">Login</button>
                             </div>
 
-                            <div class="text-center">
-                                <p class="text-dark">Don't have an account? <a href="{{ route('register') }}" class="btn btn-link">Register</a></p>
-                            </div>
                         </form>
                     </div>
                 </div>
