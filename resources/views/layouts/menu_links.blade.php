@@ -40,6 +40,12 @@
         <p>Analytics</p>
     </a>
 </li>
+<li class="nav-item">
+    <a href="{{ route('admin.keyword-research') }}" class="nav-link {{ request()->is('admin/keyword-research*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-search"></i>
+        <p>Keyword Research</p>
+    </a>
+</li>
 
 
     <!-- Admin Content Management -->
