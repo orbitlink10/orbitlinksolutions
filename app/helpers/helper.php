@@ -152,6 +152,41 @@ function rich_content_image_url($src, $fallback = null)
     return uploaded_image_url($src, $src);
 }
 
+function rich_content_image_alt($src, $fallback = null)
+{
+    $fallback = $fallback ?: 'Orbitlink Solutions image';
+    $src = trim((string) $src);
+
+    if ($src === '') {
+        return $fallback;
+    }
+
+    $path = $src;
+    $urlParts = parse_url($src);
+
+    if (!empty($urlParts['query'])) {
+        parse_str($urlParts['query'], $query);
+
+        if (!empty($query['path'])) {
+            $path = $query['path'];
+        }
+    } elseif (!empty($urlParts['path'])) {
+        $path = $urlParts['path'];
+    }
+
+    $path = rawurldecode((string) $path);
+    $name = pathinfo($path, PATHINFO_FILENAME);
+    $name = preg_replace('/[-_]\d{8,}(?:[-_]\d+)?$/', '', $name);
+    $name = preg_replace('/[-_]+/', ' ', $name);
+    $name = preg_replace('/\s+/', ' ', trim((string) $name));
+
+    if ($name === '') {
+        return $fallback;
+    }
+
+    return Str::limit($name, 120, '');
+}
+
 function rich_content_existing_internal_url($path)
 {
     static $cache = [];
@@ -321,12 +356,28 @@ function rich_content_html($html, $imageFallback = null)
         return preg_replace_callback('/<img\b[^>]*\bsrc=(["\'])(.*?)\1[^>]*>/i', function ($matches) use ($imageFallback) {
             $src = trim($matches[2]);
             $newSrc = rich_content_image_url($src, $imageFallback);
+            $tag = $matches[0];
 
             if ($newSrc === $src) {
-                return $matches[0];
+                $tag = $matches[0];
+            } else {
+                $tag = str_replace($matches[1] . $src . $matches[1], $matches[1] . e($newSrc) . $matches[1], $matches[0]);
             }
 
-            return str_replace($matches[1] . $src . $matches[1], $matches[1] . e($newSrc) . $matches[1], $matches[0]);
+            if (
+                preg_match('/\salt=(["\'])(.*?)\1/i', $tag, $altMatches)
+                && trim(html_entity_decode($altMatches[2], ENT_QUOTES | ENT_HTML5, 'UTF-8')) !== ''
+            ) {
+                return $tag;
+            }
+
+            $alt = e(rich_content_image_alt($newSrc ?: $src));
+
+            if (preg_match('/\salt=(["\'])(.*?)\1/i', $tag, $altMatches)) {
+                return preg_replace_callback('/\salt=(["\'])(.*?)\1/i', fn () => ' alt="' . $alt . '"', $tag, 1);
+            }
+
+            return preg_replace_callback('/<img\b/i', fn () => '<img alt="' . $alt . '"', $tag, 1);
         }, $html);
     }
 
@@ -344,6 +395,11 @@ function rich_content_html($html, $imageFallback = null)
         if ($newSrc !== $src) {
             $image->setAttribute('src', $newSrc);
             $image->removeAttribute('srcset');
+        }
+
+        if (trim((string) $image->getAttribute('alt')) === '') {
+            $title = trim((string) $image->getAttribute('title'));
+            $image->setAttribute('alt', $title !== '' ? $title : rich_content_image_alt($newSrc ?: $src));
         }
 
         if (!$image->hasAttribute('loading')) {

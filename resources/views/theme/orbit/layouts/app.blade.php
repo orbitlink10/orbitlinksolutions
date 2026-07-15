@@ -12,6 +12,18 @@
         if ($siteDesc === '') {
             $siteDesc = 'Reliable networking, Starlink, CCTV, WiFi, and ICT products in Kenya.';
         }
+        $cleanMetaText = function ($value, $fallback, $limit) {
+            $value = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $value), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+
+            if ($value === '') {
+                $value = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $fallback), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+            }
+
+            return \Illuminate\Support\Str::limit($value, $limit, '');
+        };
+        $metaDescription = $cleanMetaText($__env->yieldContent('meta_description', $siteDesc), $siteDesc, 155);
+        $ogDescription = $cleanMetaText($__env->yieldContent('og_description', $metaDescription), $metaDescription, 200);
+        $twitterDescription = $cleanMetaText($__env->yieldContent('twitter_description', $metaDescription), $metaDescription, 200);
         $siteUrl = url('/');
         $rawLogo = get_option('logo');
         $rawFavicon = get_option('favicon');
@@ -80,7 +92,7 @@
     </title>
 
     <meta name="description"
-          content="@yield('meta_description', $siteDesc)">
+          content="{{ $metaDescription }}">
     <meta name="keywords"
           content="@yield('meta_keywords', $siteName . ', networking, Starlink, CCTV, WiFi, routers, access points, Kenya')">
     <meta name="robots" content="@yield('robots', 'index,follow')">
@@ -89,7 +101,7 @@
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="@yield('og_title', $siteName)" />
-    <meta property="og:description" content="@yield('og_description', $siteDesc)" />
+    <meta property="og:description" content="{{ $ogDescription }}" />
     <meta property="og:image" content="@yield('og_image', $shareImageAbsolute)" />
     <meta property="og:url" content="@yield('og_url', url()->current())" />
     <meta property="og:site_name" content="{{ $siteName }}" />
@@ -100,7 +112,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@yield('twitter_site', $siteUrl)" />
     <meta name="twitter:title" content="@yield('twitter_title', $siteName)" />
-    <meta name="twitter:description" content="@yield('twitter_description', $siteDesc)" />
+    <meta name="twitter:description" content="{{ $twitterDescription }}" />
     <meta name="twitter:image" content="@yield('twitter_image', $shareImageAbsolute)" />
 
     <!-- Favicons -->
