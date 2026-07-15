@@ -381,6 +381,7 @@ Route::get('/{assetPath}', function (string $assetPath) {
 
 Route::get('/{slug}', ['as' => 'page_single', 'uses'=>'App\Http\Controllers\WelcomeController@sitemaps']);
 
+Route::get('/admin/analytics', [App\Http\Controllers\HomeController::class, 'analytics'])->name('admin.analytics');
 Route::get('/admin/users/', [App\Http\Controllers\HomeController::class, 'Allusers'])->name('admin.users');
 Route::post('/admin/store/users', [App\Http\Controllers\HomeController::class, 'saveUser'])->name('admin.save_user');
 Route::post('/admin/update/users/{id}', [App\Http\Controllers\HomeController::class, 'updateUser'])->name('admin.update_user');
