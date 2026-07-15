@@ -43,13 +43,16 @@
         <div class="container-fluid">
             <div class="keyword-alert">
                 <i class="fas fa-info-circle"></i>
-                <span>These are internal keyword estimates based on your site catalog, content matches, and market multipliers. Connect a paid SEO data API later if exact third-party volumes are required.</span>
+                <span>Estimates use related Google autocomplete suggestions where available, plus your site catalog, content matches, and country multipliers. Connect a paid SEO data API later if exact third-party volumes are required.</span>
             </div>
 
             <div class="keyword-results-header">
                 <div>
                     <h2>Keyword ideas for "{{ $research['summary']['keyword'] }}"</h2>
-                    <p>The first {{ number_format($research['phrase']->count()) }} keywords out of {{ number_format($research['summary']['ideas_total']) }} estimated ideas in {{ $research['country']['name'] }}.</p>
+                    <p>
+                        The first {{ number_format($research['phrase']->count()) }} keywords out of {{ number_format($research['summary']['ideas_total']) }} estimated ideas in {{ $research['country']['name'] }}.
+                        <span class="keyword-source-pill">{{ number_format($research['summary']['google_suggestions']) }} Google matches</span>
+                    </p>
                 </div>
                 <a class="ahrefs-link"
                    href="https://ahrefs.com/keyword-generator/?country={{ $country }}&input={{ rawurlencode($keyword) }}"
@@ -282,6 +285,19 @@
         margin: 0;
         color: #5f6368;
         font-size: 1rem;
+    }
+
+    .keyword-source-pill {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 8px;
+        border: 1px solid #dadce0;
+        border-radius: 999px;
+        padding: 2px 8px;
+        color: #3c4043;
+        font-size: 0.82rem;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .ahrefs-link {

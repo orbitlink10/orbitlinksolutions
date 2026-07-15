@@ -308,11 +308,14 @@ private function keywordCountries()
 private function buildKeywordResearch($keyword, $country, array $countryData)
 {
     $matches = $this->keywordContentMatches($keyword);
-    $phraseIdeas = $this->keywordPhraseIdeas($keyword, $countryData['name'], $matches);
-    $questionIdeas = $this->keywordQuestionIdeas($keyword, $countryData['name']);
-    $phraseRows = $this->keywordRows($phraseIdeas, $country, $countryData, $matches);
-    $questionRows = $this->keywordRows($questionIdeas, $country, $countryData, $matches, true);
-    $seedMetrics = $this->keywordMetrics($keyword, $country, $countryData, $matches['score']);
+    $googleSuggestions = $this->keywordGoogleSuggestions($keyword, $country, $countryData['name']);
+    $phraseSignals = $this->keywordSuggestionSignals($googleSuggestions['phrase']);
+    $questionSignals = $this->keywordSuggestionSignals($googleSuggestions['questions']);
+    $phraseIdeas = $this->keywordPhraseIdeas($keyword, $countryData['name'], $matches, $googleSuggestions['phrase']);
+    $questionIdeas = $this->keywordQuestionIdeas($keyword, $countryData['name'], $googleSuggestions['questions']);
+    $phraseRows = $this->keywordRows($phraseIdeas, $country, $countryData, $matches, false, $phraseSignals);
+    $questionRows = $this->keywordRows($questionIdeas, $country, $countryData, $matches, true, $questionSignals);
+    $seedMetrics = $this->keywordMetrics($keyword, $country, $countryData, $matches['score'], false, $phraseSignals[$this->keywordNormalize($keyword)] ?? 0);
 
     return [
         'country' => $countryData,
@@ -326,6 +329,7 @@ private function buildKeywordResearch($keyword, $country, array $countryData)
             'cpc' => $seedMetrics['cpc'],
             'ideas_total' => max($phraseRows->count() + $questionRows->count(), $seedMetrics['ideas_total']),
             'matched_content' => $matches['score'],
+            'google_suggestions' => $googleSuggestions['phrase']->count() + $googleSuggestions['questions']->count(),
         ],
         'phrase' => $phraseRows,
         'questions' => $questionRows,
@@ -336,15 +340,22 @@ private function buildKeywordResearch($keyword, $country, array $countryData)
 private function keywordContentMatches($keyword)
 {
     $words = $this->keywordWords($keyword);
+    $coreTerms = $this->keywordCoreTerms($keyword);
     $items = collect();
 
-    if ($words->isEmpty()) {
+    if ($words->isEmpty() || $coreTerms->isEmpty()) {
         return ['score' => 0, 'items' => $items];
     }
 
-    $applySearch = function ($query, array $columns) use ($words) {
-        return $query->where(function ($builder) use ($words, $columns) {
-            foreach ($words as $word) {
+    $applySearch = function ($query, array $columns) use ($words, $coreTerms) {
+        return $query->where(function ($builder) use ($coreTerms, $columns) {
+            foreach ($coreTerms as $word) {
+                foreach ($columns as $column) {
+                    $builder->orWhere($column, 'like', '%' . $word . '%');
+                }
+            }
+        })->where(function ($builder) use ($words, $columns) {
+            foreach ($words->take(5) as $word) {
                 foreach ($columns as $column) {
                     $builder->orWhere($column, 'like', '%' . $word . '%');
                 }
@@ -356,41 +367,53 @@ private function keywordContentMatches($keyword)
         ->select('name', 'slug', 'price', 'description')
         ->limit(10)
         ->get()
-        ->each(function ($product) use ($items) {
-            $items->push([
+        ->each(function ($product) use ($items, $keyword) {
+            $item = [
                 'type' => 'Product',
                 'label' => $product->name,
                 'url' => route('product_details', $product->slug),
                 'value' => $product->price ? 'KSh ' . number_format($product->price) : null,
-            ]);
+            ];
+
+            if ($this->keywordIsRelevant($keyword, $item['label'] . ' ' . $product->description)) {
+                $items->push($item);
+            }
         });
 
     $applySearch(Category::query(), ['name', 'description', 'meta_description'])
         ->select('name', 'slug', 'description', 'meta_description')
         ->limit(8)
         ->get()
-        ->each(function ($category) use ($items) {
-            $items->push([
+        ->each(function ($category) use ($items, $keyword) {
+            $item = [
                 'type' => 'Category',
                 'label' => $category->name,
                 'url' => route('view_product_category', ['slug' => $category->slug]),
                 'value' => null,
-            ]);
+            ];
+
+            if ($this->keywordIsRelevant($keyword, $item['label'] . ' ' . $category->description . ' ' . $category->meta_description)) {
+                $items->push($item);
+            }
         });
 
     $applySearch(Page::query(), ['title', 'description'])
         ->select('title', 'slug', 'type', 'description')
         ->limit(8)
         ->get()
-        ->each(function ($page) use ($items) {
-            $items->push([
+        ->each(function ($page) use ($items, $keyword) {
+            $item = [
                 'type' => ucfirst($page->type ?: 'Page'),
                 'label' => $page->title,
                 'url' => strtolower((string) $page->type) === 'post'
                     ? route('blog_single', $page->slug)
                     : route('view_page', $page->slug),
                 'value' => null,
-            ]);
+            ];
+
+            if ($this->keywordIsRelevant($keyword, $item['label'] . ' ' . $page->description)) {
+                $items->push($item);
+            }
         });
 
     $score = $items->count();
@@ -410,15 +433,210 @@ private function keywordWords($keyword)
         ->replaceMatches('/[^a-z0-9\s]+/', ' ')
         ->squish()
         ->explode(' ')
-        ->filter(fn ($word) => strlen($word) > 2 && !in_array($word, $stopWords, true))
+        ->filter(fn ($word) => (strlen($word) > 2 || ctype_digit($word)) && !in_array($word, $stopWords, true))
         ->values();
 }
 
-private function keywordPhraseIdeas($keyword, $countryName, array $matches)
+private function keywordCoreTerms($keyword)
+{
+    $modifiers = [
+        'kenya', 'price', 'prices', 'cost', 'buy', 'best', 'cheap', 'near', 'supplier', 'suppliers',
+        'installation', 'install', 'setup', 'review', 'reviews', 'deals', 'deal', 'where', 'how',
+        'much', 'available', 'office', 'home', 'business', 'new', 'used', 'original', 'genuine',
+    ];
+
+    $words = $this->keywordWords($keyword)
+        ->reject(fn ($word) => in_array($word, $modifiers, true))
+        ->values();
+
+    if ($words->isEmpty()) {
+        $words = $this->keywordWords($keyword)->take(2)->values();
+    }
+
+    return $words->take(4)->values();
+}
+
+private function keywordNormalize($keyword)
+{
+    return Str::of(strip_tags((string) $keyword))
+        ->lower()
+        ->replaceMatches('/[^a-z0-9\s]+/', ' ')
+        ->squish()
+        ->toString();
+}
+
+private function keywordIsRelevant($seedKeyword, $candidate)
+{
+    $candidateText = $this->keywordNormalize($candidate);
+    $topicGroups = $this->keywordTopicGroups($seedKeyword);
+
+    if (empty($candidateText) || $topicGroups->isEmpty()) {
+        return false;
+    }
+
+    $requiredGroup = $topicGroups->first(fn ($group) => collect($group)->contains(fn ($term) => !ctype_digit($term)))
+        ?: $topicGroups->first();
+
+    if (!$this->keywordTextContainsAny($candidateText, $requiredGroup)) {
+        return false;
+    }
+
+    if ($topicGroups->count() === 1) {
+        return true;
+    }
+
+    $matchedTerms = $topicGroups
+        ->filter(fn ($group) => $this->keywordTextContainsAny($candidateText, $group))
+        ->count();
+
+    return $matchedTerms >= max(1, min(2, $topicGroups->count()));
+}
+
+private function keywordTopicGroups($keyword)
+{
+    return $this->keywordCoreTerms($keyword)
+        ->map(fn ($term) => $this->keywordTermVariants($term))
+        ->filter(fn ($variants) => !empty($variants))
+        ->values();
+}
+
+private function keywordTermVariants($term)
+{
+    $term = $this->keywordNormalize($term);
+
+    if ($term === '') {
+        return [];
+    }
+
+    $variants = [$term];
+
+    if (Str::endsWith($term, 'ies') && strlen($term) > 4) {
+        $variants[] = substr($term, 0, -3) . 'y';
+    } elseif (Str::endsWith($term, 'es') && strlen($term) > 4) {
+        $variants[] = substr($term, 0, -2);
+    } elseif (Str::endsWith($term, 's') && strlen($term) > 3) {
+        $variants[] = substr($term, 0, -1);
+    } elseif (!ctype_digit($term) && strlen($term) > 2) {
+        $variants[] = $term . 's';
+    }
+
+    $aliasGroups = [
+        'iphone' => ['iphone', 'iphones'],
+        'phone' => ['phone', 'phones', 'smartphone', 'smartphones', 'iphone', 'iphones', 'android'],
+        'smartphone' => ['smartphone', 'smartphones', 'phone', 'phones', 'iphone', 'iphones', 'android'],
+        'mikrotik' => ['mikrotik', 'mikrotiks', 'routeros', 'routerboard'],
+        'starlink' => ['starlink', 'starlinks'],
+        'router' => ['router', 'routers'],
+        'wifi' => ['wifi', 'wi fi', 'wireless'],
+    ];
+
+    foreach ($variants as $variant) {
+        if (isset($aliasGroups[$variant])) {
+            $variants = array_merge($variants, $aliasGroups[$variant]);
+        }
+    }
+
+    return collect($variants)
+        ->map(fn ($variant) => $this->keywordNormalize($variant))
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
+}
+
+private function keywordTextContainsAny($text, array $terms)
+{
+    $haystack = ' ' . $this->keywordNormalize($text) . ' ';
+
+    foreach ($terms as $term) {
+        $needle = $this->keywordNormalize($term);
+
+        if ($needle !== '' && str_contains($haystack, ' ' . $needle . ' ')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+private function keywordGoogleSuggestions($keyword, $country, $countryName = null)
+{
+    $empty = ['phrase' => collect(), 'questions' => collect()];
+
+    try {
+        $queries = $this->keywordGoogleSuggestionQueries($keyword, $countryName);
+        $responses = Http::pool(function ($pool) use ($queries, $country) {
+            foreach ($queries as $index => $query) {
+                $pool->as((string) $index)->timeout(3)->get('https://suggestqueries.google.com/complete/search', [
+                    'client' => 'firefox',
+                    'hl' => 'en',
+                    'gl' => strtoupper($country),
+                    'q' => $query,
+                ]);
+            }
+        });
+
+        $suggestions = collect($responses)
+            ->filter(fn ($response) => $response->successful())
+            ->flatMap(function ($response) {
+                $payload = $response->json();
+
+                return $payload[1] ?? [];
+            })
+            ->map(fn ($item) => $this->keywordNormalize($item))
+            ->filter(fn ($item) => $item !== '' && $this->keywordIsRelevant($keyword, $item))
+            ->unique()
+            ->values();
+        $questionStarters = ['how ', 'what ', 'where ', 'which ', 'why ', 'can ', 'is ', 'are ', 'does ', 'do '];
+
+        return [
+            'phrase' => $suggestions
+                ->reject(fn ($item) => Str::startsWith($item, $questionStarters))
+                ->values(),
+            'questions' => $suggestions
+                ->filter(fn ($item) => Str::startsWith($item, $questionStarters))
+                ->values(),
+        ];
+    } catch (\Throwable $e) {
+        return $empty;
+    }
+}
+
+private function keywordGoogleSuggestionQueries($keyword, $countryName = null)
+{
+    $base = $this->keywordNormalize($keyword);
+    $countryQuery = $countryName ? $base . ' ' . strtolower($countryName) : null;
+
+    return collect([
+        $base,
+        $base . ' price',
+        'buy ' . $base,
+        'best ' . $base,
+        'how much is ' . $base,
+        $countryQuery,
+    ])
+        ->map(fn ($query) => Str::of($query)->replaceMatches('/\s+/', ' ')->trim()->toString())
+        ->filter()
+        ->unique()
+        ->take(6)
+        ->values();
+}
+
+private function keywordSuggestionSignals($suggestions)
+{
+    return collect($suggestions)
+        ->values()
+        ->mapWithKeys(fn ($suggestion, $index) => [
+            $this->keywordNormalize($suggestion) => max(0.25, 1 - ($index * 0.06)),
+        ])
+        ->all();
+}
+
+private function keywordPhraseIdeas($keyword, $countryName, array $matches, $googleSuggestions = null)
 {
     $base = Str::of($keyword)->lower()->squish()->toString();
     $countryLower = strtolower($countryName);
-    $ideas = collect([
+    $ideas = collect($googleSuggestions ?: [])->merge([
         $base,
         str_contains($base, $countryLower) ? $base . ' price' : $base . ' ' . $countryLower,
         $base . ' price in ' . $countryName,
@@ -442,17 +660,17 @@ private function keywordPhraseIdeas($keyword, $countryName, array $matches)
 
     return $ideas
         ->map(fn ($idea) => Str::of($idea)->replaceMatches('/\s+/', ' ')->trim()->lower()->toString())
-        ->filter(fn ($idea) => $idea !== '')
+        ->filter(fn ($idea) => $idea !== '' && $this->keywordIsRelevant($keyword, $idea))
         ->unique()
         ->take(30)
         ->values();
 }
 
-private function keywordQuestionIdeas($keyword, $countryName)
+private function keywordQuestionIdeas($keyword, $countryName, $googleSuggestions = null)
 {
     $base = Str::of($keyword)->lower()->squish()->toString();
 
-    return collect([
+    return collect($googleSuggestions ?: [])->merge([
         'how much is ' . $base,
         'how much is ' . $base . ' in ' . $countryName,
         'where to buy ' . $base . ' in ' . $countryName,
@@ -465,14 +683,16 @@ private function keywordQuestionIdeas($keyword, $countryName)
         'can I use ' . $base . ' for office internet',
     ])
         ->map(fn ($idea) => Str::of($idea)->replaceMatches('/\s+/', ' ')->trim()->lower()->toString())
+        ->filter(fn ($idea) => $this->keywordIsRelevant($keyword, $idea))
         ->unique()
         ->values();
 }
 
-private function keywordRows($ideas, $country, array $countryData, array $matches, $questions = false)
+private function keywordRows($ideas, $country, array $countryData, array $matches, $questions = false, array $suggestionSignals = [])
 {
-    return collect($ideas)->map(function ($idea) use ($country, $countryData, $matches, $questions) {
-        $metrics = $this->keywordMetrics($idea, $country, $countryData, $matches['score'], $questions);
+    return collect($ideas)->map(function ($idea) use ($country, $countryData, $matches, $questions, $suggestionSignals) {
+        $signal = $suggestionSignals[$this->keywordNormalize($idea)] ?? 0;
+        $metrics = $this->keywordMetrics($idea, $country, $countryData, $matches['score'], $questions, $signal);
 
         return [
             'keyword' => $idea,
@@ -491,7 +711,7 @@ private function keywordRows($ideas, $country, array $countryData, array $matche
         ->values();
 }
 
-private function keywordMetrics($keyword, $country, array $countryData, $matchScore = 0, $question = false)
+private function keywordMetrics($keyword, $country, array $countryData, $matchScore = 0, $question = false, $googleSignal = 0)
 {
     $clean = Str::of($keyword)->lower()->squish()->toString();
     $seed = abs(crc32($clean . '|' . $country));
@@ -499,7 +719,7 @@ private function keywordMetrics($keyword, $country, array $countryData, $matchSc
     $commercialTerms = ['buy', 'price', 'cost', 'supplier', 'installation', 'setup', 'deal', 'deals', 'package'];
     $commercialScore = collect($commercialTerms)->filter(fn ($term) => str_contains($clean, $term))->count();
     $brandBoost = collect(['starlink', 'mikrotik', 'iphone', 'tplink', 'ubiquiti', 'router'])->filter(fn ($term) => str_contains($clean, $term))->count();
-    $base = 42 + (($seed % 90) * 3) + ($matchScore * 38) + ($brandBoost * 95) + ($commercialScore * 55);
+    $base = 42 + (($seed % 90) * 3) + ($matchScore * 24) + ($brandBoost * 95) + ($commercialScore * 55) + ($googleSignal * 560);
 
     if ($wordCount <= 2) {
         $base *= 1.45;
@@ -537,7 +757,7 @@ private function keywordMetrics($keyword, $country, array $countryData, $matchSc
 
     return [
         'volume' => $volume,
-        'volume_label' => $volume < 100 ? '<100' : '>' . number_format($this->keywordVolumeBucket($volume)),
+        'volume_label' => $this->keywordVolumeLabel($volume, $googleSignal, $wordCount, $question),
         'kd' => $kd,
         'kd_label' => $kdLabel,
         'kd_class' => $kdClass,
@@ -558,6 +778,46 @@ private function keywordVolumeBucket($volume)
     }
 
     return 25000;
+}
+
+private function keywordVolumeLabel($volume, $googleSignal = 0, $wordCount = 1, $question = false)
+{
+    $bucket = $this->keywordVolumeBucket($volume);
+    $lowConfidence = $googleSignal < 0.35 || $question || $wordCount >= 5;
+
+    if ($bucket <= 100) {
+        return '<100';
+    }
+
+    if ($lowConfidence && $bucket <= 1000) {
+        return '<' . number_format($bucket);
+    }
+
+    if ($bucket >= 25000) {
+        return '>10,000';
+    }
+
+    if ($bucket >= 10000) {
+        return '5,000-10,000';
+    }
+
+    if ($bucket >= 5000) {
+        return '2,500-5,000';
+    }
+
+    if ($bucket >= 2500) {
+        return '1,000-2,500';
+    }
+
+    if ($bucket >= 1000) {
+        return '500-1,000';
+    }
+
+    if ($bucket >= 500) {
+        return '250-500';
+    }
+
+    return '100-250';
 }
 
 private function analyticsProductEngagement($startDate, $endDate)
