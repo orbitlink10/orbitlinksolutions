@@ -383,6 +383,7 @@ Route::get('/{slug}', ['as' => 'page_single', 'uses'=>'App\Http\Controllers\Welc
 
 Route::get('/admin/analytics', [App\Http\Controllers\HomeController::class, 'analytics'])->name('admin.analytics');
 Route::get('/admin/keyword-research', [App\Http\Controllers\HomeController::class, 'keywordResearch'])->name('admin.keyword-research');
+Route::get('/admin/site-audit', [App\Http\Controllers\HomeController::class, 'siteAudit'])->name('admin.site-audit');
 Route::get('/admin/users/', [App\Http\Controllers\HomeController::class, 'Allusers'])->name('admin.users');
 Route::post('/admin/store/users', [App\Http\Controllers\HomeController::class, 'saveUser'])->name('admin.save_user');
 Route::post('/admin/update/users/{id}', [App\Http\Controllers\HomeController::class, 'updateUser'])->name('admin.update_user');

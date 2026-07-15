@@ -18,9 +18,11 @@ use App\Models\Post;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Media;
+use App\Services\SiteAuditService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -289,6 +291,45 @@ public function keywordResearch(Request $request)
     $research = $this->buildKeywordResearch($keyword, $country, $countries[$country]);
 
     return view('admin.keyword_research', compact('keyword', 'country', 'countries', 'research'));
+}
+
+public function siteAudit(Request $request, SiteAuditService $siteAuditService)
+{
+    if (!Auth::user()->is_admin()) {
+        return redirect()->route('account.dashboard')->with('error', 'You are not allowed to view site audits.');
+    }
+
+    $defaultUrl = $request->getSchemeAndHttpHost();
+    $inputUrl = trim((string) $request->query('url', $defaultUrl));
+    $normalizedUrl = $siteAuditService->normalizeUrl($inputUrl);
+    $audit = null;
+    $auditError = null;
+
+    if (!$normalizedUrl) {
+        $auditError = 'Enter a valid HTTP or HTTPS website URL.';
+    } elseif (!$siteAuditService->isAllowedUrl($normalizedUrl, $request->getHost())) {
+        $auditError = 'This URL cannot be audited from the admin panel.';
+    } else {
+        $cacheKey = 'site-audit:v2:' . md5($normalizedUrl);
+
+        if ($request->boolean('fresh')) {
+            Cache::forget($cacheKey);
+        }
+
+        try {
+            $audit = Cache::remember($cacheKey, now()->addMinutes(20), function () use ($siteAuditService, $normalizedUrl) {
+                return $siteAuditService->audit($normalizedUrl);
+            });
+        } catch (\Throwable $e) {
+            $auditError = 'The audit could not complete. Check the URL and try again.';
+        }
+    }
+
+    return view('admin.site_audit', [
+        'inputUrl' => $normalizedUrl ?: $inputUrl,
+        'audit' => $audit,
+        'auditError' => $auditError,
+    ]);
 }
 
 private function keywordCountries()

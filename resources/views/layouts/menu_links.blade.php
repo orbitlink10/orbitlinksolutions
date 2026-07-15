@@ -46,6 +46,12 @@
         <p>Keyword Research</p>
     </a>
 </li>
+<li class="nav-item">
+    <a href="{{ route('admin.site-audit') }}" class="nav-link {{ request()->is('admin/site-audit*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-cog"></i>
+        <p>Site Audit</p>
+    </a>
+</li>
 
 
     <!-- Admin Content Management -->
