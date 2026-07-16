@@ -69,6 +69,7 @@ Route::get('/speed-test/download', [WelcomeController::class, 'speedTestDownload
 Route::post('/speed-test/upload', [WelcomeController::class, 'speedTestUpload'])
     ->name('speed-test.upload')
     ->middleware('throttle:30,1');
+Route::get('/calculators', [WelcomeController::class, 'calculators'])->name('calculators');
 
 
 Route::get('/starlink-kenya-price', function () {

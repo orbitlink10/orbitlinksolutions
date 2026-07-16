@@ -211,6 +211,18 @@ public function speedTestUpload(Request $request)
     ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
 }
 
+public function calculators()
+{
+    $theme = get_option('theme') ?: 'orbit';
+    $view = 'theme.' . $theme . '.calculators';
+
+    if (!view()->exists($view)) {
+        $view = 'theme.orbit.calculators';
+    }
+
+    return view($view);
+}
+
 
 
     

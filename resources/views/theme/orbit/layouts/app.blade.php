@@ -270,6 +270,16 @@
                                 @foreach(\App\Models\Menu::all() as $menu)
                                     <li class="nav-item"><a class="nav-link" href="{{ $menu->url }}">{{ $menu->name }}</a></li>
                                 @endforeach
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="mobileResourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Resources
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="mobileResourcesDropdown">
+                                        <li><a class="dropdown-item" href="{{ route('speed-test') }}">Speed Test</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('calculators') }}">Calculators</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('blogs') }}">Blogs</a></li>
+                                    </ul>
+                                </li>
                             </ul>
                             <div class="navbar-text mt-2"><i class="fas fa-headset me-1"></i>Need Help? {{ get_option('contact_phone') }}</div>
                         </div>
@@ -287,6 +297,16 @@
                             @foreach(\App\Models\Menu::all() as $menu)
                                 <li class="nav-item"><a class="nav-link" href="{{ $menu->url }}">{{ $menu->name }}</a></li>
                             @endforeach
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Resources
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="resourcesDropdown">
+                                    <li><a class="dropdown-item" href="{{ route('speed-test') }}">Speed Test</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('calculators') }}">Calculators</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('blogs') }}">Blogs</a></li>
+                                </ul>
+                            </li>
                         </ul>
                         <span class="navbar-text d-none d-lg-inline"><i class="fas fa-headset me-1"></i>Need Help? {{ get_option('contact_phone') }}</span>
                     </div>
