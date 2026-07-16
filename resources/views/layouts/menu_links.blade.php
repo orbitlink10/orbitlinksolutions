@@ -41,6 +41,12 @@
     </a>
 </li>
 <li class="nav-item">
+    <a href="{{ route('admin.speed-test') }}" class="nav-link {{ request()->is('admin/speed-test*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-tachometer-alt"></i>
+        <p>Speed Test</p>
+    </a>
+</li>
+<li class="nav-item">
     <a href="{{ route('admin.keyword-research') }}" class="nav-link {{ request()->is('admin/keyword-research*') ? 'active' : '' }}">
         <i class="nav-icon fas fa-search"></i>
         <p>Keyword Research</p>

@@ -385,6 +385,9 @@ Route::get('/{assetPath}', function (string $assetPath) {
 Route::get('/{slug}', ['as' => 'page_single', 'uses'=>'App\Http\Controllers\WelcomeController@sitemaps']);
 
 Route::get('/admin/analytics', [App\Http\Controllers\HomeController::class, 'analytics'])->name('admin.analytics');
+Route::get('/admin/speed-test', [App\Http\Controllers\HomeController::class, 'speedTest'])->name('admin.speed-test');
+Route::get('/admin/speed-test/download', [App\Http\Controllers\HomeController::class, 'speedTestDownload'])->name('admin.speed-test.download');
+Route::post('/admin/speed-test/upload', [App\Http\Controllers\HomeController::class, 'speedTestUpload'])->name('admin.speed-test.upload');
 Route::get('/admin/keyword-research', [App\Http\Controllers\HomeController::class, 'keywordResearch'])->name('admin.keyword-research');
 Route::get('/admin/users/', [App\Http\Controllers\HomeController::class, 'Allusers'])->name('admin.users');
 Route::post('/admin/store/users', [App\Http\Controllers\HomeController::class, 'saveUser'])->name('admin.save_user');
