@@ -62,6 +62,14 @@ Route::get('/how-to-order', function () {
 
 Route::get('/reviews', [WelcomeController::class, 'reviews'])->name('reviews');
 
+Route::get('/speed-test', [WelcomeController::class, 'speedTest'])->name('speed-test');
+Route::get('/speed-test/download', [WelcomeController::class, 'speedTestDownload'])
+    ->name('speed-test.download')
+    ->middleware('throttle:30,1');
+Route::post('/speed-test/upload', [WelcomeController::class, 'speedTestUpload'])
+    ->name('speed-test.upload')
+    ->middleware('throttle:30,1');
+
 
 Route::get('/starlink-kenya-price', function () {
     return view('theme.'.get_option('theme').'.pricing');

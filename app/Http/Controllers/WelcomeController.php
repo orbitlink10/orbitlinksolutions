@@ -133,6 +133,84 @@ public function reviews()
     }
 }
 
+public function speedTest()
+{
+    $presets = [
+        'quick' => [
+            'label' => 'Quick',
+            'download' => 4 * 1024 * 1024,
+            'upload' => 2 * 1024 * 1024,
+        ],
+        'standard' => [
+            'label' => 'Standard',
+            'download' => 16 * 1024 * 1024,
+            'upload' => 8 * 1024 * 1024,
+        ],
+        'detailed' => [
+            'label' => 'Detailed',
+            'download' => 32 * 1024 * 1024,
+            'upload' => 16 * 1024 * 1024,
+        ],
+    ];
+    $theme = get_option('theme') ?: 'orbit';
+    $view = 'theme.' . $theme . '.speed_test';
+
+    if (!view()->exists($view)) {
+        $view = 'theme.orbit.speed_test';
+    }
+
+    return view($view, compact('presets'));
+}
+
+public function speedTestDownload(Request $request)
+{
+    $bytes = (int) $request->query('bytes', 16 * 1024 * 1024);
+    $bytes = max(1024, min($bytes, 64 * 1024 * 1024));
+
+    return response()->stream(function () use ($bytes) {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+
+        $remaining = $bytes;
+        $chunkSize = 64 * 1024;
+
+        while ($remaining > 0 && !connection_aborted()) {
+            $size = min($chunkSize, $remaining);
+            echo random_bytes($size);
+            $remaining -= $size;
+
+            if (ob_get_level() > 0) {
+                @ob_flush();
+            }
+
+            flush();
+        }
+    }, 200, [
+        'Content-Type' => 'application/octet-stream',
+        'Content-Length' => (string) $bytes,
+        'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0, no-transform',
+        'Pragma' => 'no-cache',
+        'Content-Encoding' => 'identity',
+        'Accept-Ranges' => 'none',
+        'X-Accel-Buffering' => 'no',
+    ]);
+}
+
+public function speedTestUpload(Request $request)
+{
+    $bytes = $request->headers->get('Content-Length');
+
+    if ($bytes === null) {
+        $bytes = strlen($request->getContent());
+    }
+
+    return response()->json([
+        'bytes' => (int) $bytes,
+        'received_at' => now()->toIso8601String(),
+    ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+}
+
 
 
     
