@@ -107,6 +107,54 @@
             </div>
 
             <div class="row dashboard-row">
+                <div class="col-12 mb-4">
+                    <div class="card dashboard-panel homepage-products-panel">
+                        <form action="{{ route('admin.homepage_product_categories.update') }}" method="POST">
+                            @csrf
+                            <div class="dashboard-panel-header homepage-products-header">
+                                <div>
+                                    <h4 class="dashboard-panel-title">Homepage Products</h4>
+                                    @php $selectedHomepageCategoryCount = count($selectedHomepageCategoryIds); @endphp
+                                    <span class="dashboard-panel-meta">
+                                        {{ $selectedHomepageCategoryCount === 0 ? 'No selected categories' : $selectedHomepageCategoryCount . ' selected ' . ($selectedHomepageCategoryCount === 1 ? 'category' : 'categories') }}
+                                    </span>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-save"></i> Save Categories
+                                </button>
+                            </div>
+                            <div class="homepage-products-body">
+                                <p class="homepage-products-help">
+                                    Select the categories whose products should appear on the homepage product section. If none are selected, the homepage shows the latest products.
+                                </p>
+                                <div class="homepage-category-grid">
+                                    @forelse($homepageCategories as $category)
+                                        <label class="homepage-category-option" for="homepage-category-{{ $category->id }}">
+                                            <input
+                                                type="checkbox"
+                                                name="category_ids[]"
+                                                id="homepage-category-{{ $category->id }}"
+                                                value="{{ $category->id }}"
+                                                {{ in_array((int) $category->id, $selectedHomepageCategoryIds, true) ? 'checked' : '' }}
+                                            >
+                                            <span class="homepage-category-copy">
+                                                <strong>{{ $category->name }}</strong>
+                                                <small>{{ $category->homepage_products_count }} products</small>
+                                            </span>
+                                        </label>
+                                    @empty
+                                        <div class="homepage-category-empty">
+                                            No categories have been created yet.
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row dashboard-row">
                 <div class="col-lg-7 mb-4">
                     <div class="card dashboard-panel">
                         <div class="dashboard-panel-header">
@@ -461,6 +509,71 @@
         justify-content: center;
         font-size: 16px;
         flex-shrink: 0;
+    }
+
+    .homepage-products-panel form {
+        margin: 0;
+    }
+
+    .homepage-products-header {
+        align-items: flex-start;
+    }
+
+    .homepage-products-body {
+        padding: 18px 20px 20px;
+    }
+
+    .homepage-products-help {
+        margin: 0 0 14px;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .homepage-category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 10px;
+    }
+
+    .homepage-category-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: 0;
+        padding: 12px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+        color: #0f172a;
+        cursor: pointer;
+        min-height: 68px;
+    }
+
+    .homepage-category-option input {
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+    .homepage-category-copy {
+        display: grid;
+        gap: 3px;
+        line-height: 1.25;
+    }
+
+    .homepage-category-copy strong {
+        font-size: 0.92rem;
+        font-weight: 600;
+    }
+
+    .homepage-category-copy small,
+    .homepage-category-empty {
+        color: #64748b;
+        font-size: 0.82rem;
+    }
+
+    .homepage-category-option:has(input:checked) {
+        border-color: #93c5fd;
+        background: #eff6ff;
     }
 
     @media (max-width: 768px) {

@@ -499,6 +499,34 @@ function get_uploaded_image($path){
       return $option_key;
     }
 
+if (! function_exists('homepage_product_category_ids')) {
+    function homepage_product_category_ids()
+    {
+        $rawValue = get_option('homepage_product_category_ids', '');
+        $ids = [];
+
+        if (is_string($rawValue) && trim($rawValue) !== '') {
+            $decoded = json_decode($rawValue, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $ids = $decoded;
+            } else {
+                $ids = preg_split('/[\s,]+/', $rawValue);
+            }
+        } elseif (is_array($rawValue)) {
+            $ids = $rawValue;
+        }
+
+        return collect($ids)
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+    }
+}
+
 
 
 function upload_file_name($photo, $maxBaseLength = 80, $suffix = null){

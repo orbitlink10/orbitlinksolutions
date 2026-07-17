@@ -60,6 +60,10 @@ public function index()
     $users = User::orderBy('id', 'desc')->get();
     $invoices = Invoice::orderBy('id', 'desc')->get();
     $enquiries = Notification::orderBy('id', 'desc')->get();
+    $homepageCategories = Category::withCount([
+        'products as homepage_products_count' => fn ($query) => $query->where('product_type', 'product'),
+    ])->orderBy('name')->get();
+    $selectedHomepageCategoryIds = homepage_product_category_ids();
 
     // Additional Metrics
     $totalRevenue = Order::whereStatus('paid')->sum('total_amount');
@@ -78,11 +82,39 @@ public function index()
             'recentOrders',
             'newUsers',
             'recentUsers',
-            'recentActivities'
+            'recentActivities',
+            'homepageCategories',
+            'selectedHomepageCategoryIds'
         ));
     } else {
         return redirect()->route('account.dashboard')->with('success', 'Login success');
     }
+}
+
+public function updateHomepageProductCategories(Request $request)
+{
+    if (!Auth::user()->is_admin()) {
+        return redirect()->route('account.dashboard')->with('error', 'You are not allowed to update homepage categories.');
+    }
+
+    $validated = $request->validate([
+        'category_ids' => ['nullable', 'array'],
+        'category_ids.*' => ['integer', 'exists:categories,id'],
+    ]);
+
+    $categoryIds = collect($validated['category_ids'] ?? [])
+        ->map(fn ($id) => (int) $id)
+        ->filter(fn ($id) => $id > 0)
+        ->unique()
+        ->values()
+        ->all();
+
+    Option::updateOrCreate(
+        ['option_key' => 'homepage_product_category_ids'],
+        ['option_value' => json_encode($categoryIds)]
+    );
+
+    return redirect()->back()->with('success', 'Homepage product categories updated successfully.');
 }
 
 

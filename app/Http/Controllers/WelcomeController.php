@@ -92,7 +92,15 @@ class WelcomeController extends Controller
         $options =Option::all();
         $sliders =Slider::all();
 
-        $products = Product::with(['mediaFiles', 'category'])->whereProductType('product')->orderBy('id', 'desc')->limit(8)->get();
+        $homepageCategoryIds = homepage_product_category_ids();
+        $productsQuery = Product::with(['mediaFiles', 'category'])
+            ->whereProductType('product');
+
+        if (!empty($homepageCategoryIds)) {
+            $productsQuery->whereIn('category_id', $homepageCategoryIds);
+        }
+
+        $products = $productsQuery->orderBy('id', 'desc')->limit(8)->get();
 
 $testimonials = Testimonial::all();
 $medias = Media::whereMediaType('installation')->limit(30)->get();

@@ -20,7 +20,7 @@
   $heroImage         = Cache::remember('spacelink_hero_img', 3600, fn() =>
                           get_option('hero_image', asset('assets/img/spacelink-hero.jpg'))
                        );
-  $cachedProducts    = Cache::remember('starlink_products',    3600, fn() => $products);
+  $cachedProducts    = $products;
   $cachedMedias2     = Cache::remember('starlink_medias2',     3600, fn() => $medias2);
   $cachedTestimonials= Cache::remember('starlink_testimonials',3600, fn() => $testimonials);
   $cachedServices    = Cache::remember('starlink_services',    3600, fn() => $services);
