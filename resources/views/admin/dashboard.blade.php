@@ -125,7 +125,7 @@
                             </div>
                             <div class="homepage-products-body">
                                 <p class="homepage-products-help">
-                                    Select the categories whose products should appear on the homepage product section. If none are selected, the homepage shows the latest products.
+                                    Select up to three categories whose products should appear on the homepage product section. Each selected category displays as its own product row. If none are selected, the homepage shows the latest products.
                                 </p>
                                 <div class="homepage-category-grid">
                                     @forelse($homepageCategories as $category)

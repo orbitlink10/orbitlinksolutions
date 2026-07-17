@@ -63,7 +63,7 @@ public function index()
     $homepageCategories = Category::withCount([
         'products as homepage_products_count' => fn ($query) => $query->where('product_type', 'product'),
     ])->orderBy('name')->get();
-    $selectedHomepageCategoryIds = homepage_product_category_ids();
+    $selectedHomepageCategoryIds = array_slice(homepage_product_category_ids(), 0, 3);
 
     // Additional Metrics
     $totalRevenue = Order::whereStatus('paid')->sum('total_amount');
@@ -98,7 +98,7 @@ public function updateHomepageProductCategories(Request $request)
     }
 
     $validated = $request->validate([
-        'category_ids' => ['nullable', 'array'],
+        'category_ids' => ['nullable', 'array', 'max:3'],
         'category_ids.*' => ['integer', 'exists:categories,id'],
     ]);
 
@@ -106,6 +106,7 @@ public function updateHomepageProductCategories(Request $request)
         ->map(fn ($id) => (int) $id)
         ->filter(fn ($id) => $id > 0)
         ->unique()
+        ->take(3)
         ->values()
         ->all();
 

@@ -92,12 +92,32 @@ class WelcomeController extends Controller
         $options =Option::all();
         $sliders =Slider::all();
 
-        $homepageCategoryIds = homepage_product_category_ids();
+        $homepageCategoryIds = array_slice(homepage_product_category_ids(), 0, 3);
+        $homepageProductCategories = collect();
         $productsQuery = Product::with(['mediaFiles', 'category'])
             ->whereProductType('product');
 
         if (!empty($homepageCategoryIds)) {
             $productsQuery->whereIn('category_id', $homepageCategoryIds);
+
+            $homepageProductCategories = Category::whereIn('id', $homepageCategoryIds)
+                ->get()
+                ->sortBy(fn ($category) => array_search((int) $category->id, $homepageCategoryIds, true))
+                ->values()
+                ->map(function ($category) {
+                    $homepageProducts = Product::with(['mediaFiles', 'category'])
+                        ->whereProductType('product')
+                        ->where('category_id', $category->id)
+                        ->orderBy('id', 'desc')
+                        ->limit(8)
+                        ->get();
+
+                    $category->setRelation('homepageProducts', $homepageProducts);
+
+                    return $category;
+                })
+                ->filter(fn ($category) => $category->homepageProducts->isNotEmpty())
+                ->values();
         }
 
         $products = $productsQuery->orderBy('id', 'desc')->limit(8)->get();
@@ -109,7 +129,7 @@ $services = Service::all();
 $categories = Category::orderBy('id', 'desc')->get();
 
 
-        return view('theme.'.get_option('theme').'.index', compact('pages','posts', 'tags', 'new','options', 'products','testimonials', 'services', 'medias','medias2', 'categories', 'sliders'));
+        return view('theme.'.get_option('theme').'.index', compact('pages','posts', 'tags', 'new','options', 'products','homepageProductCategories','testimonials', 'services', 'medias','medias2', 'categories', 'sliders'));
     }
 
 
