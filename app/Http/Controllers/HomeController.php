@@ -64,6 +64,11 @@ public function index()
         'products as homepage_products_count' => fn ($query) => $query->where('product_type', 'product'),
     ])->orderBy('name')->get();
     $selectedHomepageCategoryIds = array_slice(homepage_product_category_ids(), 0, 3);
+    $homepageProducts = Product::with('category')
+        ->where('product_type', 'product')
+        ->orderBy('name')
+        ->get();
+    $selectedHomepageProductIds = homepage_product_ids();
 
     // Additional Metrics
     $totalRevenue = Order::whereStatus('paid')->sum('total_amount');
@@ -84,7 +89,9 @@ public function index()
             'recentUsers',
             'recentActivities',
             'homepageCategories',
-            'selectedHomepageCategoryIds'
+            'selectedHomepageCategoryIds',
+            'homepageProducts',
+            'selectedHomepageProductIds'
         ));
     } else {
         return redirect()->route('account.dashboard')->with('success', 'Login success');
@@ -100,6 +107,8 @@ public function updateHomepageProductCategories(Request $request)
     $validated = $request->validate([
         'category_ids' => ['nullable', 'array', 'max:3'],
         'category_ids.*' => ['integer', 'exists:categories,id'],
+        'product_ids' => ['nullable', 'array'],
+        'product_ids.*' => ['integer', 'exists:products,id'],
     ]);
 
     $categoryIds = collect($validated['category_ids'] ?? [])
@@ -110,12 +119,24 @@ public function updateHomepageProductCategories(Request $request)
         ->values()
         ->all();
 
+    $productIds = collect($validated['product_ids'] ?? [])
+        ->map(fn ($id) => (int) $id)
+        ->filter(fn ($id) => $id > 0)
+        ->unique()
+        ->values()
+        ->all();
+
     Option::updateOrCreate(
         ['option_key' => 'homepage_product_category_ids'],
         ['option_value' => json_encode($categoryIds)]
     );
 
-    return redirect()->back()->with('success', 'Homepage product categories updated successfully.');
+    Option::updateOrCreate(
+        ['option_key' => 'homepage_product_ids'],
+        ['option_value' => json_encode($productIds)]
+    );
+
+    return redirect()->back()->with('success', 'Homepage products updated successfully.');
 }
 
 

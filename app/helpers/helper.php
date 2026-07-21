@@ -499,10 +499,10 @@ function get_uploaded_image($path){
       return $option_key;
     }
 
-if (! function_exists('homepage_product_category_ids')) {
-    function homepage_product_category_ids()
+if (! function_exists('homepage_option_ids')) {
+    function homepage_option_ids($optionKey)
     {
-        $rawValue = get_option('homepage_product_category_ids', '');
+        $rawValue = get_option($optionKey, '');
         $ids = [];
 
         if (is_string($rawValue) && trim($rawValue) !== '') {
@@ -524,6 +524,20 @@ if (! function_exists('homepage_product_category_ids')) {
             ->unique()
             ->values()
             ->all();
+    }
+}
+
+if (! function_exists('homepage_product_category_ids')) {
+    function homepage_product_category_ids()
+    {
+        return homepage_option_ids('homepage_product_category_ids');
+    }
+}
+
+if (! function_exists('homepage_product_ids')) {
+    function homepage_product_ids()
+    {
+        return homepage_option_ids('homepage_product_ids');
     }
 }
 

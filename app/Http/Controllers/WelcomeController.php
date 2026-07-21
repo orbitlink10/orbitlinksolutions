@@ -92,24 +92,67 @@ class WelcomeController extends Controller
         $options =Option::all();
         $sliders =Slider::all();
 
-        $homepageCategoryIds = array_slice(homepage_product_category_ids(), 0, 3);
+        $homepageProductsPerCategory = 4;
+        $homepageCategoryIds = homepage_product_category_ids();
+        $homepageProductIds = homepage_product_ids();
         $homepageProductCategories = collect();
         $productsQuery = Product::with(['mediaFiles', 'category'])
             ->whereProductType('product');
 
-        if (!empty($homepageCategoryIds)) {
-            $productsQuery->whereIn('category_id', $homepageCategoryIds);
-
-            $homepageProductCategories = Category::whereIn('id', $homepageCategoryIds)
+        if (!empty($homepageProductIds)) {
+            $selectedHomepageProducts = Product::with(['mediaFiles', 'category'])
+                ->whereProductType('product')
+                ->whereIn('id', $homepageProductIds)
                 ->get()
-                ->sortBy(fn ($category) => array_search((int) $category->id, $homepageCategoryIds, true))
+                ->sortBy(fn ($product) => array_search((int) $product->id, $homepageProductIds, true))
+                ->values();
+
+            $homepageProductCategories = $selectedHomepageProducts
+                ->groupBy(fn ($product) => $product->category_id ?: 'selected')
+                ->map(function ($categoryProducts) use ($homepageProductsPerCategory) {
+                    $categoryProducts = $categoryProducts
+                        ->take($homepageProductsPerCategory)
+                        ->values();
+                    $category = $categoryProducts->first()?->category;
+
+                    if (! $category) {
+                        return (object) [
+                            'name' => 'Selected products',
+                            'slug' => null,
+                            'homepageProducts' => $categoryProducts,
+                        ];
+                    }
+
+                    $category->setRelation('homepageProducts', $categoryProducts);
+
+                    return $category;
+                })
+                ->values();
+
+            $products = $selectedHomepageProducts->take(8);
+        } else {
+            $homepageCategoriesQuery = Category::whereHas('products', function ($query) {
+                $query->whereProductType('product');
+            });
+
+            if (!empty($homepageCategoryIds)) {
+                $homepageCategoriesQuery->whereIn('id', $homepageCategoryIds);
+                $productsQuery->whereIn('category_id', $homepageCategoryIds);
+            }
+
+            $homepageProductCategories = $homepageCategoriesQuery
+                ->orderBy('id', 'desc')
+                ->get()
+                ->when(!empty($homepageCategoryIds), function ($categories) use ($homepageCategoryIds) {
+                    return $categories->sortBy(fn ($category) => array_search((int) $category->id, $homepageCategoryIds, true));
+                })
                 ->values()
-                ->map(function ($category) {
+                ->map(function ($category) use ($homepageProductsPerCategory) {
                     $homepageProducts = Product::with(['mediaFiles', 'category'])
                         ->whereProductType('product')
                         ->where('category_id', $category->id)
                         ->orderBy('id', 'desc')
-                        ->limit(8)
+                        ->limit($homepageProductsPerCategory)
                         ->get();
 
                     $category->setRelation('homepageProducts', $homepageProducts);
@@ -118,9 +161,9 @@ class WelcomeController extends Controller
                 })
                 ->filter(fn ($category) => $category->homepageProducts->isNotEmpty())
                 ->values();
-        }
 
-        $products = $productsQuery->orderBy('id', 'desc')->limit(8)->get();
+            $products = $productsQuery->orderBy('id', 'desc')->limit(8)->get();
+        }
 
 $testimonials = Testimonial::all();
 $medias = Media::whereMediaType('installation')->limit(30)->get();

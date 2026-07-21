@@ -114,19 +114,79 @@
                             <div class="dashboard-panel-header homepage-products-header">
                                 <div>
                                     <h4 class="dashboard-panel-title">Homepage Products</h4>
-                                    @php $selectedHomepageCategoryCount = count($selectedHomepageCategoryIds); @endphp
+                                    @php
+                                        $selectedHomepageProductCount = count($selectedHomepageProductIds);
+                                        $selectedHomepageCategoryCount = count($selectedHomepageCategoryIds);
+                                    @endphp
                                     <span class="dashboard-panel-meta">
-                                        {{ $selectedHomepageCategoryCount === 0 ? 'No selected categories' : $selectedHomepageCategoryCount . ' selected ' . ($selectedHomepageCategoryCount === 1 ? 'category' : 'categories') }}
+                                        @if($selectedHomepageProductCount > 0)
+                                            {{ $selectedHomepageProductCount }} selected {{ $selectedHomepageProductCount === 1 ? 'product' : 'products' }}
+                                        @elseif($selectedHomepageCategoryCount > 0)
+                                            {{ $selectedHomepageCategoryCount }} selected {{ $selectedHomepageCategoryCount === 1 ? 'category' : 'categories' }}
+                                        @else
+                                            No selected products
+                                        @endif
                                     </span>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-save"></i> Save Categories
+                                    <i class="fas fa-save"></i> Save Products
                                 </button>
                             </div>
                             <div class="homepage-products-body">
                                 <p class="homepage-products-help">
-                                    Select up to three categories whose products should appear on the homepage product section. Each selected category displays as its own product row. If none are selected, the homepage shows the latest products.
+                                    Select the exact products that should appear on the homepage. Selected products override category selections and display grouped by category. If no products are selected, the homepage uses the category fallback below.
                                 </p>
+                                <div class="homepage-product-picker">
+                                    <div class="homepage-product-picker-header">
+                                        <label for="homepage-product-search">Specific homepage products</label>
+                                        <input
+                                            type="search"
+                                            id="homepage-product-search"
+                                            class="form-control form-control-sm homepage-product-search"
+                                            placeholder="Search products or categories"
+                                            autocomplete="off"
+                                        >
+                                    </div>
+                                    <div class="homepage-product-grid" id="homepage-product-grid">
+                                        @forelse($homepageProducts as $product)
+                                            @php
+                                                $productCategory = $product->category;
+                                                $searchText = strtolower(trim($product->name . ' ' . ($productCategory->name ?? '')));
+                                            @endphp
+                                            <label
+                                                class="homepage-product-option"
+                                                for="homepage-product-{{ $product->id }}"
+                                                data-search="{{ $searchText }}"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    name="product_ids[]"
+                                                    id="homepage-product-{{ $product->id }}"
+                                                    value="{{ $product->id }}"
+                                                    {{ in_array((int) $product->id, $selectedHomepageProductIds, true) ? 'checked' : '' }}
+                                                >
+                                                <span class="homepage-product-copy">
+                                                    <strong>{{ $product->name }}</strong>
+                                                    <small>
+                                                        {{ $productCategory->name ?? 'No category' }}
+                                                        @if($product->has_price)
+                                                            - {{ price($product) }}
+                                                        @endif
+                                                    </small>
+                                                </span>
+                                            </label>
+                                        @empty
+                                            <div class="homepage-category-empty">
+                                                No products have been created yet.
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                </div>
+
+                                <div class="homepage-fallback-heading">
+                                    <strong>Category fallback</strong>
+                                    <span>Used only when no specific products are selected.</span>
+                                </div>
                                 <div class="homepage-category-grid">
                                     @forelse($homepageCategories as $category)
                                         <label class="homepage-category-option" for="homepage-category-{{ $category->id }}">
@@ -529,6 +589,98 @@
         font-size: 0.9rem;
     }
 
+    .homepage-product-picker {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        background: #ffffff;
+        margin-bottom: 18px;
+        overflow: hidden;
+    }
+
+    .homepage-product-picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+
+    .homepage-product-picker-header label {
+        margin: 0;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .homepage-product-search {
+        max-width: 280px;
+        border-radius: 999px;
+    }
+
+    .homepage-product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 10px;
+        max-height: 420px;
+        overflow: auto;
+        padding: 14px;
+    }
+
+    .homepage-product-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: 0;
+        padding: 12px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+        color: #0f172a;
+        cursor: pointer;
+        min-height: 76px;
+    }
+
+    .homepage-product-option input {
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+    .homepage-product-copy {
+        display: grid;
+        gap: 3px;
+        line-height: 1.25;
+    }
+
+    .homepage-product-copy strong {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .homepage-product-copy small {
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+
+    .homepage-product-option:has(input:checked) {
+        border-color: #86efac;
+        background: #f0fdf4;
+    }
+
+    .homepage-fallback-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 4px 0 10px;
+        color: #0f172a;
+    }
+
+    .homepage-fallback-heading span {
+        color: #64748b;
+        font-size: 0.82rem;
+    }
+
     .homepage-category-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -584,6 +736,36 @@
         .dashboard-header-actions {
             width: 100%;
         }
+
+        .homepage-product-picker-header,
+        .homepage-fallback-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .homepage-product-search {
+            max-width: 100%;
+        }
     }
 </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var search = document.getElementById('homepage-product-search');
+        var grid = document.getElementById('homepage-product-grid');
+
+        if (!search || !grid) {
+            return;
+        }
+
+        search.addEventListener('input', function () {
+            var query = search.value.trim().toLowerCase();
+            var options = grid.querySelectorAll('.homepage-product-option');
+
+            options.forEach(function (option) {
+                var text = option.getAttribute('data-search') || '';
+                option.style.display = text.indexOf(query) === -1 ? 'none' : '';
+            });
+        });
+    });
+</script>
 @endsection
