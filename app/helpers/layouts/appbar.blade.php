@@ -125,6 +125,15 @@
           </li>
 
           <li class="nav-item">
+            <a href="{{ url('admin/product-display') }}" class="nav-link">
+              <i class="nav-icon fas fa-th-large"></i>
+              <p>
+                Product Display
+              </p>
+            </a>
+          </li>
+
+          <li class="nav-item">
             <a href="{{route ('orders.index')}}" class="nav-link">
               <i class="nav-icon far fa-image"></i>
               <p>

@@ -75,7 +75,7 @@
         </a>
     </li>
     <li class="nav-item">
-        <a href="{{ route('admin.product-display') }}" class="nav-link {{ request()->is('admin/product-display*') ? 'active' : '' }}">
+        <a href="{{ url('admin/product-display') }}" class="nav-link product-display-menu-link {{ request()->is('admin/product-display*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-th-large"></i>
             <p>Product Display</p>
         </a>
