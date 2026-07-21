@@ -74,6 +74,12 @@
             <p>Products</p>
         </a>
     </li>
+    <li class="nav-item">
+        <a href="{{ route('admin.product-display') }}" class="nav-link {{ request()->is('admin/product-display*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-th-large"></i>
+            <p>Product Display</p>
+        </a>
+    </li>
 
 
     @if(in_array(request()->getHost(), ['gamun.co.ke','www.gamun.co.ke']))

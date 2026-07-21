@@ -60,15 +60,7 @@ public function index()
     $users = User::orderBy('id', 'desc')->get();
     $invoices = Invoice::orderBy('id', 'desc')->get();
     $enquiries = Notification::orderBy('id', 'desc')->get();
-    $homepageCategories = Category::withCount([
-        'products as homepage_products_count' => fn ($query) => $query->where('product_type', 'product'),
-    ])->orderBy('name')->get();
-    $selectedHomepageCategoryIds = array_slice(homepage_product_category_ids(), 0, 3);
-    $homepageProducts = Product::with('category')
-        ->where('product_type', 'product')
-        ->orderBy('name')
-        ->get();
-    $selectedHomepageProductIds = homepage_product_ids();
+    $homepageDisplayData = $this->homepageProductDisplayData();
 
     // Additional Metrics
     $totalRevenue = Order::whereStatus('paid')->sum('total_amount');
@@ -78,7 +70,7 @@ public function index()
  $recentActivities = ActivityLog::latest()->limit(5)->get(); 
 
     if (Auth::user()->is_admin()) {
-        return view('admin.dashboard', compact(
+        return view('admin.dashboard', array_merge(compact(
             'orders',
             'users',
             'invoices',
@@ -87,15 +79,35 @@ public function index()
             'recentOrders',
             'newUsers',
             'recentUsers',
-            'recentActivities',
-            'homepageCategories',
-            'selectedHomepageCategoryIds',
-            'homepageProducts',
-            'selectedHomepageProductIds'
-        ));
+            'recentActivities'
+        ), $homepageDisplayData));
     } else {
         return redirect()->route('account.dashboard')->with('success', 'Login success');
     }
+}
+
+public function productDisplay()
+{
+    if (!Auth::user()->is_admin()) {
+        return redirect()->route('account.dashboard')->with('error', 'You are not allowed to update homepage product display.');
+    }
+
+    return view('admin.product_display', $this->homepageProductDisplayData());
+}
+
+protected function homepageProductDisplayData(): array
+{
+    return [
+        'homepageCategories' => Category::withCount([
+            'products as homepage_products_count' => fn ($query) => $query->where('product_type', 'product'),
+        ])->orderBy('name')->get(),
+        'selectedHomepageCategoryIds' => homepage_product_category_ids(),
+        'homepageProducts' => Product::with('category')
+            ->where('product_type', 'product')
+            ->orderBy('name')
+            ->get(),
+        'selectedHomepageProductIds' => homepage_product_ids(),
+    ];
 }
 
 public function updateHomepageProductCategories(Request $request)
@@ -105,7 +117,7 @@ public function updateHomepageProductCategories(Request $request)
     }
 
     $validated = $request->validate([
-        'category_ids' => ['nullable', 'array', 'max:3'],
+        'category_ids' => ['nullable', 'array'],
         'category_ids.*' => ['integer', 'exists:categories,id'],
         'product_ids' => ['nullable', 'array'],
         'product_ids.*' => ['integer', 'exists:products,id'],
@@ -115,7 +127,6 @@ public function updateHomepageProductCategories(Request $request)
         ->map(fn ($id) => (int) $id)
         ->filter(fn ($id) => $id > 0)
         ->unique()
-        ->take(3)
         ->values()
         ->all();
 

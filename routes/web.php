@@ -405,6 +405,7 @@ Route::get('/login_as/{id}', [App\Http\Controllers\HomeController::class, 'login
 
 Route::get('admin/settings', [App\Http\Controllers\HomeController::class, 'settings'])->name('admin.settings');
 Route::get('admin/pages-content', [App\Http\Controllers\HomeController::class, 'pages_content'])->name('admin.pages_content');
+Route::get('admin/product-display', [App\Http\Controllers\HomeController::class, 'productDisplay'])->name('admin.product-display');
 
 Route::post('admin/homepage-product-categories', [App\Http\Controllers\HomeController::class, 'updateHomepageProductCategories'])
     ->name('admin.homepage_product_categories.update');
