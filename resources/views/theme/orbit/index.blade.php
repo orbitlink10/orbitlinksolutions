@@ -183,40 +183,26 @@
 .homepage-product-row-header h3{font-size:1.2rem;font-weight:700;margin:0;color:#0b1220}
 .homepage-product-row-header span{display:block;margin-top:4px;color:#667085;font-size:.9rem}
 .homepage-product-row-actions{display:flex;align-items:center;gap:12px}
-.homepage-product-controls{display:none}
-.category-product-slider{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
-.category-product-slide{height:auto;min-width:0}
-.category-product-slide .product-cart-wrap{height:100%}
-.category-product-slider.slick-initialized{display:block;overflow:visible}
-.category-product-slider.slick-initialized .slick-list{overflow:visible!important;height:auto!important}
-.category-product-slider.slick-initialized .slick-track{
-    width:100%!important;
-    transform:none!important;
-    display:grid!important;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:20px;
-}
-.category-product-slider.slick-initialized .slick-slide{
-    display:block!important;
-    float:none!important;
-    width:auto!important;
-    height:auto!important;
-    padding:0!important;
-}
-.category-product-slider.slick-initialized .slick-cloned{display:none!important}
+.homepage-product-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;align-items:stretch;min-height:1px;overflow:visible!important}
+.homepage-product-card{display:flex!important;flex-direction:column;min-width:0;background:#fff;border:1px solid #dde3ec;border-radius:18px;padding:14px;text-decoration:none;color:#101828;box-shadow:0 12px 32px rgba(15,23,42,.06);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.homepage-product-card:hover{transform:translateY(-4px);box-shadow:0 18px 42px rgba(15,23,42,.12);border-color:rgba(255,138,30,.45);color:#101828}
+.homepage-product-card-image{aspect-ratio:1/1;width:100%;overflow:hidden;border:1px solid #dde3ec;border-radius:14px;background:#f8fafc;margin-bottom:12px}
+.homepage-product-card-image img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;opacity:1!important;visibility:visible!important}
+.homepage-product-card-category{font-size:.82rem;line-height:1.2;font-weight:600;color:#667085;margin-bottom:6px;min-height:1rem}
+.homepage-product-card-title{font-size:1rem;line-height:1.3;font-weight:800;color:#101828;margin:0 0 16px;min-height:2.6rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.homepage-product-card-footer{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.homepage-product-card-price{font-size:1rem;line-height:1.2;font-weight:800;color:#0b1220}
+.homepage-product-card-action{width:42px;height:42px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#f1f5f9;color:#0b1220;border:1px solid #dde3ec;flex:0 0 auto}
 @media (max-width:991.98px){
-    .category-product-slider{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .category-product-slider.slick-initialized .slick-track{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .homepage-product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (max-width:767.98px){
     .homepage-product-row-header{align-items:flex-start;flex-direction:column}
     .homepage-product-row-actions{width:100%;justify-content:space-between}
-    .category-product-slider{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .category-product-slider.slick-initialized .slick-track{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .homepage-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:575.98px){
-    .category-product-slider{grid-template-columns:1fr}
-    .category-product-slider.slick-initialized .slick-track{grid-template-columns:1fr}
+    .homepage-product-grid{grid-template-columns:1fr}
 }
 
 /* Hero arrows */
@@ -346,61 +332,40 @@
                                     <a href="{{ $categoryUrl }}" class="view-more">
                                         View All <i class="fi-rs-angle-double-small-right"></i>
                                     </a>
-                                    <div class="controls homepage-product-controls">
-                                        <button class="btn btn-outline-secondary btn-sm product-row-prev" aria-label="Previous {{ $homepageCategory->name }} products">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="btn btn-outline-secondary btn-sm product-row-next" aria-label="Next {{ $homepageCategory->name }} products">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
 
-                            <div class="category-product-slider">
+                            <div class="homepage-product-grid">
                                 @foreach($rowProducts as $ad)
                                     @php
-                                        $hasSale = isset($ad->marked_price) && $ad->has_price && $ad->marked_price > 0 && $ad->marked_price > ($ad->price ?? 0);
                                         $productCategory = $ad->category ?: category($ad->category_id);
+                                        $productUrl = !empty($ad->slug) ? route('product_details', $ad->slug) : url('shop');
                                     @endphp
-                                    <div class="category-product-slide">
-                                        <div class="product-cart-wrap mb-30 h-100">
-                                            <div class="product-img-action-wrap">
-                                                <div class="product-img product-img-zoom">
-                                                    <a href="{{ route('product_details', $ad->slug) }}">
-                                                        <img class="default-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
-                                                        <img class="hover-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="product-content-wrap">
-                                                @if($hasSale)
-                                                    <span class="badge-sale">-{{ discount($ad->id) }}%</span>
+                                    <a class="homepage-product-card" href="{{ $productUrl }}">
+                                        <span class="homepage-product-card-image">
+                                            <img src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
+                                        </span>
+                                        <span class="homepage-product-card-category">
+                                            @if($productCategory)
+                                                {{ $productCategory->name }}
+                                            @else
+                                                &nbsp;
+                                            @endif
+                                        </span>
+                                        <span class="homepage-product-card-title">
+                                            {{ \Illuminate\Support\Str::limit($ad->name, 48) }}
+                                        </span>
+                                        <span class="homepage-product-card-footer">
+                                            <span class="homepage-product-card-price">
+                                                @if($ad->has_price)
+                                                    {{ price($ad) }}
                                                 @endif
-                                                @if($productCategory)
-                                                    <div class="product-category">
-                                                        <a href="{{ route('view_product_category', ['slug' => $productCategory->slug]) }}">
-                                                            {{ $productCategory->name }}
-                                                        </a>
-                                                    </div>
-                                                @endif
-                                                <h2>
-                                                    <a href="{{ route('product_details', $ad->slug) }}">
-                                                        {{ \Illuminate\Support\Str::limit($ad->name, 40) }}
-                                                    </a>
-                                                </h2>
-                                                <div class="product-price">
-                                                    @if($ad->has_price)<span>{{ price($ad) }}</span>@endif
-                                                </div>
-                                                <div class="product-action-1 show">
-                                                    <a aria-label="View more" class="action-btn hover-up"
-                                                       href="{{ route('product_details', $ad->slug) }}">
-                                                        <i class="fas fa-shopping-bag"></i>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                            </span>
+                                            <span class="homepage-product-card-action" aria-hidden="true">
+                                                <i class="fas fa-shopping-bag"></i>
+                                            </span>
+                                        </span>
+                                    </a>
                                 @endforeach
                             </div>
                         </div>
@@ -485,13 +450,6 @@
           ]
         });
       }
-    });
-  })(jQuery);
-</script>
-<script>
-  (function($){
-    $(function(){
-      $('.homepage-product-controls').addClass('d-none');
     });
   })(jQuery);
 </script>
