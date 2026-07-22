@@ -183,20 +183,40 @@
 .homepage-product-row-header h3{font-size:1.2rem;font-weight:700;margin:0;color:#0b1220}
 .homepage-product-row-header span{display:block;margin-top:4px;color:#667085;font-size:.9rem}
 .homepage-product-row-actions{display:flex;align-items:center;gap:12px}
-.homepage-product-controls{display:flex;gap:6px}
-.category-product-slider:not(.slick-initialized){display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
-.category-product-slide{padding:0 10px;height:auto}
+.homepage-product-controls{display:none}
+.category-product-slider{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.category-product-slide{height:auto;min-width:0}
 .category-product-slide .product-cart-wrap{height:100%}
+.category-product-slider.slick-initialized{display:block;overflow:visible}
+.category-product-slider.slick-initialized .slick-list{overflow:visible!important;height:auto!important}
+.category-product-slider.slick-initialized .slick-track{
+    width:100%!important;
+    transform:none!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:20px;
+}
+.category-product-slider.slick-initialized .slick-slide{
+    display:block!important;
+    float:none!important;
+    width:auto!important;
+    height:auto!important;
+    padding:0!important;
+}
+.category-product-slider.slick-initialized .slick-cloned{display:none!important}
 @media (max-width:991.98px){
-    .category-product-slider:not(.slick-initialized){grid-template-columns:repeat(3,minmax(0,1fr))}
+    .category-product-slider{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .category-product-slider.slick-initialized .slick-track{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (max-width:767.98px){
     .homepage-product-row-header{align-items:flex-start;flex-direction:column}
     .homepage-product-row-actions{width:100%;justify-content:space-between}
-    .category-product-slider:not(.slick-initialized){grid-template-columns:repeat(2,minmax(0,1fr))}
+    .category-product-slider{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .category-product-slider.slick-initialized .slick-track{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:575.98px){
-    .category-product-slider:not(.slick-initialized){grid-template-columns:1fr}
+    .category-product-slider{grid-template-columns:1fr}
+    .category-product-slider.slick-initialized .slick-track{grid-template-columns:1fr}
 }
 
 /* Hero arrows */
@@ -471,47 +491,7 @@
 <script>
   (function($){
     $(function(){
-      $('.category-product-slider').each(function(){
-        var $slider = $(this);
-        if ($slider.hasClass('slick-initialized')) {
-          return;
-        }
-        var slideCount = $slider.children().length;
-        var $controls = $slider.closest('.homepage-product-row').find('.homepage-product-controls');
-
-        if (slideCount <= 4 || !$.fn.slick) {
-          $controls.addClass('d-none');
-          return;
-        }
-
-        $slider.slick({
-          slidesToShow: 4,
-          slidesToScroll: 1,
-          arrows: false,
-          infinite: slideCount > 4,
-          autoplay: true,
-          autoplaySpeed: 4000,
-          pauseOnHover: true,
-          pauseOnFocus: false,
-          swipeToSlide: true,
-          touchThreshold: 10,
-          responsive: [
-            { breakpoint: 1400, settings: { slidesToShow: 4 } },
-            { breakpoint: 1200, settings: { slidesToShow: 4 } },
-            { breakpoint: 992,  settings: { slidesToShow: 3 } },
-            { breakpoint: 768,  settings: { slidesToShow: 2 } },
-            { breakpoint: 576,  settings: { slidesToShow: 2 } },
-            { breakpoint: 0,    settings: { slidesToShow: 1 } }
-          ]
-        });
-
-        $controls.find('.product-row-prev').off('click.slick').on('click.slick', function(){
-          $slider.slick('slickPrev');
-        });
-        $controls.find('.product-row-next').off('click.slick').on('click.slick', function(){
-          $slider.slick('slickNext');
-        });
-      });
+      $('.homepage-product-controls').addClass('d-none');
     });
   })(jQuery);
 </script>
