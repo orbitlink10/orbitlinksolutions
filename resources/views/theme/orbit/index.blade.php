@@ -178,7 +178,15 @@
 /* Card height helper */
 .uniform-height{height:350px;display:flex;flex-direction:column;justify-content:space-between}
 .product-content-wrap{flex-grow:1;display:flex;flex-direction:column;justify-content:space-between}
+.homepage-categories{padding-bottom:18px!important;margin-bottom:0!important}
+.homepage-categories + .homepage-products-section{margin-top:0!important}
 .homepage-products-section .homepage-product-row + .homepage-product-row{margin-top:34px}
+.homepage-products-section{display:block!important;visibility:visible!important;opacity:1!important;margin:0!important;padding:18px 0 42px!important;min-height:0!important;overflow:visible!important}
+.homepage-products-section .container{display:block!important;min-height:0!important}
+.homepage-products-section .bg-square{display:none!important}
+.homepage-products-section .tab-content,
+.homepage-products-section .tab-pane{display:block!important;visibility:visible!important;opacity:1!important;min-height:0!important;height:auto!important}
+.homepage-products-section .tab-header{margin-bottom:16px!important}
 .homepage-product-row-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
 .homepage-product-row-header h3{font-size:1.2rem;font-weight:700;margin:0;color:#0b1220}
 .homepage-product-row-header span{display:block;margin-top:4px;color:#667085;font-size:.9rem}
@@ -289,8 +297,7 @@
 @endphp
 
 @if($homepageRows->isNotEmpty())
-<section class="product-tabs homepage-products-section section-padding position-relative wow fadeIn animated">
-    <div class="bg-square"></div>
+<section class="homepage-products-section position-relative">
     <div class="container">
         <div class="tab-header featured-header">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -311,7 +318,7 @@
             </a>
         </div>
 
-        <div class="tab-content wow fadeIn animated">
+        <div class="tab-content">
             <div class="tab-pane fade show active" id="tab-one" role="tabpanel">
                 @foreach($homepageRows as $homepageCategory)
                     @php
