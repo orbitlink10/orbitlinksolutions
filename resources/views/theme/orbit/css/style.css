@@ -2071,6 +2071,46 @@ input:focus-visible,
     height: 100%;
 }
 
+/* Keep legacy homepage product sliders usable even if the slick base CSS is not loaded. */
+.category-product-slider.slick-slider {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    user-select: none;
+    touch-action: pan-y;
+}
+
+.category-product-slider.slick-initialized .slick-list {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.category-product-slider.slick-initialized .slick-track {
+    position: relative;
+    top: 0;
+    left: 0;
+    display: flex !important;
+    align-items: stretch;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.category-product-slider.slick-initialized .slick-slide {
+    float: none;
+    display: flex !important;
+    height: auto;
+    min-height: 1px;
+    padding: 0 10px;
+}
+
+.category-product-slider.slick-initialized .slick-slide > div,
+.category-product-slider.slick-initialized .category-product-slide > .product-cart-wrap {
+    width: 100%;
+}
+
 /* Categories slider */
 .homepage-categories {
     padding: 28px 0 34px;
