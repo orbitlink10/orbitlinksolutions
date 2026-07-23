@@ -29,8 +29,10 @@ use App\Models\Tag;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Pipeline\Pipeline;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 use App\Models\Transaction;
 use App\Models\User;
@@ -60,34 +62,63 @@ class WelcomeController extends Controller
     //post lists
     public function index(Request $request)
     {
-        $posts  = Post::orderBy('id', 'desc')->paginate(30);
+        $postColumns = $this->postColumns();
+        $posts = $this->emptyPostsPaginator(30);
+        $new = collect();
+
+        if (in_array('id', $postColumns, true)) {
+            $postsQuery = Post::orderBy('id', 'desc');
+            $postsPerPage = 30;
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $postsQuery = Post::where(function ($query) use ($search, $postColumns) {
+                    $query->where('id', 'like', "%{$search}%");
+
+                    if (in_array('title', $postColumns, true)) {
+                        $query->orWhere('title', 'like', "%{$search}%");
+                    }
+                });
+                $postsPerPage = 4;
+            }
+
+            $jobTitle = $request->input('job_title');
+            $location = $request->input('location');
+            $category = $request->input('category');
+
+            if ($jobTitle || $location || $category) {
+                $filterQuery = Post::orderBy('id', 'desc');
+                $hasFilter = false;
+
+                if ($jobTitle && in_array('title', $postColumns, true)) {
+                    $filterQuery->where('title', 'like', "%$jobTitle%");
+                    $hasFilter = true;
+                }
+
+                if ($location && in_array('location', $postColumns, true)) {
+                    $filterQuery->where('location', $location);
+                    $hasFilter = true;
+                }
+
+                if ($category && in_array('category_id', $postColumns, true)) {
+                    $filterQuery->where('category_id', $category);
+                    $hasFilter = true;
+                }
+
+                if ($hasFilter) {
+                    $postsQuery = $filterQuery;
+                    $postsPerPage = 4;
+                }
+            }
+
+            $posts = $postsQuery->paginate($postsPerPage);
+            $new = Post::orderBy('id', 'desc')->take(5)->get();
+        }
+
         $pages = Page::whereType('page')
             ->get();
-            
-        $new  = Post::orderBy('id', 'desc')->take(5)->get();
+
         $tags = Category::all();
-        if ($request->search) {
-            $posts  = Post::where('id', 'like', "%{$request->search}%")->orWhere('title', 'like', "%{$request->search}%")->paginate(4);
-        }
-        $jobTitle = $request->input('job_title');
-        $location = $request->input('location');
-        $category = $request->input('category');
-        if ($jobTitle || $location || $category) {
-            $query = Post::orderBy('id', 'desc');
-
-            if ($jobTitle) {
-                $query->where('title', 'like', "%$jobTitle%");
-            }
-
-            if ($location) {
-                $query->where('location', $location);
-            }
-            if ($category) {
-                $query->where('category_id', $category);
-            }
-
-            $posts = $query->paginate(4);
-        }
 
         $options =Option::all();
         $sliders =Slider::all();
@@ -173,6 +204,28 @@ $categories = Category::orderBy('id', 'desc')->get();
 
 
         return view('theme.'.get_option('theme').'.index', compact('pages','posts', 'tags', 'new','options', 'products','homepageProductCategories','testimonials', 'services', 'medias','medias2', 'categories', 'sliders'));
+    }
+
+    private function postColumns(): array
+    {
+        $table = (new Post())->getTable();
+
+        if (! Schema::hasTable($table)) {
+            return [];
+        }
+
+        return Schema::getColumnListing($table);
+    }
+
+    private function emptyPostsPaginator(int $perPage): LengthAwarePaginator
+    {
+        return new LengthAwarePaginator(
+            collect(),
+            0,
+            $perPage,
+            LengthAwarePaginator::resolveCurrentPage(),
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
     }
 
 

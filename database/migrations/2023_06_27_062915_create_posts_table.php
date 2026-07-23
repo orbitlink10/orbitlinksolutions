@@ -16,13 +16,16 @@ return new class extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('description');
-            $table->string('user_id');
-            $table->decimal('price', 8, 2);
-            $table->string('photo');
-            $table->string('slug')->unique();
-            $table->foreignId(Category::class);
-            $table->foreignId(SubCategory::class);
+            $table->text('description')->nullable();
+            $table->string('user_id')->nullable();
+            $table->decimal('price', 8, 2)->nullable();
+            $table->string('photo')->nullable();
+            $table->string('slug')->nullable()->unique();
+            $table->foreignIdFor(Category::class)->nullable();
+            $table->foreignIdFor(SubCategory::class)->nullable();
+            $table->string('job_type')->nullable();
+            $table->string('location')->nullable();
+            $table->string('company_name')->nullable();
             $table->timestamps();
         });
     }
