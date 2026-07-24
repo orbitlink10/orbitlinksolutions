@@ -164,6 +164,7 @@
             var $slider = $strip.find('.category-scroll');
             var $prev = $strip.find('.category-prev');
             var $next = $strip.find('.category-next');
+            var useNativeScroll = window.matchMedia('(max-width: 767.98px)').matches;
 
             function scrollFallback(direction) {
               var el = $slider.get(0);
@@ -172,7 +173,7 @@
               el.scrollBy({ left: direction * delta, behavior: 'smooth' });
             }
 
-            if ($slider.length && $.fn.slick) {
+            if ($slider.length && $.fn.slick && !useNativeScroll) {
               if (!$slider.hasClass('slick-initialized')) {
                 $slider.slick({
                   arrows: false,
@@ -267,7 +268,9 @@
   </div>
 </nav>
 
-{!! get_option('chat') !!}
+<div class="site-chat-widget">
+  {!! get_option('chat') !!}
+</div>
 </body>
 
 </html>
