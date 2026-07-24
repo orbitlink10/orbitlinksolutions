@@ -93,7 +93,12 @@
 /* Top Navigation Spacing & Hover Underline */
 .header-bottom .main-menu nav > ul {
   display: flex;
-  gap: 18px;
+  gap: 6px;
+}
+
+.header-bottom .main-menu.main-menu-padding-1 > nav > ul > li {
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .header-bottom .main-menu nav > ul > li > a {
