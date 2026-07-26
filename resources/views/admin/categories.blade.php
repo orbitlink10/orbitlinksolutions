@@ -158,7 +158,7 @@
                             <div class="category-thumb placeholder" style="width: 100px; height: 100px;">No photo</div>
                         @endif
                     </div>
-                    <input type="file" class="form-control" id="productImage{{$cat->id}}" name="photo">
+                    <input type="file" class="form-control" id="productImage{{$cat->id}}" name="photo" accept="image/jpeg,image/png,image/gif,image/webp">
                     @error('photo')
                         <span class="invalid-feedback">{{ $message }}</span>
                     @enderror

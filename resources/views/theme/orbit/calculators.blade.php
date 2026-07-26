@@ -24,7 +24,7 @@
                 <strong>Network Equipment Planner</strong>
                 <small>Browse routers, switches, access points, and cabling.</small>
             </a>
-            <a class="calculator-card" href="{{ route('contacts') }}">
+            <a class="calculator-card" href="{{ url('contact-us') }}">
                 <i class="fas fa-calculator"></i>
                 <strong>Project Cost Estimate</strong>
                 <small>Request a tailored estimate for installation or supply.</small>

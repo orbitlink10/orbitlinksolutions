@@ -777,6 +777,59 @@ public function calculators()
         ])->header('Content-Type', 'text/xml');
     }
 
+    public function staticSitemap()
+    {
+        $lastmod = now()->tz('UTC')->toAtomString();
+        $urls = [
+            [
+                'loc' => url('/'),
+                'lastmod' => $lastmod,
+                'changefreq' => 'daily',
+                'priority' => '1.0',
+            ],
+            [
+                'loc' => route('product'),
+                'lastmod' => $lastmod,
+                'changefreq' => 'daily',
+                'priority' => '0.9',
+            ],
+            [
+                'loc' => route('blogs'),
+                'lastmod' => $lastmod,
+                'changefreq' => 'weekly',
+                'priority' => '0.7',
+            ],
+            [
+                'loc' => route('allcategories'),
+                'lastmod' => $lastmod,
+                'changefreq' => 'weekly',
+                'priority' => '0.7',
+            ],
+            [
+                'loc' => route('reviews'),
+                'lastmod' => $lastmod,
+                'changefreq' => 'monthly',
+                'priority' => '0.6',
+            ],
+            [
+                'loc' => route('speed-test'),
+                'lastmod' => $lastmod,
+                'changefreq' => 'monthly',
+                'priority' => '0.5',
+            ],
+            [
+                'loc' => route('calculators'),
+                'lastmod' => $lastmod,
+                'changefreq' => 'monthly',
+                'priority' => '0.5',
+            ],
+        ];
+
+        return response()->view('static_sitemap', [
+            'urls' => $urls,
+        ])->header('Content-Type', 'text/xml');
+    }
+
     public function categoriesSitemap()
     {
         $categories = Category::whereNotNull('slug')

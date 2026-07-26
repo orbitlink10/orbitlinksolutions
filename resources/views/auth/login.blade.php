@@ -1,5 +1,7 @@
 @extends('theme.'.get_option('theme', 'orbit').'.layouts.main')
-@section('title') Login For {{ get_option('site_name') }} @endsection
+@section('title', 'Login')
+@section('meta_description', 'Log in to your Orbitlink Solutions account.')
+@section('robots', 'noindex,nofollow')
 @section('main')
 <style>
     /* Light Theme Styles */
@@ -46,7 +48,7 @@
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title mb-4">Login</h4>
+                        <h1 class="card-title h4 mb-4">Login</h1>
 
                         @if(session('error'))
                             <div class="alert alert-danger">

@@ -100,6 +100,7 @@
                             class="form-control @error('photo') is-invalid @enderror"
                             id="photo"
                             name="photo"
+                            accept="image/jpeg,image/png,image/gif,image/webp"
                         >
                         @error('photo')
                             <span class="invalid-feedback">{{ $message }}</span>

@@ -33,7 +33,7 @@
 
    @foreach ($posts as $post)
         <url>
-            <loc>{{ route('page_single', $post->slug ) }}/</loc>
+            <loc>{{ route('page_single', $post->slug ) }}</loc>
             <lastmod> {{ $post->updated_at->tz('UTC')->toAtomString() }}</lastmod>
             <changefreq>{{ $sitemaps->changefreq }}</changefreq>
             <priority>{{ $sitemaps->priority }}</priority>

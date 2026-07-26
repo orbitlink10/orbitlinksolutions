@@ -252,8 +252,8 @@ function rich_content_href_url($href)
     }
 
     $staticRoutes = [
-        'page-contact.html' => route('contacts'),
-        '/page-contact.html' => route('contacts'),
+        'page-contact.html' => url('contact-us'),
+        '/page-contact.html' => url('contact-us'),
         'shop-checkout.html' => route('cart.checkout'),
         '/shop-checkout.html' => route('cart.checkout'),
         'shop-cart' => route('cart.view'),
@@ -297,7 +297,7 @@ function rich_content_href_url($href)
     $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
     $knownInternalRoutes = [
         'b' => url('/'),
-        'page-contact.html' => route('contacts'),
+        'page-contact.html' => url('contact-us'),
         'shop-checkout.html' => route('cart.checkout'),
         'shop-cart' => route('cart.view'),
         'shop-product' => route('product'),
@@ -308,12 +308,12 @@ function rich_content_href_url($href)
         'cctv-camera-price-in-kenya' => url('cctv-camera-cost-in-kenya'),
         'types-of-cctv-cameras' => url('cctv-camera-cost-in-kenya'),
         'which-cctv-camera-records-voice' => url('cctv-camera-cost-in-kenya'),
-        'fire-alarm-system-installation' => route('contacts'),
-        'home-automation' => route('contacts'),
-        'kenya-solar-companies' => route('contacts'),
-        'security-system-installation' => route('contacts'),
-        'smart-homes' => route('contacts'),
-        'solar-installation-in-kenya' => route('contacts'),
+        'fire-alarm-system-installation' => url('contact-us'),
+        'home-automation' => url('contact-us'),
+        'kenya-solar-companies' => url('contact-us'),
+        'security-system-installation' => url('contact-us'),
+        'smart-homes' => url('contact-us'),
+        'solar-installation-in-kenya' => url('contact-us'),
     ];
 
     if (isset($knownInternalRoutes[$path])) {
@@ -342,7 +342,7 @@ function rich_content_href_url($href)
     return $href;
 }
 
-function rich_content_html($html, $imageFallback = null)
+function rich_content_html($html, $imageFallback = null, $demoteH1 = false)
 {
     $html = (string) $html;
 
@@ -353,7 +353,7 @@ function rich_content_html($html, $imageFallback = null)
     $imageFallback = $imageFallback ?: asset('assets/images/placeholder.svg');
 
     if (!class_exists(\DOMDocument::class)) {
-        return preg_replace_callback('/<img\b[^>]*\bsrc=(["\'])(.*?)\1[^>]*>/i', function ($matches) use ($imageFallback) {
+        $html = preg_replace_callback('/<img\b[^>]*\bsrc=(["\'])(.*?)\1[^>]*>/i', function ($matches) use ($imageFallback) {
             $src = trim($matches[2]);
             $newSrc = rich_content_image_url($src, $imageFallback);
             $tag = $matches[0];
@@ -379,6 +379,13 @@ function rich_content_html($html, $imageFallback = null)
 
             return preg_replace_callback('/<img\b/i', fn () => '<img alt="' . $alt . '"', $tag, 1);
         }, $html);
+
+        if ($demoteH1) {
+            $html = preg_replace('/<h1\b([^>]*)>/i', '<h2$1>', $html);
+            $html = preg_replace('/<\/h1>/i', '</h2>', $html);
+        }
+
+        return $html;
     }
 
     $previousErrors = libxml_use_internal_errors(true);
@@ -417,6 +424,22 @@ function rich_content_html($html, $imageFallback = null)
 
         if ($newHref !== $href) {
             $link->setAttribute('href', $newHref);
+        }
+    }
+
+    if ($demoteH1) {
+        while ($heading = $dom->getElementsByTagName('h1')->item(0)) {
+            $replacement = $dom->createElement('h2');
+
+            foreach ($heading->attributes as $attribute) {
+                $replacement->setAttribute($attribute->nodeName, $attribute->nodeValue);
+            }
+
+            while ($heading->firstChild) {
+                $replacement->appendChild($heading->firstChild);
+            }
+
+            $heading->parentNode->replaceChild($replacement, $heading);
         }
     }
 

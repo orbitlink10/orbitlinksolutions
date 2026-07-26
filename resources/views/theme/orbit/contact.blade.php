@@ -1,5 +1,6 @@
 @extends('theme.orbit.layouts.main')
-@section('title') Contact Orbitlink Solutions @endsection
+@section('title', 'Contact Us')
+@section('meta_description', 'Contact Orbitlink Solutions for Starlink setup, networking equipment, CCTV, WiFi coverage, and support across Kenya.')
 @section('main')
 
 <!--Contact Page Start-->
@@ -11,7 +12,7 @@
                 <div class="contact-page__left">
                     <div class="section-title text-left mb-4">
                         <span class="section-title__tagline text-primary">Contact Orbitlink Solutions</span>
-                        <h2 class="section-title__title">Ready to get in touch with Orbitlink Solutions</h2>
+                        <h1 class="section-title__title">Ready to get in touch with Orbitlink Solutions</h1>
                     </div>
                     <p class="contact-page__text mb-4">Reach out for product advice, Starlink setup, networking, CCTV, or support. We respond quickly and keep you informed.</p>
                     @php

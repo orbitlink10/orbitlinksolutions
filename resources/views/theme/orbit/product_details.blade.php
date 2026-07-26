@@ -465,7 +465,7 @@
                     @if($product->has_price && $product->quantity > 0)
                         <a href="#purchase-actions" class="btn btn-accent btn-lg">Buy Now</a>
                     @endif
-                    <a href="{{ route('contacts') }}" class="btn btn-outline-secondary btn-lg">Get expert help</a>
+                    <a href="{{ url('contact-us') }}" class="btn btn-outline-secondary btn-lg">Get expert help</a>
                     @if($ctaPhoneDial)
                         <a href="tel:{{ $ctaPhoneDial }}" class="btn btn-outline-secondary btn-lg">Call {{ $ctaPhone }}</a>
                     @endif

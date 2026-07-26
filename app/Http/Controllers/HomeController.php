@@ -356,6 +356,30 @@ public function keywordResearch(Request $request)
     return view('admin.keyword_research', compact('keyword', 'country', 'countries', 'research'));
 }
 
+public function pageOptimizer(Request $request)
+{
+    if (!Auth::user()->is_admin()) {
+        return redirect()->route('account.dashboard')->with('error', 'You are not allowed to view page optimizer.');
+    }
+
+    $targetUrl = trim((string) $request->query('url', ''));
+    $competitorUrl = trim((string) $request->query('competitor_url', ''));
+    $analysis = null;
+    $competitor = null;
+    $comparison = null;
+
+    if ($targetUrl !== '') {
+        $analysis = $this->pageOptimizerAnalyzeUrl($targetUrl, 'Your page');
+
+        if ($competitorUrl !== '') {
+            $competitor = $this->pageOptimizerAnalyzeUrl($competitorUrl, 'Competitor page');
+            $comparison = $this->pageOptimizerCompare($analysis, $competitor);
+        }
+    }
+
+    return view('admin.page_optimizer', compact('targetUrl', 'competitorUrl', 'analysis', 'competitor', 'comparison'));
+}
+
 public function speedTest()
 {
     if (!Auth::user()->is_admin()) {
@@ -440,6 +464,558 @@ public function speedTestUpload(Request $request)
         'bytes' => $bytes,
         'received_at' => now()->toIso8601String(),
     ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+}
+
+private function pageOptimizerAnalyzeUrl($url, $label = 'Page')
+{
+    $fetched = $this->pageOptimizerFetchUrl($url);
+
+    if (!$fetched['ok']) {
+        return [
+            'ok' => false,
+            'label' => $label,
+            'input_url' => $url,
+            'url' => $fetched['url'] ?? $url,
+            'error' => $fetched['error'],
+            'score' => 0,
+            'issues' => [[
+                'severity' => 'High',
+                'item' => 'Page could not be checked',
+                'fix' => $fetched['error'],
+            ]],
+            'passes' => [],
+            'metrics' => [],
+            'terms' => [],
+        ];
+    }
+
+    $html = $fetched['body'];
+    $dom = new \DOMDocument('1.0', 'UTF-8');
+    $previousErrors = libxml_use_internal_errors(true);
+    $loaded = $dom->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_NOWARNING | LIBXML_NOERROR);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previousErrors);
+
+    if (!$loaded) {
+        return [
+            'ok' => false,
+            'label' => $label,
+            'input_url' => $url,
+            'url' => $fetched['url'],
+            'error' => 'The page responded, but the HTML could not be parsed.',
+            'score' => 0,
+            'issues' => [[
+                'severity' => 'High',
+                'item' => 'HTML parsing failed',
+                'fix' => 'Check that the URL returns a valid HTML page.',
+            ]],
+            'passes' => [],
+            'metrics' => [],
+            'terms' => [],
+        ];
+    }
+
+    $xpath = new \DOMXPath($dom);
+    $jsonLdCount = (int) $xpath->query("//script[translate(@type, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='application/ld+json']")->length;
+    $this->pageOptimizerRemoveNodes($xpath, '//script|//style|//noscript|//template');
+
+    $title = $this->pageOptimizerFirstText($xpath, '//title');
+    $description = $this->pageOptimizerMetaContent($xpath, 'description');
+    $viewport = $this->pageOptimizerMetaContent($xpath, 'viewport');
+    $robots = strtolower($this->pageOptimizerMetaContent($xpath, 'robots'));
+    $canonical = $this->pageOptimizerLinkHref($xpath, 'canonical');
+    $ogTitle = $this->pageOptimizerMetaContent($xpath, 'og:title', 'property');
+    $ogDescription = $this->pageOptimizerMetaContent($xpath, 'og:description', 'property');
+    $twitterCard = $this->pageOptimizerMetaContent($xpath, 'twitter:card');
+    $charset = $this->pageOptimizerCharset($xpath);
+    $htmlNode = $xpath->query('//html')->item(0);
+    $htmlLang = $htmlNode ? trim((string) $htmlNode->getAttribute('lang')) : '';
+    $headings = $this->pageOptimizerHeadings($xpath);
+    $text = $this->pageOptimizerVisibleText($xpath);
+    $wordCount = $this->pageOptimizerWordCount($text);
+    $links = $this->pageOptimizerLinks($xpath, $fetched['url']);
+    $images = $this->pageOptimizerImages($xpath);
+    $microdataCount = (int) $xpath->query('//*[@itemscope]')->length;
+    $schemaCount = $jsonLdCount + $microdataCount;
+    $openGraphCount = collect([$ogTitle, $ogDescription, $twitterCard])->filter(fn ($value) => trim((string) $value) !== '')->count();
+    $issues = [];
+    $passes = [];
+    $score = 100;
+    $statusCode = (int) $fetched['status'];
+    $contentType = strtolower((string) $fetched['content_type']);
+    $isHtml = str_contains($contentType, 'text/html') || str_contains(strtolower(substr($html, 0, 500)), '<html');
+    $titleLength = strlen($title);
+    $descriptionLength = strlen($description);
+    $isHttps = strtolower((string) parse_url($fetched['url'], PHP_URL_SCHEME)) === 'https';
+    $hasNoindex = str_contains($robots, 'noindex');
+
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $statusCode >= 200 && $statusCode < 300, 'High', 'HTTP status is ' . $statusCode, 'Serve the page with a 200 OK response.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, !($statusCode >= 300 && $statusCode < 400), 'Medium', 'Page redirects before analysis', 'Point important links and canonical tags to the final URL.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $isHtml, 'High', 'Page is not returning HTML', 'Use a crawlable HTML response for search engines.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $isHttps, 'High', 'Page is not using HTTPS', 'Use the HTTPS version as the indexable URL.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, !$hasNoindex, 'High', 'Robots meta contains noindex', 'Remove noindex if this page should rank in search.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $titleLength >= 30 && $titleLength <= 60, 'Medium', 'Title length is ' . $titleLength . ' characters', 'Write a clear title around 30-60 characters.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $descriptionLength >= 70 && $descriptionLength <= 160, 'Medium', 'Meta description length is ' . $descriptionLength . ' characters', 'Add a compelling meta description around 70-160 characters.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $headings['counts']['h1'] === 1, 'High', 'H1 count is ' . $headings['counts']['h1'], 'Use one descriptive H1 that matches the page intent.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $headings['counts']['h2'] > 0, 'Low', 'No H2 sections found', 'Break the page into helpful H2 sections.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $wordCount >= 250, 'Medium', 'Visible content has ' . number_format($wordCount) . ' words', 'Add more useful product, service, FAQ, or comparison content.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $canonical !== '', 'Medium', 'Canonical tag is missing', 'Add a canonical link that points to the preferred URL.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $viewport !== '', 'Low', 'Viewport meta tag is missing', 'Add a responsive viewport meta tag.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $htmlLang !== '', 'Low', 'HTML language is missing', 'Set the html lang attribute.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $images['missing_alt'] === 0, 'Medium', number_format($images['missing_alt']) . ' images are missing alt text', 'Add descriptive alt text to important images.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $links['internal'] >= 3, 'Low', 'Only ' . number_format($links['internal']) . ' internal links found', 'Add relevant internal links to supporting products, services, and content.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $schemaCount > 0, 'Low', 'Structured data is missing', 'Add relevant JSON-LD schema such as Product, Service, FAQ, Breadcrumb, or Organization.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $openGraphCount >= 2, 'Low', 'Social sharing tags are incomplete', 'Add Open Graph and Twitter metadata for better previews.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $fetched['load_ms'] <= 2500, 'Medium', 'Page fetched in ' . number_format($fetched['load_ms']) . ' ms', 'Reduce page weight, caching delays, and render-blocking assets.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $fetched['bytes'] <= 1024 * 1024, 'Low', 'HTML response is ' . number_format($fetched['bytes'] / 1024, 1) . ' KB', 'Keep HTML lean and move bulky assets out of the document.');
+    $this->pageOptimizerAddCheck($issues, $passes, $score, $charset !== '', 'Low', 'Charset declaration is missing', 'Declare UTF-8 in the document head.');
+
+    $issues = collect($issues)
+        ->sortBy(fn ($issue) => ['High' => 0, 'Medium' => 1, 'Low' => 2][$issue['severity']] ?? 3)
+        ->values();
+
+    return [
+        'ok' => true,
+        'label' => $label,
+        'input_url' => $url,
+        'url' => $fetched['url'],
+        'redirect' => $fetched['redirect'],
+        'status' => $statusCode,
+        'content_type' => $fetched['content_type'],
+        'load_ms' => $fetched['load_ms'],
+        'bytes' => $fetched['bytes'],
+        'score' => max(0, $score),
+        'issues' => $issues,
+        'passes' => collect($passes)->take(12)->values(),
+        'terms' => $this->pageOptimizerTopTerms($text),
+        'metrics' => [
+            'title' => $title,
+            'title_length' => $titleLength,
+            'description' => $description,
+            'description_length' => $descriptionLength,
+            'canonical' => $canonical,
+            'robots' => $robots ?: 'Not set',
+            'viewport' => $viewport !== '',
+            'charset' => $charset,
+            'lang' => $htmlLang,
+            'word_count' => $wordCount,
+            'headings' => $headings,
+            'images' => $images,
+            'links' => $links,
+            'schema_count' => $schemaCount,
+            'open_graph_count' => $openGraphCount,
+            'https' => $isHttps,
+        ],
+    ];
+}
+
+private function pageOptimizerFetchUrl($url)
+{
+    $normalizedUrl = $this->pageOptimizerNormalizeUrl($url);
+
+    if (!$normalizedUrl) {
+        return [
+            'ok' => false,
+            'url' => $url,
+            'error' => 'Enter a valid http or https URL.',
+        ];
+    }
+
+    if (!$this->pageOptimizerIsPublicUrl($normalizedUrl)) {
+        return [
+            'ok' => false,
+            'url' => $normalizedUrl,
+            'error' => 'Private, local, and reserved network URLs cannot be scanned.',
+        ];
+    }
+
+    try {
+        $started = microtime(true);
+        $response = Http::withHeaders([
+            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'User-Agent' => 'OrbitLink Page Optimizer/1.0 (+https://orbitlinksolutions.co.ke)',
+        ])
+            ->timeout(12)
+            ->connectTimeout(5)
+            ->withoutRedirecting()
+            ->get($normalizedUrl);
+
+        return [
+            'ok' => true,
+            'url' => $normalizedUrl,
+            'status' => $response->status(),
+            'content_type' => $response->header('Content-Type', ''),
+            'redirect' => $response->status() >= 300 && $response->status() < 400 ? $response->header('Location') : null,
+            'load_ms' => (int) round((microtime(true) - $started) * 1000),
+            'bytes' => strlen($response->body()),
+            'body' => substr($response->body(), 0, 2 * 1024 * 1024),
+        ];
+    } catch (\Throwable $e) {
+        return [
+            'ok' => false,
+            'url' => $normalizedUrl,
+            'error' => 'The URL could not be reached: ' . $e->getMessage(),
+        ];
+    }
+}
+
+private function pageOptimizerNormalizeUrl($url)
+{
+    $url = trim((string) $url);
+
+    if ($url === '') {
+        return null;
+    }
+
+    if (!preg_match('/^https?:\/\//i', $url)) {
+        $url = 'https://' . $url;
+    }
+
+    if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+        return null;
+    }
+
+    $parts = parse_url($url);
+
+    if (!$parts || empty($parts['scheme']) || empty($parts['host'])) {
+        return null;
+    }
+
+    $scheme = strtolower($parts['scheme']);
+
+    if (!in_array($scheme, ['http', 'https'], true)) {
+        return null;
+    }
+
+    $host = strtolower($parts['host']);
+    $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+    $path = $parts['path'] ?? '/';
+    $query = isset($parts['query']) ? '?' . $parts['query'] : '';
+
+    return $scheme . '://' . $host . $port . $path . $query;
+}
+
+private function pageOptimizerIsPublicUrl($url)
+{
+    $host = parse_url($url, PHP_URL_HOST);
+
+    if (!$host) {
+        return false;
+    }
+
+    $host = strtolower(trim($host, '[]'));
+
+    if (in_array($host, ['localhost', '0.0.0.0'], true) || Str::endsWith($host, ['.localhost', '.local', '.internal', '.test'])) {
+        return false;
+    }
+
+    $ips = [];
+
+    if (filter_var($host, FILTER_VALIDATE_IP)) {
+        $ips[] = $host;
+    } else {
+        $ips = @gethostbynamel($host) ?: [];
+    }
+
+    foreach (array_unique($ips) as $ip) {
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+private function pageOptimizerAddCheck(&$issues, &$passes, &$score, $passesCheck, $severity, $item, $fix)
+{
+    if ($passesCheck) {
+        $passes[] = [
+            'item' => $item,
+            'fix' => $fix,
+        ];
+
+        return;
+    }
+
+    $points = [
+        'High' => 16,
+        'Medium' => 9,
+        'Low' => 4,
+    ][$severity] ?? 4;
+
+    $score -= $points;
+    $issues[] = [
+        'severity' => $severity,
+        'item' => $item,
+        'fix' => $fix,
+    ];
+}
+
+private function pageOptimizerRemoveNodes(\DOMXPath $xpath, $query)
+{
+    $nodes = [];
+
+    foreach ($xpath->query($query) as $node) {
+        $nodes[] = $node;
+    }
+
+    foreach ($nodes as $node) {
+        if ($node->parentNode) {
+            $node->parentNode->removeChild($node);
+        }
+    }
+}
+
+private function pageOptimizerFirstText(\DOMXPath $xpath, $query)
+{
+    $node = $xpath->query($query)->item(0);
+
+    return $node ? Str::of($node->textContent)->replaceMatches('/\s+/', ' ')->trim()->toString() : '';
+}
+
+private function pageOptimizerMetaContent(\DOMXPath $xpath, $name, $attribute = 'name')
+{
+    $attribute = in_array($attribute, ['name', 'property', 'http-equiv'], true) ? $attribute : 'name';
+    $query = sprintf(
+        "//meta[translate(@%s, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='%s']",
+        $attribute,
+        strtolower($name)
+    );
+    $node = $xpath->query($query)->item(0);
+
+    return $node ? trim((string) $node->getAttribute('content')) : '';
+}
+
+private function pageOptimizerLinkHref(\DOMXPath $xpath, $rel)
+{
+    $rel = strtolower($rel);
+    $query = "//link[contains(concat(' ', normalize-space(translate(@rel, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')), ' '), ' {$rel} ')]";
+    $node = $xpath->query($query)->item(0);
+
+    return $node ? trim((string) $node->getAttribute('href')) : '';
+}
+
+private function pageOptimizerCharset(\DOMXPath $xpath)
+{
+    $node = $xpath->query('//meta[@charset]')->item(0);
+
+    if ($node) {
+        return trim((string) $node->getAttribute('charset'));
+    }
+
+    $contentType = $this->pageOptimizerMetaContent($xpath, 'content-type', 'http-equiv');
+
+    return $contentType;
+}
+
+private function pageOptimizerHeadings(\DOMXPath $xpath)
+{
+    $counts = [];
+    $samples = [];
+
+    foreach (range(1, 6) as $level) {
+        $key = 'h' . $level;
+        $nodes = $xpath->query('//' . $key);
+        $counts[$key] = $nodes->length;
+        $samples[$key] = [];
+
+        foreach ($nodes as $node) {
+            $text = Str::of($node->textContent)->replaceMatches('/\s+/', ' ')->trim()->limit(100, '')->toString();
+
+            if ($text !== '') {
+                $samples[$key][] = $text;
+            }
+
+            if (count($samples[$key]) >= 5) {
+                break;
+            }
+        }
+    }
+
+    return [
+        'counts' => $counts,
+        'samples' => $samples,
+    ];
+}
+
+private function pageOptimizerVisibleText(\DOMXPath $xpath)
+{
+    $body = $xpath->query('//body')->item(0);
+    $text = $body ? $body->textContent : '';
+
+    return Str::of($text)->replaceMatches('/\s+/', ' ')->trim()->toString();
+}
+
+private function pageOptimizerWordCount($text)
+{
+    preg_match_all('/[a-z0-9][a-z0-9\'-]*/i', (string) $text, $matches);
+
+    return count($matches[0] ?? []);
+}
+
+private function pageOptimizerLinks(\DOMXPath $xpath, $baseUrl)
+{
+    $baseHost = $this->pageOptimizerComparableHost($baseUrl);
+    $internal = 0;
+    $external = 0;
+    $nofollow = 0;
+
+    foreach ($xpath->query('//a[@href]') as $node) {
+        $href = trim((string) $node->getAttribute('href'));
+
+        if ($href === '' || Str::startsWith(strtolower($href), ['#', 'mailto:', 'tel:', 'javascript:', 'data:'])) {
+            continue;
+        }
+
+        $rel = strtolower((string) $node->getAttribute('rel'));
+
+        if (str_contains($rel, 'nofollow')) {
+            $nofollow++;
+        }
+
+        if (Str::startsWith($href, ['/', '?'])) {
+            $internal++;
+            continue;
+        }
+
+        if (Str::startsWith($href, '//')) {
+            $href = (parse_url($baseUrl, PHP_URL_SCHEME) ?: 'https') . ':' . $href;
+        }
+
+        $host = $this->pageOptimizerComparableHost($href);
+
+        if ($host === '' || $host === $baseHost) {
+            $internal++;
+        } else {
+            $external++;
+        }
+    }
+
+    return [
+        'internal' => $internal,
+        'external' => $external,
+        'nofollow' => $nofollow,
+        'total' => $internal + $external,
+    ];
+}
+
+private function pageOptimizerComparableHost($url)
+{
+    $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+    return preg_replace('/^www\./', '', $host) ?: '';
+}
+
+private function pageOptimizerImages(\DOMXPath $xpath)
+{
+    $total = 0;
+    $missingAlt = 0;
+
+    foreach ($xpath->query('//img') as $node) {
+        $total++;
+        $alt = trim((string) $node->getAttribute('alt'));
+
+        if ($alt === '') {
+            $missingAlt++;
+        }
+    }
+
+    return [
+        'total' => $total,
+        'missing_alt' => $missingAlt,
+        'alt_coverage' => $total > 0 ? round((($total - $missingAlt) / $total) * 100, 1) : 100,
+    ];
+}
+
+private function pageOptimizerTopTerms($text, $limit = 24)
+{
+    $stopWords = [
+        'the', 'and', 'for', 'with', 'that', 'this', 'you', 'your', 'are', 'from', 'have', 'has', 'our',
+        'all', 'can', 'will', 'not', 'but', 'use', 'get', 'new', 'was', 'were', 'their', 'they', 'them',
+        'about', 'more', 'when', 'where', 'how', 'why', 'who', 'what', 'which', 'into', 'than', 'then',
+        'its', 'www', 'com', 'https', 'http', 'kenya', 'nairobi',
+    ];
+    preg_match_all('/[a-z0-9][a-z0-9\'-]*/i', strtolower((string) $text), $matches);
+    $counts = [];
+
+    foreach ($matches[0] ?? [] as $word) {
+        $word = trim($word, "'-");
+
+        if (strlen($word) < 3 || in_array($word, $stopWords, true)) {
+            continue;
+        }
+
+        $counts[$word] = ($counts[$word] ?? 0) + 1;
+    }
+
+    arsort($counts);
+
+    return collect(array_keys($counts))->take($limit)->values();
+}
+
+private function pageOptimizerCompare($target, $competitor)
+{
+    if (!$target || !$competitor || !$target['ok'] || !$competitor['ok']) {
+        return null;
+    }
+
+    $targetMetrics = $target['metrics'];
+    $competitorMetrics = $competitor['metrics'];
+    $rows = collect([
+        $this->pageOptimizerComparisonRow('SEO score', $target['score'], $competitor['score'], 'higher', $target['score'] . '/100', $competitor['score'] . '/100', 3),
+        $this->pageOptimizerComparisonRow('Title in recommended range', $this->pageOptimizerInRange($targetMetrics['title_length'], 30, 60), $this->pageOptimizerInRange($competitorMetrics['title_length'], 30, 60), 'higher', $targetMetrics['title_length'] . ' chars', $competitorMetrics['title_length'] . ' chars'),
+        $this->pageOptimizerComparisonRow('Meta description in recommended range', $this->pageOptimizerInRange($targetMetrics['description_length'], 70, 160), $this->pageOptimizerInRange($competitorMetrics['description_length'], 70, 160), 'higher', $targetMetrics['description_length'] . ' chars', $competitorMetrics['description_length'] . ' chars'),
+        $this->pageOptimizerComparisonRow('Visible content depth', $targetMetrics['word_count'], $competitorMetrics['word_count'], 'higher', number_format($targetMetrics['word_count']) . ' words', number_format($competitorMetrics['word_count']) . ' words', 100),
+        $this->pageOptimizerComparisonRow('H2 sections', $targetMetrics['headings']['counts']['h2'], $competitorMetrics['headings']['counts']['h2'], 'higher', number_format($targetMetrics['headings']['counts']['h2']), number_format($competitorMetrics['headings']['counts']['h2']), 2),
+        $this->pageOptimizerComparisonRow('Image alt coverage', $targetMetrics['images']['alt_coverage'], $competitorMetrics['images']['alt_coverage'], 'higher', $targetMetrics['images']['alt_coverage'] . '%', $competitorMetrics['images']['alt_coverage'] . '%', 5),
+        $this->pageOptimizerComparisonRow('Internal links', $targetMetrics['links']['internal'], $competitorMetrics['links']['internal'], 'higher', number_format($targetMetrics['links']['internal']), number_format($competitorMetrics['links']['internal']), 5),
+        $this->pageOptimizerComparisonRow('Structured data blocks', $targetMetrics['schema_count'], $competitorMetrics['schema_count'], 'higher', number_format($targetMetrics['schema_count']), number_format($competitorMetrics['schema_count']), 1),
+        $this->pageOptimizerComparisonRow('Open Graph/Twitter tags', $targetMetrics['open_graph_count'], $competitorMetrics['open_graph_count'], 'higher', number_format($targetMetrics['open_graph_count']), number_format($competitorMetrics['open_graph_count']), 1),
+        $this->pageOptimizerComparisonRow('Fetch time', $target['load_ms'], $competitor['load_ms'], 'lower', number_format($target['load_ms']) . ' ms', number_format($competitor['load_ms']) . ' ms', 250),
+        $this->pageOptimizerComparisonRow('HTML weight', $target['bytes'], $competitor['bytes'], 'lower', number_format($target['bytes'] / 1024, 1) . ' KB', number_format($competitor['bytes'] / 1024, 1) . ' KB', 75 * 1024),
+        $this->pageOptimizerComparisonRow('Canonical tag', $targetMetrics['canonical'] !== '', $competitorMetrics['canonical'] !== '', 'higher', $targetMetrics['canonical'] !== '' ? 'Present' : 'Missing', $competitorMetrics['canonical'] !== '' ? 'Present' : 'Missing'),
+    ])->values();
+
+    return [
+        'rows' => $rows,
+        'missing_terms' => collect($competitor['terms'])->diff($target['terms'])->take(14)->values(),
+        'shared_terms' => collect($competitor['terms'])->intersect($target['terms'])->take(10)->values(),
+        'gap_count' => $rows->where('status', 'gap')->count(),
+    ];
+}
+
+private function pageOptimizerComparisonRow($label, $targetValue, $competitorValue, $direction, $targetDisplay, $competitorDisplay, $threshold = 0)
+{
+    $targetNumeric = (float) $targetValue;
+    $competitorNumeric = (float) $competitorValue;
+    $status = 'match';
+
+    if ($direction === 'lower') {
+        if ($targetNumeric > $competitorNumeric + $threshold) {
+            $status = 'gap';
+        } elseif ($targetNumeric + $threshold < $competitorNumeric) {
+            $status = 'ahead';
+        }
+    } else {
+        if ($targetNumeric + $threshold < $competitorNumeric) {
+            $status = 'gap';
+        } elseif ($targetNumeric > $competitorNumeric + $threshold) {
+            $status = 'ahead';
+        }
+    }
+
+    return [
+        'label' => $label,
+        'target' => $targetDisplay,
+        'competitor' => $competitorDisplay,
+        'status' => $status,
+        'status_label' => ['gap' => 'Gap', 'ahead' => 'Ahead', 'match' => 'Close'][$status],
+    ];
+}
+
+private function pageOptimizerInRange($value, $minimum, $maximum)
+{
+    return (int) ($value >= $minimum && $value <= $maximum);
 }
 
 private function keywordCountries()

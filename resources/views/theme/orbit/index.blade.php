@@ -1,8 +1,8 @@
 {{-- resources/views/theme/orbit/index.blade.php --}}
 @extends('theme.orbit.layouts.main')
 
-@section('title', get_option('hero_header_title'))
-@section('meta_description', get_option('hero_header_description'))
+@section('title', 'Networking Equipment in Kenya')
+@section('meta_description', get_option('hero_header_description', 'Shop networking equipment, Starlink kits, CCTV cameras, WiFi extenders, and installation support from Orbitlink Solutions in Kenya.'))
 
 @section('main')
 
@@ -422,7 +422,7 @@
             </div>
             <div class="cta-actions">
                 <a href="{{ url('shop') }}" class="btn btn-accent btn-lg">Shop Products</a>
-                <a href="{{ route('contacts') }}" class="btn btn-outline-secondary btn-lg">Talk to Us</a>
+                <a href="{{ url('contact-us') }}" class="btn btn-outline-secondary btn-lg">Talk to Us</a>
             </div>
         </div>
     </div>

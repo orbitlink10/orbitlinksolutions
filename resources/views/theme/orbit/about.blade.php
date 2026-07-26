@@ -1,14 +1,6 @@
 @extends('theme.orbit.layouts.main')
-@section('title', 'About ' . get_option('site_name', 'Orbitlink Solutions'))
-@section('meta_description', trim(strip_tags((string) get_option('contact_description'))) ?: ('Learn more about ' . get_option('site_name', 'Orbitlink Solutions') . ' and our networking solutions in Kenya.'))
-
-@push('meta')
-    <meta property="og:title" content="About {{ get_option('site_name', 'Orbitlink Solutions') }}" />
-    <meta property="og:description" content="{{ trim(strip_tags((string) get_option('contact_description'))) ?: ('Learn more about ' . get_option('site_name', 'Orbitlink Solutions') . ' and our networking solutions in Kenya.') }}" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="{{ url()->current() }}" />
-    <meta name="twitter:card" content="summary_large_image" />
-@endpush
+@section('title', 'About Us')
+@section('meta_description', 'Learn about Orbitlink Solutions, a Kenya provider of Starlink, networking, WiFi, CCTV, and structured cabling products and installation support.')
 
 @section('main')
 
@@ -22,7 +14,7 @@
             </div>
             <div class="col-lg-4 text-lg-end">
                 <a href="{{ url('shop') }}" class="btn btn-accent me-2">Shop Now</a>
-                <a href="{{ route('contacts') }}" class="btn btn-outline-secondary">Contact Us</a>
+                <a href="{{ url('contact-us') }}" class="btn btn-outline-secondary">Contact Us</a>
             </div>
         </div>
     </div>

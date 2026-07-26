@@ -1,50 +1,58 @@
 @extends('theme.orbit.layouts.main')
 
-@section('title', "$post->meta_title")
-@section('meta_description', $post->meta_description)
+@php
+    $siteName = get_option('site_name', 'Orbitlink Solutions');
+    $cleanMetaText = function ($value, $fallback, $limit) {
+        $value = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $value), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
 
-@push('meta')
-    @php
-        $siteName = get_option('site_name', 'Orbitlink Solutions');
-        $absoluteUrl = function ($value) {
-            if (empty($value)) {
-                return null;
+        if ($value === '') {
+            $value = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $fallback), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        }
+
+        return \Illuminate\Support\Str::limit($value, $limit, '');
+    };
+    $cleanSchema = function ($value) use (&$cleanSchema) {
+        if (is_array($value)) {
+            $filtered = [];
+
+            foreach ($value as $key => $item) {
+                $cleaned = $cleanSchema($item);
+
+                if ($cleaned !== null && $cleaned !== [] && $cleaned !== '') {
+                    $filtered[$key] = $cleaned;
+                }
             }
 
-            return \Illuminate\Support\Str::startsWith($value, ['http://', 'https://', '//'])
-                ? $value
-                : url($value);
-        };
-        $postImageUrl = uploaded_image_url($post->photo, asset('assets/images/placeholder.svg'));
-        $postImageAbsolute = $absoluteUrl($postImageUrl);
-        $siteLogoUrl = uploaded_image_url(get_option('logo'), asset('favicon.ico'));
-        $siteLogoAbsolute = $absoluteUrl($siteLogoUrl);
-    @endphp
+            return $filtered;
+        }
 
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="{{ $post->meta_title }}" />
-    <meta property="og:description" content="{{ $post->meta_description }}" />
-    <meta property="og:image" content="{{ $postImageAbsolute }}" />
-    <meta property="og:image:width" content="1478" />
-    <meta property="og:image:height" content="1108" />
-    <meta property="og:url" content="{{ url()->current() }}" />
-    <meta property="og:site_name" content="{{ $siteName }}" />
-    <meta property="og:type" content="article" />
-    <meta property="article:published_time" content="{{ optional($post->created_at)->toIso8601String() }}" />
-    <meta property="article:modified_time" content="{{ optional($post->updated_at)->toIso8601String() }}" />
+        return $value;
+    };
+    $absoluteUrl = function ($value) {
+        if (empty($value)) {
+            return null;
+        }
 
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="{{ url('/') }}" />
-    <meta name="twitter:title" content="{{ $post->meta_title }}" />
-    <meta name="twitter:description" content="{{ $post->meta_description }}" />
-    <meta name="twitter:image" content="{{ $postImageAbsolute }}" />
-    @php
-        $articleSchema = [
+        return \Illuminate\Support\Str::startsWith($value, ['http://', 'https://', '//'])
+            ? $value
+            : url($value);
+    };
+    $postImageUrl = uploaded_image_url($post->photo, uploaded_image_url(get_option('hero_image'), asset('assets/images/placeholder.svg')));
+    $postImageAbsolute = $absoluteUrl($postImageUrl);
+    $siteLogoUrl = uploaded_image_url(get_option('logo'), asset('favicon.ico'));
+    $siteLogoAbsolute = $absoluteUrl($siteLogoUrl);
+    $postImageAlt = trim((string) $post->alter_text) !== '' ? $post->alter_text : $post->title . ' image';
+    $isPost = \Illuminate\Support\Str::lower((string) $post->type) === 'post';
+    $postSeoTitle = $isPost
+        ? $cleanMetaText($post->meta_title, $post->title, 90)
+        : $cleanMetaText($post->title, $post->meta_title, 90);
+    $postSeoDescription = $cleanMetaText($post->meta_description, $post->description ?: $post->title, 155);
+    $pageSchema = $isPost
+        ? [
             '@context' => 'https://schema.org',
             '@type' => 'BlogPosting',
             'headline' => $post->title,
-            'description' => strip_tags((string) $post->meta_description),
+            'description' => $postSeoDescription,
             'image' => $postImageAbsolute ? [$postImageAbsolute] : null,
             'datePublished' => optional($post->created_at)->toIso8601String(),
             'dateModified' => optional($post->updated_at)->toIso8601String(),
@@ -61,10 +69,39 @@
                 ] : null,
             ],
             'mainEntityOfPage' => url()->current(),
+        ]
+        : [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            'name' => $post->title,
+            'description' => $postSeoDescription,
+            'url' => url()->current(),
+            'image' => $postImageAbsolute,
+            'dateModified' => optional($post->updated_at)->toIso8601String(),
         ];
-    @endphp
+    $pageSchema = $cleanSchema($pageSchema);
+@endphp
+
+@section('title', $postSeoTitle)
+@section('meta_description', $postSeoDescription)
+@section('og_title', $postSeoTitle)
+@section('og_description', $postSeoDescription)
+@section('og_image', $postImageAbsolute)
+@section('og_image_alt', $postImageAlt)
+@section('og_url', url()->current())
+@section('og_type', $isPost ? 'article' : 'website')
+@section('twitter_title', $postSeoTitle)
+@section('twitter_description', $postSeoDescription)
+@section('twitter_image', $postImageAbsolute)
+@section('twitter_image_alt', $postImageAlt)
+
+@push('meta')
+    @if($isPost)
+        <meta property="article:published_time" content="{{ optional($post->created_at)->toIso8601String() }}" />
+        <meta property="article:modified_time" content="{{ optional($post->updated_at)->toIso8601String() }}" />
+    @endif
     <script type="application/ld+json">
-        @json($articleSchema)
+        @json($pageSchema)
     </script>
 @endpush
 
@@ -196,10 +233,10 @@
             <!-- Header Content -->
             <div class="col-md-6 text-md-start text-center mb-4 mb-md-0">
                 <h1 class="display-4 fw-bold text-dark hero-title">{{ $post->title }}</h1>
-                <p class="lead text-secondary hero-description">{{ $post->meta_description }}</p>
+                <p class="lead text-secondary hero-description">{{ $postSeoDescription }}</p>
                 <div class="hero-actions">
                     <a class="btn btn-lg btn-dark rounded-pill me-3 px-4 py-2 shadow" href="{{ url('shop') }}">Shop Now</a>
-                    <a class="btn btn-lg btn-dark rounded-pill me-3 px-4 py-2 shadow" href="{{ route('contacts') }}">Talk to an Expert</a>
+                    <a class="btn btn-lg btn-dark rounded-pill me-3 px-4 py-2 shadow" href="{{ url('contact-us') }}">Talk to an Expert</a>
                 </div>
             </div>
 
@@ -321,7 +358,7 @@
 
 <section class="py-5 page-section-compact" id="homepage-description">
     <div class="container">
-     {!! rich_content_html($post->description) !!}
+     {!! rich_content_html($post->description, null, true) !!}
     </div>
 </section>
 

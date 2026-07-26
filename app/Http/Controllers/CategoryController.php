@@ -47,7 +47,7 @@ public function store(Request $request)
         'name'             => 'required|string|max:255',
         'meta_description' => 'nullable|string',
         'description'      => 'nullable|string',
-        'photo'            => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo'            => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
     ]);
 
     // 2. Generate a slug from the 'name'
@@ -123,7 +123,7 @@ public function update(Request $request, Category $category)
         'name'             => 'required|string|max:255',
         'meta_description' => 'nullable|string',
         'description'      => 'nullable|string',
-        'photo'            => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'photo'            => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
     ]);
 
     // 2. Update basic fields

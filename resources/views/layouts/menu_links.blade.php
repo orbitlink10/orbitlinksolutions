@@ -52,6 +52,12 @@
         <p>Keyword Research</p>
     </a>
 </li>
+<li class="nav-item">
+    <a href="{{ route('admin.page-optimizer') }}" class="nav-link {{ request()->is('admin/page-optimizer*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-magic"></i>
+        <p>Page Optimizer</p>
+    </a>
+</li>
 
 
     <!-- Admin Content Management -->

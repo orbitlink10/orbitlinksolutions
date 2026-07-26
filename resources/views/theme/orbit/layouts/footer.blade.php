@@ -94,8 +94,8 @@
                         <li><a href="{{ route('about_us') }}">About Us</a></li>
                         <li><a href="{{ route('faq') }}">FAQs</a></li>
                         <li><a href="{{ url('terms') }}">Terms &amp; Conditions</a></li>
-                        <li><a href="{{ route('contacts') }}">Contact Us</a></li>
-                        <li><a href="{{ route('contacts') }}">Support Center</a></li>
+                        <li><a href="{{ url('contact-us') }}">Contact Us</a></li>
+                        <li><a href="{{ url('contact-us') }}">Support Center</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -104,7 +104,7 @@
                         <li><a href="{{ route('login') }}">Sign In</a></li>
                         <li><a href="{{ route('cart.view') }}">View Cart</a></li>
                         <li><a href="{{ route('login') }}">Track My Order</a></li>
-                        <li><a href="{{ route('contacts') }}">Help</a></li>
+                        <li><a href="{{ url('contact-us') }}">Help</a></li>
                         <li><a href="{{ Auth::check() ? route('account.orders') : route('login') }}">Orders</a></li>
                     </ul>
                 </div>
@@ -133,7 +133,7 @@
             <div class="footer-legal">
                 <a href="#">Privacy Policy</a>
                 <a href="{{ url('terms') }}">Terms of Use</a>
-                <a href="{{ route('contacts') }}">Contact Us</a>
+                <a href="{{ url('contact-us') }}">Contact Us</a>
             </div>
         </div>
     </div>

@@ -1,5 +1,9 @@
 @extends('theme.orbit.layouts.main')
 
+@section('title', 'Shopping Cart')
+@section('meta_description', 'Review the products in your Orbitlink Solutions shopping cart.')
+@section('robots', 'noindex,nofollow')
+
 @section('main')
 @php
     $currency = get_option('currency_symbol', 'KSh');
@@ -111,7 +115,7 @@
             @else
                 <div class="cart-empty">
                     <i class="fas fa-shopping-cart"></i>
-                    <h4>Your cart is empty</h4>
+                    <h1 class="h4">Your cart is empty</h1>
                     <p class="text-muted">Browse the store and add items to get started.</p>
                     <a href="{{ url('shop') }}" class="btn btn-accent">Return to Shop</a>
                 </div>

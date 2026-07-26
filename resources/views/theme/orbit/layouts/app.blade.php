@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     {{-- Title & SEO --}}
     @php
         $siteName = get_option('site_name', 'Orbitlink Solutions');
@@ -21,9 +21,38 @@
 
             return \Illuminate\Support\Str::limit($value, $limit, '');
         };
+        $cleanSchema = function ($value) use (&$cleanSchema) {
+            if (is_array($value)) {
+                $filtered = [];
+
+                foreach ($value as $key => $item) {
+                    $cleaned = $cleanSchema($item);
+
+                    if ($cleaned !== null && $cleaned !== [] && $cleaned !== '') {
+                        $filtered[$key] = $cleaned;
+                    }
+                }
+
+                return $filtered;
+            }
+
+            return $value;
+        };
+        $sectionTitle = $cleanMetaText($__env->yieldContent('title', ''), '', 90);
+        $siteNameLower = \Illuminate\Support\Str::lower($siteName);
+        $sectionTitleLower = \Illuminate\Support\Str::lower($sectionTitle);
+        $pageTitle = $sectionTitle === ''
+            ? $siteName
+            : (\Illuminate\Support\Str::contains($sectionTitleLower, $siteNameLower)
+                ? $sectionTitle
+                : $sectionTitle . ' | ' . $siteName);
         $metaDescription = $cleanMetaText($__env->yieldContent('meta_description', $siteDesc), $siteDesc, 155);
+        $ogTitle = $cleanMetaText($__env->yieldContent('og_title', $pageTitle), $pageTitle, 90);
         $ogDescription = $cleanMetaText($__env->yieldContent('og_description', $metaDescription), $metaDescription, 200);
+        $ogImageAlt = $cleanMetaText($__env->yieldContent('og_image_alt', $siteName . ' image'), $siteName . ' image', 120);
+        $twitterTitle = $cleanMetaText($__env->yieldContent('twitter_title', $pageTitle), $pageTitle, 90);
         $twitterDescription = $cleanMetaText($__env->yieldContent('twitter_description', $metaDescription), $metaDescription, 200);
+        $twitterImageAlt = $cleanMetaText($__env->yieldContent('twitter_image_alt', $ogImageAlt), $ogImageAlt, 120);
         $siteUrl = url('/');
         $rawLogo = get_option('logo');
         $rawFavicon = get_option('favicon');
@@ -81,15 +110,11 @@
                 'query-input' => 'required name=search_term_string'
             ]
         ];
+        $orgSchema = $cleanSchema($orgSchema);
+        $websiteSchema = $cleanSchema($websiteSchema);
     @endphp
 
-    <title>
-        @hasSection('title')
-            @yield('title') | {{ $siteName }}
-        @else
-            {{ $siteName }}
-        @endif
-    </title>
+    <title>{{ $pageTitle }}</title>
 
     <meta name="description"
           content="{{ $metaDescription }}">
@@ -100,9 +125,10 @@
     <meta name="theme-color" content="#ff8a1e">
 
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="@yield('og_title', $siteName)" />
+    <meta property="og:title" content="{{ $ogTitle }}" />
     <meta property="og:description" content="{{ $ogDescription }}" />
     <meta property="og:image" content="@yield('og_image', $shareImageAbsolute)" />
+    <meta property="og:image:alt" content="{{ $ogImageAlt }}" />
     <meta property="og:url" content="@yield('og_url', url()->current())" />
     <meta property="og:site_name" content="{{ $siteName }}" />
     <meta property="og:type" content="@yield('og_type', 'website')" />
@@ -111,9 +137,10 @@
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@yield('twitter_site', $siteUrl)" />
-    <meta name="twitter:title" content="@yield('twitter_title', $siteName)" />
+    <meta name="twitter:title" content="{{ $twitterTitle }}" />
     <meta name="twitter:description" content="{{ $twitterDescription }}" />
     <meta name="twitter:image" content="@yield('twitter_image', $shareImageAbsolute)" />
+    <meta name="twitter:image:alt" content="{{ $twitterImageAlt }}" />
 
     <!-- Favicons -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $faviconUrl }}">
@@ -260,7 +287,7 @@
                                     <li><a class="dropdown-item" href="{{ route('login') }}">Sign in</a></li>
                                 @endauth
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('contacts') }}">Help & Support</a></li>
+                                <li><a class="dropdown-item" href="{{ url('contact-us') }}">Help & Support</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -536,7 +563,7 @@
                 </div>
                 <div class="mobile-header-info-wrap mobile-header-border">
                     <div class="single-mobile-header-info mt-30">
-                        <a href="{{ route('contacts') }}">Our Location</a>
+                        <a href="{{ url('contact-us') }}">Our Location</a>
                     </div>
                     <div class="single-mobile-header-info">
                         <a href="{{ url('login') }}">Log In / Sign Up</a>

@@ -216,7 +216,7 @@ Route::get('/invoices/{id}/download', [InvoiceController::class, 'download'])->n
 
 Route::get('/service/{slug}', [WelcomeController::class, 'serviceSingle'])->name('service_single');
 
-Route::get('/contacts', [WelcomeController::class, 'contacts'])->name('contacts');
+Route::redirect('/contacts', '/contact-us', 301)->name('contacts');
 Route::get('/blogs', [WelcomeController::class, 'blogs'])->name('blogs');
 
 Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
@@ -251,6 +251,7 @@ Route::get('posts/{slug}', ['as' => 'blog_single', 'uses'=>'App\Http\Controllers
 Route::get('p/{slug}', ['as' => 'view_page', 'uses'=>'App\Http\Controllers\WelcomeController@viewPage']);
 Route::post('save-message', ['as' => 'save_message', 'uses'=>'App\Http\Controllers\WelcomeController@saveMessage']);
 Route::get('/sitemap.xml', [App\Http\Controllers\WelcomeController::class, 'sitemap'])->name('sitemap');
+Route::get('/sitemap-static.xml', [App\Http\Controllers\WelcomeController::class, 'staticSitemap'])->name('static_sitemap');
 Route::get('/sitemap-products.xml', [App\Http\Controllers\WelcomeController::class, 'productSitemap'])->name('product_sitemap');
 Route::get('/sitemap-categories.xml', [App\Http\Controllers\WelcomeController::class, 'categoriesSitemap'])->name('categories_sitemap');
 Route::get('/robots.txt', function () {
@@ -398,6 +399,7 @@ Route::get('/admin/speed-test', [App\Http\Controllers\HomeController::class, 'sp
 Route::get('/admin/speed-test/download', [App\Http\Controllers\HomeController::class, 'speedTestDownload'])->name('admin.speed-test.download');
 Route::post('/admin/speed-test/upload', [App\Http\Controllers\HomeController::class, 'speedTestUpload'])->name('admin.speed-test.upload');
 Route::get('/admin/keyword-research', [App\Http\Controllers\HomeController::class, 'keywordResearch'])->name('admin.keyword-research');
+Route::get('/admin/page-optimizer', [App\Http\Controllers\HomeController::class, 'pageOptimizer'])->name('admin.page-optimizer');
 Route::get('/admin/users/', [App\Http\Controllers\HomeController::class, 'Allusers'])->name('admin.users');
 Route::post('/admin/store/users', [App\Http\Controllers\HomeController::class, 'saveUser'])->name('admin.save_user');
 Route::post('/admin/update/users/{id}', [App\Http\Controllers\HomeController::class, 'updateUser'])->name('admin.update_user');
