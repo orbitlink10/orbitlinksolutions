@@ -618,12 +618,11 @@
     // Helper to keep active thumbnail centered in its track
     function scrollThumbIntoView(track, el){
       if (!track || !el) return;
-      try {
-        el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      } catch (e) {
-        var er = el.getBoundingClientRect();
-        var tr = track.getBoundingClientRect();
-        var centerDelta = (er.left + er.width/2) - (tr.left + tr.width/2);
+      var er = el.getBoundingClientRect();
+      var tr = track.getBoundingClientRect();
+      var centerDelta = (er.left + er.width / 2) - (tr.left + tr.width / 2);
+
+      if (Math.abs(centerDelta) > 1) {
         track.scrollBy({ left: centerDelta, behavior: 'smooth' });
       }
     }
