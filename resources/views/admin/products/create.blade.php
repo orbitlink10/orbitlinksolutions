@@ -203,6 +203,15 @@
                                         @endif
                                     </div>
 
+                                    <div class="form-group">
+                                        <label for="additionalInformation">Additional Information</label>
+                                        <textarea id="additionalInformation" name="additional_information" class="form-control @error('additional_information') is-invalid @enderror" rows="7" placeholder="Primary Camera: 48MP, Dual 12MP&#10;RAM: 6GB RAM&#10;Operating System: iOS 17">{{ old('additional_information') }}</textarea>
+                                        <small class="form-text text-muted">Enter one detail per line using Label: Value.</small>
+                                        @error('additional_information')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
                                     <!-- Tinymce Init Script -->
                                     <script src="{{ asset('assets/js/tinymce/tinymce.min.js') }}"></script>
                                     <script type="text/javascript">

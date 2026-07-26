@@ -19,7 +19,6 @@ class Product extends Model
         'quantity',
         'discount',
         'photo',
-        'brochure_pdf',
         'slug',
         'description',
         'meta_title',

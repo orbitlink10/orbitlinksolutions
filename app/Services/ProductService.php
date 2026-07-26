@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Media;
 use App\Models\Product;
 use App\Repositories\ProductRepository;
 use Illuminate\Support\Facades\File;
@@ -32,7 +33,9 @@ class ProductService{
         }
     }
     public function create(Request $request){
-        $data = $request->all();
+        $validationData = $request->all();
+        $data = $validationData;
+        unset($data['brochure_pdf'], $data['additional_information']);
         
         $product=Product::where('name',$data['name'])->first();
 
@@ -41,7 +44,7 @@ class ProductService{
         }
 
        
-        $validate=$this->validateProduct($data);
+        $validate=$this->validateProduct($validationData);
         if ($validate->fails()) {
             return back()->withErrors($validate);
         }
@@ -54,18 +57,19 @@ class ProductService{
             $data['photo'] = $photoPath;
         }
 
-        if ($request->hasFile('brochure_pdf')) {
-            $data['brochure_pdf'] = $this->storeProductBrochurePdf($request->file('brochure_pdf'));
-        }
-        
-        
         // $data['sku'] = generate_sku();
         // $data['barcode'] = generateBarcode();
         
         DB::beginTransaction();
         try {
             //code...
-            $this->productService->create($data);
+            $product = $this->productService->create($data);
+            save_product_additional_information($product->id, $request->input('additional_information'));
+
+            if ($request->hasFile('brochure_pdf')) {
+                $this->replaceProductBrochure($product, $request->file('brochure_pdf'));
+            }
+
             DB::commit();
             return redirect()->route('products.index')->with('success',"Product created successfully");
         } catch (\Throwable $th) {
@@ -76,13 +80,15 @@ class ProductService{
     }
 
     public function update(Request $request, $id){
-        $data = $request->all();
+        $validationData = $request->all();
+        $data = $validationData;
+        unset($data['brochure_pdf'], $data['additional_information']);
         $product =$this->productService->find($id);
         if(!$product){
             return redirect()->route('products.index')->with("errors", "Product Not Found");
         }
 
-        $validate=$this->validateProduct($data);
+        $validate=$this->validateProduct($validationData);
         if($validate->fails()){
             return back()->withErrors($validate);
         }
@@ -100,18 +106,13 @@ class ProductService{
         }
 
         if ($request->hasFile('brochure_pdf')) {
-            $file_path = uploaded_image_file_path($product->brochure_pdf);
-
-            if($file_path && File::exists($file_path)) {
-                File::delete($file_path);
-            }
-
-            $data['brochure_pdf'] = $this->storeProductBrochurePdf($request->file('brochure_pdf'));
+            $this->replaceProductBrochure($product, $request->file('brochure_pdf'));
         }
         DB::beginTransaction();
         try {
             //code...
             $this->productService->update($product, $data);
+            save_product_additional_information($product->id, $request->input('additional_information'));
             DB::commit();
             return redirect()->route('products.index')->with('success',"Product updated successfully");
         } catch (\Throwable $th) {
@@ -134,12 +135,20 @@ class ProductService{
             // Storage::delete($file_path); //Or you can do it as well
         }
 
-        $brochure_path = uploaded_image_file_path($product->brochure_pdf);
+        $brochure = Media::where('product_id', $product->id)
+            ->where('media_type', 'product_brochure')
+            ->first();
+        $brochure_path = $brochure ? uploaded_image_file_path($brochure->file_path) : null;
 
         if($brochure_path && File::exists($brochure_path)) {
             File::delete($brochure_path);
         }
 
+        if($brochure) {
+            $brochure->delete();
+        }
+
+        save_product_additional_information($product->id, null);
         $this->productService->delete($product);
         return redirect()->back()->with('success',"Product deleted successfully");
     }
@@ -150,6 +159,7 @@ class ProductService{
             "name" => "bail|required|string",
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'brochure_pdf' => 'nullable|file|mimes:pdf|max:10240',
+            'additional_information' => 'nullable|string',
             'photos.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'files.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             "price" => "bail|required",
@@ -164,5 +174,30 @@ class ProductService{
         $file->storeAs('uploads/product-brochures/', $filenameToStore, 'public');
 
         return 'uploads/product-brochures/' . $filenameToStore;
+    }
+
+    private function replaceProductBrochure(Product $product, UploadedFile $file): void
+    {
+        $brochure = Media::where('product_id', $product->id)
+            ->where('media_type', 'product_brochure')
+            ->first();
+
+        if ($brochure) {
+            $file_path = uploaded_image_file_path($brochure->file_path);
+
+            if($file_path && File::exists($file_path)) {
+                File::delete($file_path);
+            }
+        }
+
+        $filePath = $this->storeProductBrochurePdf($file);
+        $data = [
+            'product_id' => $product->id,
+            'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+            'media_type' => 'product_brochure',
+            'file_path' => $filePath,
+        ];
+
+        $brochure ? $brochure->update($data) : Media::create($data);
     }
 }

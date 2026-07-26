@@ -62,6 +62,13 @@
     }
 
     foreach ($mediafiles as $index => $media) {
+        $mediaType = strtolower((string) ($media->media_type ?? ''));
+        $extension = strtolower(pathinfo(parse_url((string) $media->file_path, PHP_URL_PATH) ?: (string) $media->file_path, PATHINFO_EXTENSION));
+
+        if ($mediaType === 'product_brochure' || !in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+            continue;
+        }
+
         if (!empty($media->file_path) && uploaded_image_file_path($media->file_path)) {
             $addGalleryImage(uploaded_image_url($media->file_path), $product->name . ' image ' . ($index + 1));
         }
@@ -71,10 +78,12 @@
         $addGalleryImage($productImageUrl, $product->name . ' image');
     }
 
-    $brochurePath = uploaded_image_relative_path($product->brochure_pdf ?? null);
+    $brochureMedia = collect($mediafiles)->first(fn ($media) => ($media->media_type ?? null) === 'product_brochure');
+    $brochurePath = uploaded_image_relative_path($brochureMedia->file_path ?? null);
     $brochureUrl = $brochurePath && uploaded_image_file_path($brochurePath)
         ? url('images') . '?path=' . rawurlencode($brochurePath)
         : null;
+    $additionalInformation = product_additional_information($product->id);
 @endphp
 @section('title', $productSeoTitle)
 @section('meta_description', $productSeoDescription)
@@ -116,6 +125,16 @@
     }
     if ($category) {
         $productSchema['category'] = $category->name;
+    }
+    if (!empty($additionalInformation)) {
+        $productSchema['additionalProperty'] = collect($additionalInformation)
+            ->map(fn ($row) => [
+                '@type' => 'PropertyValue',
+                'name' => $row['label'],
+                'value' => $row['value'],
+            ])
+            ->values()
+            ->all();
     }
     if ($product->has_price) {
         $productSchema['offers'] = [
@@ -443,12 +462,17 @@
             </div>
         </div>
 
-        <!-- Tab Section for Description -->
+        <!-- Tab Section for Description and Additional Information -->
         <div class="tab-style3 product-description-section mt-5">
             <ul class="nav nav-tabs text-uppercase">
                 <li class="nav-item">
                     <a class="nav-link active" id="Description-tab" data-bs-toggle="tab" href="#Description">Description</a>
                 </li>
+                @if(!empty($additionalInformation))
+                    <li class="nav-item">
+                        <a class="nav-link" id="AdditionalInformation-tab" data-bs-toggle="tab" href="#AdditionalInformation">Additional information</a>
+                    </li>
+                @endif
             </ul>
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="Description">
@@ -458,6 +482,20 @@
                         </div>
                     </div>
                 </div>
+                @if(!empty($additionalInformation))
+                    <div class="tab-pane fade" id="AdditionalInformation">
+                        <div class="container">
+                            <div class="product-additional-information-content">
+                                @foreach($additionalInformation as $row)
+                                    <div class="product-additional-information-row">
+                                        <div class="product-additional-information-label">{{ $row['label'] }}</div>
+                                        <div class="product-additional-information-value">{{ $row['value'] }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
 

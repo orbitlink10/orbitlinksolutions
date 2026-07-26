@@ -477,6 +477,13 @@ function product_image_url($product, $fallback = null)
         : \App\Models\Media::whereProductId($product->id)->whereNotNull('file_path')->orderBy('id')->take(10)->get();
 
     foreach ($mediaFiles as $media) {
+        $mediaType = strtolower((string) ($media->media_type ?? ''));
+        $extension = strtolower(pathinfo(parse_url((string) $media->file_path, PHP_URL_PATH) ?: (string) $media->file_path, PATHINFO_EXTENSION));
+
+        if ($mediaType === 'product_brochure' || !in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+            continue;
+        }
+
         if (!empty($media->file_path) && uploaded_image_file_path($media->file_path)) {
             return uploaded_image_url($media->file_path, $fallback);
         }
@@ -561,6 +568,101 @@ if (! function_exists('homepage_product_ids')) {
     function homepage_product_ids()
     {
         return homepage_option_ids('homepage_product_ids');
+    }
+}
+
+if (! function_exists('product_additional_information_option_key')) {
+    function product_additional_information_option_key($productId)
+    {
+        return 'product_additional_information_' . (int) $productId;
+    }
+}
+
+if (! function_exists('parse_product_additional_information')) {
+    function parse_product_additional_information($value)
+    {
+        if (is_array($value)) {
+            return collect($value)
+                ->map(function ($row) {
+                    $label = trim((string) ($row['label'] ?? ''));
+                    $value = trim((string) ($row['value'] ?? ''));
+
+                    return $label !== '' && $value !== '' ? compact('label', 'value') : null;
+                })
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return parse_product_additional_information($decoded);
+        }
+
+        return collect(preg_split('/\r\n|\r|\n/', $value))
+            ->map(function ($line) {
+                $line = trim((string) $line);
+
+                if ($line === '') {
+                    return null;
+                }
+
+                $parts = preg_split('/\s*(?::|\||\t)\s*/', $line, 2);
+
+                if (count($parts) !== 2) {
+                    return null;
+                }
+
+                $label = trim($parts[0]);
+                $value = trim($parts[1]);
+
+                return $label !== '' && $value !== '' ? compact('label', 'value') : null;
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+}
+
+if (! function_exists('product_additional_information')) {
+    function product_additional_information($productId)
+    {
+        $option = \App\Models\Option::where('option_key', product_additional_information_option_key($productId))->first();
+
+        return $option ? parse_product_additional_information($option->option_value) : [];
+    }
+}
+
+if (! function_exists('product_additional_information_text')) {
+    function product_additional_information_text($productId)
+    {
+        return collect(product_additional_information($productId))
+            ->map(fn ($row) => $row['label'] . ': ' . $row['value'])
+            ->implode(PHP_EOL);
+    }
+}
+
+if (! function_exists('save_product_additional_information')) {
+    function save_product_additional_information($productId, $value)
+    {
+        $rows = parse_product_additional_information($value);
+        $key = product_additional_information_option_key($productId);
+
+        if (empty($rows)) {
+            \App\Models\Option::where('option_key', $key)->delete();
+            return;
+        }
+
+        \App\Models\Option::updateOrCreate(
+            ['option_key' => $key],
+            ['option_value' => json_encode($rows)]
+        );
     }
 }
 

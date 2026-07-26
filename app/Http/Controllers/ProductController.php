@@ -176,6 +176,16 @@ public function preview(Request $request)
         return 'uploads/product-brochures/' . $filenameToStore;
     }
 
+    private function storeProductBrochureMedia(int $productId, $file, string $filePath): void
+    {
+        Media::create([
+            'product_id' => $productId,
+            'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+            'media_type' => 'product_brochure',
+            'file_path' => $filePath,
+        ]);
+    }
+
 
 
     /**
@@ -234,6 +244,7 @@ public function store(Request $request)
         'meta_title'      => 'nullable|string|max:255',
         'meta_description'=> 'nullable|string',
         'description'     => 'required|string',
+        'additional_information' => 'nullable|string',
         'photo'           => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
         'brochure_pdf'    => 'nullable|file|mimes:pdf|max:10240',
         'media_files'     => 'nullable|array',
@@ -269,13 +280,16 @@ public function store(Request $request)
         $data['photo'] = $path;
     }
 
-    if ($request->hasFile('brochure_pdf')) {
-        $data['brochure_pdf'] = $this->storeProductBrochurePdf($request->file('brochure_pdf'));
-    }
-
     // Create the product record in the database
     $product = Product::create($data);
     $this->storeProductMedia($request, $product->id);
+    save_product_additional_information($product->id, $request->input('additional_information'));
+
+    if ($request->hasFile('brochure_pdf')) {
+        $brochureFile = $request->file('brochure_pdf');
+        $brochurePath = $this->storeProductBrochurePdf($brochureFile);
+        $this->storeProductBrochureMedia($product->id, $brochureFile, $brochurePath);
+    }
 
     // Redirect to the products index with a success message
     return redirect()->route('products.index')
@@ -304,7 +318,8 @@ public function store(Request $request)
         $sub_categories =SubCategory::orderBy("id","desc")->get();
         $user =Auth::user();
        $mediaFiles = Media::whereProductId($id)->get();
-        return view('admin.products.update', compact('product','categories','sub_categories','user', 'mediaFiles'));
+       $additionalInformationText = product_additional_information_text($id);
+        return view('admin.products.update', compact('product','categories','sub_categories','user', 'mediaFiles', 'additionalInformationText'));
     }
 
     /**

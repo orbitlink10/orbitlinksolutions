@@ -186,6 +186,15 @@
                                         @enderror
                                     </div>
 
+                                    <div class="form-group">
+                                        <label for="additionalInformation">Additional Information</label>
+                                        <textarea id="additionalInformation" name="additional_information" class="form-control @error('additional_information') is-invalid @enderror" rows="7" placeholder="Primary Camera: 48MP, Dual 12MP&#10;RAM: 6GB RAM&#10;Operating System: iOS 17">{{ old('additional_information', $additionalInformationText ?? '') }}</textarea>
+                                        <small class="form-text text-muted">Enter one detail per line using Label: Value.</small>
+                                        @error('additional_information')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
                                     <!-- Tinymce Init Script -->
                                     <script src="{{ asset('assets/js/tinymce/tinymce.min.js') }}"></script>
                                     <script type="text/javascript">
@@ -242,7 +251,8 @@
                                     <div class="form-group">
                                         <label for="productBrochurePdf">Product Brochure PDF</label>
                                         @php
-                                            $currentBrochurePath = uploaded_image_relative_path($product->brochure_pdf ?? null);
+                                            $currentBrochure = isset($mediaFiles) ? $mediaFiles->firstWhere('media_type', 'product_brochure') : null;
+                                            $currentBrochurePath = uploaded_image_relative_path($currentBrochure->file_path ?? null);
                                             $currentBrochureUrl = $currentBrochurePath && uploaded_image_file_path($currentBrochurePath)
                                                 ? url('images') . '?path=' . rawurlencode($currentBrochurePath)
                                                 : null;
