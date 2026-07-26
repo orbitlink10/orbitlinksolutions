@@ -5,8 +5,8 @@
     $category = $product->category ?: category($product->category_id);
     $productImageUrl = product_image_url($product, asset('default-image.jpg'));
     $productSeoTitle = trim((string) ($product->meta_title ?: $product->name));
-    $productSeoDescription = trim((string) ($product->meta_description ?: strip_tags($product->description)));
-    $productSeoDescription = \Illuminate\Support\Str::limit($productSeoDescription, 155, '');
+    $productSummaryText = trim(strip_tags((string) ($product->meta_description ?: $product->description)));
+    $productSeoDescription = \Illuminate\Support\Str::limit($productSummaryText, 155, '');
     $currencyCode = strtoupper(trim((string) get_option('currency_code', 'KES')));
     if (!preg_match('/^[A-Z]{3}$/', $currencyCode)) {
         $currencyCode = 'KES';
@@ -360,7 +360,7 @@
                     </div>
 
                     <div class="product-summary">
-                        <p>{!! Str::words(strip_tags($product->description), 40, '...') !!}</p>
+                        <p>{{ $productSummaryText }}</p>
                     </div>
                     <div class="product-highlights">
                         <span class="highlight-item"><i class="fas fa-shipping-fast"></i>Fast delivery</span>
