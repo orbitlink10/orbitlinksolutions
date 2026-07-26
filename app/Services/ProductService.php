@@ -53,6 +53,10 @@ class ProductService{
             $photoPath = upload_photo($request->photo);
             $data['photo'] = $photoPath;
         }
+
+        if ($request->hasFile('brochure_pdf')) {
+            $data['brochure_pdf'] = $this->storeProductBrochurePdf($request->file('brochure_pdf'));
+        }
         
         
         // $data['sku'] = generate_sku();
@@ -94,6 +98,16 @@ class ProductService{
             $photoPath = upload_photo($request->photo);
             $data['photo'] = $photoPath;
         }
+
+        if ($request->hasFile('brochure_pdf')) {
+            $file_path = uploaded_image_file_path($product->brochure_pdf);
+
+            if($file_path && File::exists($file_path)) {
+                File::delete($file_path);
+            }
+
+            $data['brochure_pdf'] = $this->storeProductBrochurePdf($request->file('brochure_pdf'));
+        }
         DB::beginTransaction();
         try {
             //code...
@@ -120,6 +134,12 @@ class ProductService{
             // Storage::delete($file_path); //Or you can do it as well
         }
 
+        $brochure_path = uploaded_image_file_path($product->brochure_pdf);
+
+        if($brochure_path && File::exists($brochure_path)) {
+            File::delete($brochure_path);
+        }
+
         $this->productService->delete($product);
         return redirect()->back()->with('success',"Product deleted successfully");
     }
@@ -129,11 +149,20 @@ class ProductService{
         return Validator::make($data, [
             "name" => "bail|required|string",
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'brochure_pdf' => 'nullable|file|mimes:pdf|max:10240',
             'photos.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'files.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             "price" => "bail|required",
             "description" => "bail|required",
             "quantity" => "bail|required",
         ]);
+    }
+
+    private function storeProductBrochurePdf(UploadedFile $file): string
+    {
+        $filenameToStore = upload_file_name($file, 80);
+        $file->storeAs('uploads/product-brochures/', $filenameToStore, 'public');
+
+        return 'uploads/product-brochures/' . $filenameToStore;
     }
 }

@@ -258,6 +258,19 @@
                                     </div>
 
                                     <div class="form-group">
+                                        <label for="productBrochurePdf">Product Brochure PDF (optional)</label>
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input @error('brochure_pdf') is-invalid @enderror"
+                                                   id="productBrochurePdf" name="brochure_pdf" accept="application/pdf" onchange="updateFileLabel(this)">
+                                            <label class="custom-file-label" for="productBrochurePdf">Choose PDF</label>
+                                        </div>
+                                        <small class="form-text text-muted">Upload one PDF brochure, up to 10MB.</small>
+                                        @error('brochure_pdf')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group">
                                         <label for="productGalleryImages">Additional Product Images (optional)</label>
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input @error('media_files.*') is-invalid @enderror"

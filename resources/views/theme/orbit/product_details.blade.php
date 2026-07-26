@@ -70,6 +70,11 @@
     if ($galleryImages->isEmpty()) {
         $addGalleryImage($productImageUrl, $product->name . ' image');
     }
+
+    $brochurePath = uploaded_image_relative_path($product->brochure_pdf ?? null);
+    $brochureUrl = $brochurePath && uploaded_image_file_path($brochurePath)
+        ? url('images') . '?path=' . rawurlencode($brochurePath)
+        : null;
 @endphp
 @section('title', $productSeoTitle)
 @section('meta_description', $productSeoDescription)
@@ -126,6 +131,14 @@
                 'name' => $siteName,
                 'url' => url('/'),
             ],
+        ];
+    }
+    if ($brochureUrl) {
+        $productSchema['subjectOf'] = [
+            '@type' => 'DigitalDocument',
+            'name' => $product->name . ' Brochure',
+            'encodingFormat' => 'application/pdf',
+            'url' => $brochureUrl,
         ];
     }
     $breadcrumbItems = [
@@ -336,6 +349,20 @@
                         <span class="highlight-item"><i class="fas fa-headset"></i>Expert help</span>
                     </div>
                     <div class="product-divider"></div>
+
+                    @if($brochureUrl)
+                        <div class="product-documents">
+                            <div class="product-documents-copy">
+                                <span class="product-documents-label">Documents</span>
+                                <h2>Brochure</h2>
+                                <p>Download the product brochure for features and specifications.</p>
+                            </div>
+                            <a href="{{ $brochureUrl }}" target="_blank" rel="noopener" class="product-document-link" aria-label="Open {{ $product->name }} brochure PDF">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Brochure PDF</span>
+                            </a>
+                        </div>
+                    @endif
 
 
                   

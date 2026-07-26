@@ -168,6 +168,14 @@ public function preview(Request $request)
         }
     }
 
+    private function storeProductBrochurePdf($file): string
+    {
+        $filenameToStore = upload_file_name($file, 80);
+        $file->storeAs('uploads/product-brochures/', $filenameToStore, 'public');
+
+        return 'uploads/product-brochures/' . $filenameToStore;
+    }
+
 
 
     /**
@@ -227,6 +235,7 @@ public function store(Request $request)
         'meta_description'=> 'nullable|string',
         'description'     => 'required|string',
         'photo'           => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+        'brochure_pdf'    => 'nullable|file|mimes:pdf|max:10240',
         'media_files'     => 'nullable|array',
         'media_files.*'   => 'image|mimes:jpg,jpeg,png,gif,webp|max:2048',
     ]);
@@ -258,6 +267,10 @@ public function store(Request $request)
         // Stores the file in storage/app/public/products and returns the path
         $path = $request->file('photo')->store('products', 'public');
         $data['photo'] = $path;
+    }
+
+    if ($request->hasFile('brochure_pdf')) {
+        $data['brochure_pdf'] = $this->storeProductBrochurePdf($request->file('brochure_pdf'));
     }
 
     // Create the product record in the database

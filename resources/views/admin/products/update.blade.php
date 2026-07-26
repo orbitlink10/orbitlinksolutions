@@ -239,6 +239,32 @@
                                         @enderror
                                     </div>
 
+                                    <div class="form-group">
+                                        <label for="productBrochurePdf">Product Brochure PDF</label>
+                                        @php
+                                            $currentBrochurePath = uploaded_image_relative_path($product->brochure_pdf ?? null);
+                                            $currentBrochureUrl = $currentBrochurePath && uploaded_image_file_path($currentBrochurePath)
+                                                ? url('images') . '?path=' . rawurlencode($currentBrochurePath)
+                                                : null;
+                                        @endphp
+                                        @if($currentBrochureUrl)
+                                            <div class="mb-2">
+                                                <a href="{{ $currentBrochureUrl }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
+                                                    View current brochure
+                                                </a>
+                                            </div>
+                                        @endif
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input @error('brochure_pdf') is-invalid @enderror"
+                                                   id="productBrochurePdf" name="brochure_pdf" accept="application/pdf" onchange="updateFileLabel(this)">
+                                            <label class="custom-file-label" for="productBrochurePdf">Choose PDF</label>
+                                        </div>
+                                        <small class="form-text text-muted">Upload a new PDF to replace the current brochure. Maximum size: 10MB.</small>
+                                        @error('brochure_pdf')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
                                     <!-- Form Actions -->
                                     <div class="form-footer text-right">
                                         <a href="{{ route('products.index') }}" class="btn btn-secondary">Cancel</a>
