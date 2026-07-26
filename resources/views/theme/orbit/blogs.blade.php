@@ -124,6 +124,33 @@
             color: #94a3b8;
             font-size: 0.86rem;
         }
+
+        .resources-pagination .pagination {
+            margin-bottom: 0;
+            justify-content: center;
+        }
+
+        .resources-pagination .page-link {
+            min-width: 46px;
+            min-height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #0f172a;
+            border-color: rgba(15, 23, 42, 0.14);
+            text-decoration: none;
+        }
+
+        .resources-pagination .page-item.active .page-link {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        .resources-pagination svg {
+            width: 18px;
+            height: 18px;
+        }
     </style>
 @endpush
 
@@ -183,8 +210,8 @@
             </div>
 
             @if(method_exists($posts, 'links'))
-                <div class="mt-5 d-flex justify-content-center">
-                    {{ $posts->links() }}
+                <div class="resources-pagination mt-5 d-flex justify-content-center">
+                    {{ $posts->onEachSide(1)->links('pagination::bootstrap-4') }}
                 </div>
             @endif
         </div>
