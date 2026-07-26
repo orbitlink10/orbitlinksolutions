@@ -134,40 +134,39 @@ public function preview(Request $request)
 
 
     public function mediaSave(Request $request)
-{
-   
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'files' => 'required|array',
+            'files.*' => 'image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+        ]);
 
-   
+        $this->storeProductMedia($request, (int) $request->product_id, 'files');
 
-    $uploadedMedia = [];
-    if ($request->hasFile('files')) {
-        foreach ($request->file('files') as $index => $file) {
-            // Generate file name
+        return back()->with('success', 'Media uploaded successfully!');
+    }
+
+    private function storeProductMedia(Request $request, int $productId, string $field = 'media_files'): void
+    {
+        if (!$request->hasFile($field)) {
+            return;
+        }
+
+        foreach ($request->file($field) as $index => $file) {
             $fileNameWithExt = $file->getClientOriginalName();
             $fileName = pathinfo($fileNameWithExt, PATHINFO_FILENAME);
             $filenameToStore = upload_file_name($file, 80, $index);
 
-            // Store the file
             $file->storeAs('uploads/medias/', $filenameToStore, 'public');
 
-            // Generate file path
-            $filePath = url('/') . '/storage/uploads/medias/' . $filenameToStore;
-
-            // Get the caption for the file if available
-            $caption = $captions[$index] ?? null;
-
-            // Create media entry in the database
-            $uploadedMedia[] = Media::create([
-                'product_id'    => $request->product_id,
-                'name'       => $fileName,
-                'media_type' => "product",
-                'file_path'  => $filePath,
+            Media::create([
+                'product_id' => $productId,
+                'name' => $fileName,
+                'media_type' => 'product',
+                'file_path' => url('/') . '/storage/uploads/medias/' . $filenameToStore,
             ]);
         }
     }
-
-        return back()->with('success', 'Media uploaded successfully!');
-}
 
 
 
@@ -227,7 +226,9 @@ public function store(Request $request)
         'meta_title'      => 'nullable|string|max:255',
         'meta_description'=> 'nullable|string',
         'description'     => 'required|string',
-        'photo'           => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+        'photo'           => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+        'media_files'     => 'nullable|array',
+        'media_files.*'   => 'image|mimes:jpg,jpeg,png,gif,webp|max:2048',
     ]);
 
     if ($validator->fails()) {
@@ -260,7 +261,8 @@ public function store(Request $request)
     }
 
     // Create the product record in the database
-    Product::create($data);
+    $product = Product::create($data);
+    $this->storeProductMedia($request, $product->id);
 
     // Redirect to the products index with a success message
     return redirect()->route('products.index')

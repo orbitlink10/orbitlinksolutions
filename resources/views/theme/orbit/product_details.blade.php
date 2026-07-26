@@ -41,6 +41,35 @@
     if ($productIdentifier === '' && preg_match('/\b(RB[0-9A-Za-z-]+|L[0-9][0-9A-Za-z-]+)\b/', $product->name, $identifierMatch)) {
         $productIdentifier = $identifierMatch[1];
     }
+    $galleryImages = collect();
+    $seenGalleryUrls = [];
+    $addGalleryImage = function ($url, $alt) use (&$galleryImages, &$seenGalleryUrls) {
+        $url = trim((string) $url);
+
+        if ($url === '' || in_array($url, $seenGalleryUrls, true)) {
+            return;
+        }
+
+        $seenGalleryUrls[] = $url;
+        $galleryImages->push([
+            'url' => $url,
+            'alt' => $alt,
+        ]);
+    };
+
+    if (!empty($product->photo) && uploaded_image_file_path($product->photo)) {
+        $addGalleryImage($productImageUrl, $product->name . ' featured image');
+    }
+
+    foreach ($mediafiles as $index => $media) {
+        if (!empty($media->file_path) && uploaded_image_file_path($media->file_path)) {
+            $addGalleryImage(uploaded_image_url($media->file_path), $product->name . ' image ' . ($index + 1));
+        }
+    }
+
+    if ($galleryImages->isEmpty()) {
+        $addGalleryImage($productImageUrl, $product->name . ' image');
+    }
 @endphp
 @section('title', $productSeoTitle)
 @section('meta_description', $productSeoDescription)
@@ -64,16 +93,7 @@
     <meta property="product:availability" content="{{ $product->quantity > 0 ? 'in stock' : 'out of stock' }}" />
 @endif
 @php
-    $schemaImages = [];
-    if ($mediafiles->count() > 0) {
-        foreach ($mediafiles as $media) {
-            if (!empty($media->file_path)) {
-                $schemaImages[] = uploaded_image_url($media->file_path);
-            }
-        }
-    } elseif (!empty($product->photo)) {
-        $schemaImages[] = $productImageUrl;
-    }
+    $schemaImages = $galleryImages->pluck('url')->values()->all();
     $productSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'Product',
@@ -179,34 +199,25 @@
                     <!-- Carousel Section using Bootstrap ratio utilities only -->
                     <div id="productCarousel" class="carousel slide product-carousel" data-bs-ride="carousel" data-bs-interval="3000">
                         <div class="carousel-inner">
-                            @if($mediafiles->count() > 0)
-                                @foreach($mediafiles as $index => $media)
-                                    @php
-                                        $mediaUrl = uploaded_image_url($media->file_path);
-                                    @endphp
-                                    <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
-                                        <div class="ratio ratio-1x1 rounded overflow-hidden">
-                                            <img src="{{ $mediaUrl }}" alt="{{ $product->name }}" class="w-100 h-100 product-detail-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="openModal('{{ $mediaUrl }}', '{{ $index }}')">
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="carousel-item active">
+                            @foreach($galleryImages as $index => $image)
+                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
                                     <div class="ratio ratio-1x1 rounded overflow-hidden">
-                                        <img src="{{ $productImageUrl }}" alt="{{ $product->name }}" class="w-100 h-100 product-detail-image" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="openModal('{{ $productImageUrl }}', '0')">
+                                        <img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" class="w-100 h-100 product-detail-image" data-bs-toggle="modal" data-bs-target="#imageModal" data-gallery-url="{{ $image['url'] }}" onclick="openModal(this.dataset.galleryUrl, '{{ $index }}')">
                                     </div>
                                 </div>
-                            @endif
+                            @endforeach
                         </div>
                         <!-- Carousel Controls -->
-                        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Previous</span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Next</span>
-                        </button>
+                        @if($galleryImages->count() > 1)
+                            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        @endif
                     </div>
                     <!-- Thumbnails: horizontal scroll with scroll-snap -->
                     <div class="thumbs-wrap mt-3 position-relative">
@@ -214,20 +225,11 @@
                             <i class="fas fa-chevron-left"></i>
                         </button>
                         <div id="thumbsTrack" class="d-flex gap-2 flex-nowrap thumbs-scroll px-4">
-                            @if($mediafiles->count() > 0)
-                                @foreach($mediafiles as $index => $media)
-                                    @php
-                                        $mediaUrl = uploaded_image_url($media->file_path);
-                                    @endphp
-                                    <div class="thumb-item">
-                                        <img src="{{ $mediaUrl }}" alt="{{ $product->name }} thumbnail {{ $index + 1 }}" class="img-thumbnail rounded js-thumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
-                                    </div>
-                                @endforeach
-                            @else
+                            @foreach($galleryImages as $index => $image)
                                 <div class="thumb-item">
-                                    <img src="{{ $productImageUrl }}" alt="{{ $product->name }} thumbnail" class="img-thumbnail rounded js-thumb border-primary" data-index="0">
+                                    <img src="{{ $image['url'] }}" alt="{{ $image['alt'] }} thumbnail" class="img-thumbnail rounded js-thumb {{ $index === 0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
                                 </div>
-                            @endif
+                            @endforeach
                         </div>
                         <button type="button" class="btn btn-light btn-sm position-absolute top-50 end-0 translate-middle-y shadow js-thumbs-next" aria-label="Scroll right">
                             <i class="fas fa-chevron-right"></i>
@@ -244,34 +246,25 @@
                             <!-- Carousel inside Modal -->
                             <div id="modalCarousel" class="carousel slide" data-bs-ride="carousel">
                                 <div class="carousel-inner" id="modalCarouselInner">
-                                    @if($mediafiles->count() > 0)
-                                        @foreach($mediafiles as $index => $media)
-                                            @php
-                                                $mediaUrl = uploaded_image_url($media->file_path);
-                                            @endphp
-                                            <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
-                                                <div class="ratio ratio-4x3">
-                                                    <img src="{{ $mediaUrl }}" alt="{{ $product->name }} image {{ $index + 1 }}" class="w-100 h-100 product-detail-image">
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    @else
-                                        <div class="carousel-item active">
+                                    @foreach($galleryImages as $index => $image)
+                                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
                                             <div class="ratio ratio-4x3">
-                                                <img src="{{ $productImageUrl }}" alt="{{ $product->name }} image" class="w-100 h-100 product-detail-image">
+                                                <img src="{{ $image['url'] }}" alt="{{ $image['alt'] }}" class="w-100 h-100 product-detail-image">
                                             </div>
                                         </div>
-                                    @endif
+                                    @endforeach
                                 </div>
                                 <!-- Carousel Controls -->
-                                <button class="carousel-control-prev" type="button" data-bs-target="#modalCarousel" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#modalCarousel" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
+                                @if($galleryImages->count() > 1)
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#modalCarousel" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#modalCarousel" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                @endif
                             </div>
                             <!-- Modal Thumbnails: horizontal scroll with scroll-snap -->
                             <div class="mt-3 position-relative">
@@ -279,20 +272,11 @@
                                     <i class="fas fa-chevron-left"></i>
                                 </button>
                                 <div id="modalThumbsTrack" class="d-flex gap-2 flex-nowrap thumbs-scroll px-4 justify-content-center">
-                                    @if($mediafiles->count() > 0)
-                                        @foreach($mediafiles as $index => $media)
-                                            @php
-                                                $mediaUrl = uploaded_image_url($media->file_path);
-                                            @endphp
-                                            <div class="thumb-item">
-                                                <img src="{{ $mediaUrl }}" alt="{{ $product->name }} modal thumbnail {{ $index + 1 }}" class="img-thumbnail rounded js-mthumb {{ $index==0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
-                                            </div>
-                                        @endforeach
-                                    @else
+                                    @foreach($galleryImages as $index => $image)
                                         <div class="thumb-item">
-                                            <img src="{{ $productImageUrl }}" alt="{{ $product->name }} modal thumbnail" class="img-thumbnail rounded js-mthumb border-primary" data-index="0">
+                                            <img src="{{ $image['url'] }}" alt="{{ $image['alt'] }} modal thumbnail" class="img-thumbnail rounded js-mthumb {{ $index === 0 ? 'border-primary' : '' }}" data-index="{{ $index }}">
                                         </div>
-                                    @endif
+                                    @endforeach
                                 </div>
                                 <button type="button" class="btn btn-light btn-sm position-absolute top-50 end-0 translate-middle-y shadow js-mthumbs-next" aria-label="Scroll right">
                                     <i class="fas fa-chevron-right"></i>
@@ -472,6 +456,58 @@
                 </div>
             </div>
         </div>
+
+        @if(isset($relatedProducts) && $relatedProducts->count() > 0)
+            <div class="related-products-section">
+                <div class="related-products-header text-center">
+                    <h2>Related Products</h2>
+                    @if($category)
+                        <p>More products from {{ $category->name }}</p>
+                    @endif
+                </div>
+                <div class="row product-grid-4 g-4">
+                    @foreach($relatedProducts as $ad)
+                        @php
+                            $relatedCategory = $ad->category ?: category($ad->category_id);
+                            $relatedHasSale = isset($ad->marked_price) && $ad->has_price && $ad->marked_price > 0 && $ad->marked_price > ($ad->price ?? 0);
+                        @endphp
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6 col-12">
+                            <div class="product-cart-wrap h-100">
+                                <div class="product-img-action-wrap">
+                                    <div class="product-img product-img-zoom">
+                                        <a href="{{ route('product_details', $ad->slug) }}">
+                                            <img class="default-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" width="600" height="600" loading="lazy">
+                                            <img class="hover-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" width="600" height="600" loading="lazy">
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="product-content-wrap">
+                                    @if($relatedHasSale)
+                                        <span class="badge-sale">-{{ discount($ad->id) }}%</span>
+                                    @endif
+                                    @if($relatedCategory)
+                                        <div class="product-category">
+                                            <a href="{{ route('view_product_category', ['slug' => $relatedCategory->slug]) }}">{{ $relatedCategory->name }}</a>
+                                        </div>
+                                    @endif
+                                    <h3><a href="{{ route('product_details', $ad->slug) }}">{{ \Illuminate\Support\Str::limit($ad->name, 40) }}</a></h3>
+                                    <div class="product-price">
+                                        @if($ad->has_price)
+                                            <span>{{ price($ad) }}</span>
+                                        @else
+                                            <span class="text-muted">Request quote</span>
+                                        @endif
+                                    </div>
+                                    <div class="product-action-1 show mt-auto">
+                                        <a aria-label="View more" class="action-btn hover-up" href="{{ route('product_details', $ad->slug) }}"><i class="fas fa-shopping-bag"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 </section>
 

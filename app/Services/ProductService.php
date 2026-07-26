@@ -128,7 +128,9 @@ class ProductService{
     {
         return Validator::make($data, [
             "name" => "bail|required|string",
-            'photos.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'files.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             "price" => "bail|required",
             "description" => "bail|required",
             "quantity" => "bail|required",

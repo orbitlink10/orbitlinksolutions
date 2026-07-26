@@ -573,8 +573,20 @@ public function calculators()
             abort(404);
         }
 
-              $mediafiles  = $product->mediaFiles;
-        return view('theme.'.get_option('theme').'.product_details', compact('product', 'mediafiles'));
+        $mediafiles = $product->mediaFiles;
+        $relatedProducts = collect();
+
+        if ($product->category_id) {
+            $relatedProducts = Product::with(['mediaFiles', 'category'])
+                ->where('product_type', 'product')
+                ->where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->latest('id')
+                ->limit(4)
+                ->get();
+        }
+
+        return view('theme.'.get_option('theme').'.product_details', compact('product', 'mediafiles', 'relatedProducts'));
     }
 
 
@@ -585,10 +597,22 @@ public function calculators()
         }
 
         $mediafiles  = $product->mediaFiles;
+        $relatedProducts = collect();
+
+        if ($product->category_id) {
+            $relatedProducts = Product::with(['mediaFiles', 'category'])
+                ->where('product_type', 'product')
+                ->where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->latest('id')
+                ->limit(4)
+                ->get();
+        }
+
         $themeView = 'theme.' . get_option('theme') . '.product_details';
 
         return view()->exists($themeView)
-            ? view($themeView, compact('product', 'mediafiles'))
+            ? view($themeView, compact('product', 'mediafiles', 'relatedProducts'))
             : view('designs.preview', compact('product', 'mediafiles'));
     }
 

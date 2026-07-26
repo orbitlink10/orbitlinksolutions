@@ -230,9 +230,10 @@
                                         </div>
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input @error('photo') is-invalid @enderror" 
-                                                   id="productImage" name="photo" onchange="updateFileLabel(this)">
+                                                   id="productImage" name="photo" accept="image/jpeg,image/png,image/gif,image/webp" onchange="updateFileLabel(this)">
                                             <label class="custom-file-label" for="productImage">Choose file</label>
                                         </div>
+                                        <small class="form-text text-muted">Allowed formats: JPG, JPEG, PNG, GIF, WEBP.</small>
                                         @error('photo')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
@@ -268,8 +269,8 @@
 
                                     <div class="form-group mb-3">
                                         <label for="files">Choose Files</label>
-                                        <input type="file" name="files[]" id="files" class="form-control" multiple required>
-                                        <small class="form-text text-muted">You can select multiple files to upload.</small>
+                                        <input type="file" name="files[]" id="files" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp" multiple required>
+                                        <small class="form-text text-muted">You can select multiple JPG, JPEG, PNG, GIF, or WEBP images to upload.</small>
                                     </div>
 
                                     <div class="form-group mb-3">
@@ -292,7 +293,11 @@
     <!-- Script to update file input label -->
     <script>
         function updateFileLabel(input) {
-            let fileName = input.files[0].name;
+            if (!input.files || input.files.length === 0) {
+                return;
+            }
+
+            let fileName = input.files.length === 1 ? input.files[0].name : input.files.length + ' files selected';
             input.nextElementSibling.innerText = fileName;
         }
     </script>

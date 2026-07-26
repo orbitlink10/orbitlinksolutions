@@ -244,9 +244,10 @@
                                         <label for="productImage">Product Image (optional)</label>
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input {{ (is_array($errors) && isset($errors['photo'])) || (!is_array($errors) && $errors->has('photo')) ? 'is-invalid' : '' }}"
-                                                   id="productImage" name="photo" onchange="updateFileLabel(this)">
+                                                   id="productImage" name="photo" accept="image/jpeg,image/png,image/gif,image/webp" onchange="updateFileLabel(this)">
                                             <label class="custom-file-label" for="productImage">Choose file</label>
                                         </div>
+                                        <small class="form-text text-muted">Allowed formats: JPG, JPEG, PNG, GIF, WEBP.</small>
                                         @if(!is_array($errors))
                                             @error('photo')
                                                 <span class="invalid-feedback">{{ $message }}</span>
@@ -254,6 +255,19 @@
                                         @elseif(isset($errors['photo']))
                                             <span class="invalid-feedback">{{ $errors['photo'] }}</span>
                                         @endif
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="productGalleryImages">Additional Product Images (optional)</label>
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input @error('media_files.*') is-invalid @enderror"
+                                                   id="productGalleryImages" name="media_files[]" accept="image/jpeg,image/png,image/gif,image/webp" multiple onchange="updateFileLabel(this)">
+                                            <label class="custom-file-label" for="productGalleryImages">Choose files</label>
+                                        </div>
+                                        <small class="form-text text-muted">Select multiple JPG, JPEG, PNG, GIF, or WEBP images to show in the product gallery.</small>
+                                        @error('media_files.*')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
                                     </div>
 
                                     <!-- Form Actions -->
@@ -272,7 +286,11 @@
 
     <script>
         function updateFileLabel(input) {
-            let fileName = input.files[0].name;
+            if (!input.files || input.files.length === 0) {
+                return;
+            }
+
+            let fileName = input.files.length === 1 ? input.files[0].name : input.files.length + ' files selected';
             input.nextElementSibling.innerText = fileName;
         }
     </script>

@@ -2032,6 +2032,28 @@ input:focus-visible,
     flex-wrap: wrap;
 }
 
+.related-products-section {
+    margin-top: clamp(36px, 5vw, 64px);
+    padding-top: clamp(28px, 4vw, 48px);
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.related-products-header {
+    margin-bottom: clamp(22px, 3vw, 34px);
+}
+
+.related-products-header h2 {
+    margin-bottom: 6px;
+    color: var(--heading-color);
+    font-size: clamp(1.45rem, 2.2vw, 2rem);
+    font-weight: 700;
+}
+
+.related-products-header p {
+    margin-bottom: 0;
+    color: #64748b;
+}
+
 @media (max-width: 991px) {
     .product-cta-card {
         flex-direction: column;
