@@ -26,6 +26,7 @@ class CouponFootballFeatureTest extends TestCase
         $this->post('/register', [
             'name' => 'Buyer One',
             'email' => 'buyer@example.com',
+            'phone' => '254700000000',
             'password' => 'password',
             'password_confirmation' => 'password',
         ])->assertRedirect();
@@ -33,6 +34,7 @@ class CouponFootballFeatureTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'buyer@example.com',
             'user_type' => 'buyer',
+            'phone' => '254700000000',
         ]);
 
         auth()->logout();
