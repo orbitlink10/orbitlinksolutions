@@ -222,6 +222,7 @@
                         <a href="{{ route('account.dashboard') }}" class="text-decoration-none text-muted"><i class="fas fa-user me-1"></i>My Account</a>
                     @else
                         <a href="{{ route('login') }}" class="text-decoration-none text-muted"><i class="fas fa-user me-1"></i>Sign in</a>
+                        <a href="{{ route('register') }}" class="text-decoration-none text-muted"><i class="fas fa-user-plus me-1"></i>Create account</a>
                     @endauth
                     <span class="text-muted d-none d-md-inline"><i class="fas fa-headset me-1"></i>{{ get_option('contact_phone') }}</span>
                     
@@ -285,6 +286,7 @@
                                     <li><a class="dropdown-item" href="{{ route('account.orders') }}">My Orders</a></li>
                                 @else
                                     <li><a class="dropdown-item" href="{{ route('login') }}">Sign in</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('register') }}">Create account</a></li>
                                 @endauth
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url('contact-us') }}">Help & Support</a></li>
