@@ -32,8 +32,17 @@ public function dashboard()
 
     public function orders()
     {
-        $orders = Order::where('user_id', Auth::id())->get();
+        $orders = Order::where('user_id', Auth::id())->latest()->get();
         return view('account.orders', compact('orders'));
+    }
+
+    public function showOrder(Order $order)
+    {
+        abort_unless((int) $order->user_id === (int) Auth::id(), 403);
+
+        $order->load(['user', 'orderItems.product', 'orderItems.size', 'coupon']);
+
+        return view('orders.show', compact('order'));
     }
     public function payments()
     {

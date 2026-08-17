@@ -81,7 +81,7 @@
                             </div>
                         </div>
                         <div class="order-actions">
-                            <a href="{{ route('orders.show', $order->id) }}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{{ route('account.orders.show', $order) }}" class="btn btn-outline-secondary btn-sm">
                                 View Details
                             </a>
                             @if($order->status == 'pending')

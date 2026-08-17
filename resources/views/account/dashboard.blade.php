@@ -66,16 +66,16 @@
                                 </p>
                                 <p class="mb-0">
                                     <strong>Status:</strong> {{ ucfirst($order->status) }} |
-                                    <strong>Total:</strong> {{ number_format($order->total, 2) }} KES
+                                    <strong>Total:</strong> {{ number_format($order->total_amount, 2) }} KES
                                 </p>
                             </div>
                             @if($order->status == 'pending')
 
-                         <a href="{{ route('orders.show', $order->id) }}" class="btn btn-secondary btn-sm">View Details</a>
+                         <a href="{{ route('account.orders.show', $order) }}" class="btn btn-secondary btn-sm">View Details</a>
                          
                             <a href="{{ route('pay_now', $order->id) }}" class="btn btn-primary btn-sm">Pay Now</a>
                         @else
-                            <a href="{{ route('orders.show', $order->id) }}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                            <a href="{{ route('account.orders.show', $order) }}" class="btn btn-outline-secondary btn-sm">View Details</a>
                         @endif
                         </div>
                     @endforeach

@@ -2,12 +2,17 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('media') || DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Ensure media.page_id uses ON DELETE CASCADE
         Schema::table('media', function (Blueprint $table) {
             try {
@@ -27,6 +32,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasTable('media') || DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('media', function (Blueprint $table) {
             try {
                 $table->dropForeign(['page_id']);
@@ -39,4 +48,3 @@ return new class extends Migration
         });
     }
 };
-

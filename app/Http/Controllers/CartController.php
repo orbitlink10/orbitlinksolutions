@@ -3,10 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Services\CouponService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
+    public function __construct(private CouponService $couponService)
+    {
+    }
     
     // Add to Cart
     public function addToCart(Request $request)
@@ -87,6 +93,46 @@ class CartController extends Controller
     public function checkout()
     {
         $cart = session()->get('cart', []);
-        return view('cart.checkout', compact('cart'));
+        $couponQuote = null;
+        $couponError = null;
+
+        if (Auth::check() && session()->has('coupon_code') && count($cart) > 0) {
+            try {
+                $subtotal = $this->couponService->cartSubtotal($cart);
+                $couponQuote = $this->couponService->quote(session('coupon_code'), Auth::user(), $subtotal);
+            } catch (ValidationException $exception) {
+                session()->forget('coupon_code');
+                $couponError = collect($exception->errors())->flatten()->first();
+            }
+        }
+
+        return view('cart.checkout', compact('cart', 'couponQuote', 'couponError'));
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $data = $request->validate([
+            'coupon_code' => ['required', 'string', 'max:50'],
+        ]);
+
+        $cart = session()->get('cart', []);
+
+        if (count($cart) === 0) {
+            return back()->with('error', 'Add products to your cart before applying a coupon.');
+        }
+
+        $subtotal = $this->couponService->cartSubtotal($cart);
+        $quote = $this->couponService->quote($data['coupon_code'], $request->user(), $subtotal);
+
+        session()->put('coupon_code', $quote['code']);
+
+        return back()->with('success', 'Coupon applied successfully.');
+    }
+
+    public function removeCoupon()
+    {
+        session()->forget('coupon_code');
+
+        return back()->with('success', 'Coupon removed.');
     }
 }

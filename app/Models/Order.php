@@ -23,6 +23,14 @@ class Order extends Model
         'user_id',
         'product_id',
         'quantity',
+        'company_name',
+        'county_id',
+        'address',
+        'coupon_id',
+        'coupon_code',
+        'discount_amount',
+        'subtotal_before_discount',
+        'total_after_discount',
     ];
 
     public function user()
@@ -44,6 +52,16 @@ public function products()
 public function orderItems()
 {
     return $this->hasMany(OrderItem::class);
+}
+
+public function coupon()
+{
+    return $this->belongsTo(Coupon::class);
+}
+
+public function couponRedemption()
+{
+    return $this->hasOne(CouponRedemption::class);
 }
 
 }

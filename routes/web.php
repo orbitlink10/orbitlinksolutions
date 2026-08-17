@@ -35,6 +35,10 @@ use App\Http\Controllers\ProductSizeController;
 
 
 use App\Http\Controllers\Admin\WeldingProductController as AdminWeldingProductController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
+use App\Http\Controllers\Admin\FootballMatchController as AdminFootballMatchController;
+use App\Http\Controllers\Customer\CouponController as CustomerCouponController;
+use App\Http\Controllers\Customer\FootballPredictionController as CustomerFootballPredictionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -166,6 +170,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/account/dashboard', [AccountController::class, 'dashboard'])->name('account.dashboard');
     Route::get('/account/orders', [AccountController::class, 'orders'])->name('account.orders');
+    Route::get('/account/orders/{order}', [AccountController::class, 'showOrder'])->name('account.orders.show');
+    Route::get('/account/football-predictions', [CustomerFootballPredictionController::class, 'index'])->name('account.football-predictions.index');
+    Route::post('/account/football-predictions/{footballMatch}', [CustomerFootballPredictionController::class, 'store'])->middleware('csrf')->name('account.football-predictions.store');
+    Route::get('/account/coupons', [CustomerCouponController::class, 'index'])->name('account.coupons');
     Route::get('/account/payments', [AccountController::class, 'payments'])->name('account.payments');
     Route::get('/account/details', [AccountController::class, 'details'])->name('account.details');
     Route::post('/account/details/update', [AccountController::class, 'updateDetails'])->name('account.updateDetails');
@@ -222,9 +230,11 @@ Route::get('/blogs', [WelcomeController::class, 'blogs'])->name('blogs');
 Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
 Route::get('/cart', [CartController::class, 'viewCart'])->name('cart.view');
 Route::post('/cart/remove', [CartController::class, 'removeFromCart'])->name('cart.remove');
-Route::get('/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+Route::get('/checkout', [CartController::class, 'checkout'])->middleware('auth')->name('cart.checkout');
 Route::post('/cart/update', [CartController::class, 'updateCart'])->name('cart.update');
-Route::post('/checkout/order', [WelcomeController::class, 'storeOrder'])->name('store_order');
+Route::post('/cart/coupon', [CartController::class, 'applyCoupon'])->middleware(['auth', 'csrf'])->name('cart.coupon.apply');
+Route::delete('/cart/coupon', [CartController::class, 'removeCoupon'])->middleware(['auth', 'csrf'])->name('cart.coupon.remove');
+Route::post('/checkout/order', [WelcomeController::class, 'storeOrder'])->middleware(['auth', 'csrf'])->name('store_order');
 
 Route::get('/pay-now/{total}', [WelcomeController::class, 'payNow'])->name('pay_now');
 Route::get('/pay-now-invoice/{total}', [WelcomeController::class, 'payNowInvoice'])->name('pay_now_invoice');
@@ -289,6 +299,16 @@ Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 Route::get('/users', [OrderController::class, 'users'])->name('orders.users');
 
 Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+
+Route::middleware(['auth', 'admin', 'csrf'])->prefix('admin')->name('admin.')->group(function () {
+    Route::post('coupons/{coupon}/toggle', [AdminCouponController::class, 'toggle'])->name('coupons.toggle');
+    Route::resource('coupons', AdminCouponController::class);
+
+    Route::get('football-matches/{footballMatch}/result', [AdminFootballMatchController::class, 'result'])->name('football-matches.result');
+    Route::post('football-matches/{footballMatch}/result', [AdminFootballMatchController::class, 'publishResult'])->name('football-matches.publish-result');
+    Route::resource('football-matches', AdminFootballMatchController::class)
+        ->parameters(['football-matches' => 'footballMatch']);
+});
 
 
 

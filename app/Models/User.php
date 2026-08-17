@@ -70,4 +70,19 @@ class User extends Authenticatable
     return $this->hasMany(Order::class);
 }
 
+public function footballPredictions()
+{
+    return $this->hasMany(FootballPrediction::class);
+}
+
+public function footballCouponEntitlements()
+{
+    return $this->hasMany(FootballCouponEntitlement::class);
+}
+
+public function couponRedemptions()
+{
+    return $this->hasMany(CouponRedemption::class);
+}
+
 }

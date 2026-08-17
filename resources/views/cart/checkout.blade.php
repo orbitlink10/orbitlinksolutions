@@ -15,7 +15,25 @@
 <!--Start Checkout Page-->
 <section class="checkout-page py-5">
     <div class="container">
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+        @if (!empty($couponError))
+            <div class="alert alert-warning">{{ $couponError }}</div>
+        @endif
+
         @if (count($cart) > 0)
+            <form id="couponApplyForm" action="{{ route('cart.coupon.apply') }}" method="POST">
+                @csrf
+            </form>
+            <form id="couponRemoveForm" action="{{ route('cart.coupon.remove') }}" method="POST">
+                @csrf
+                @method('DELETE')
+            </form>
+
             <form action="{{ route('store_order') }}" method="POST" class="row g-4">
                 @csrf
                 <div class="col-lg-7">
@@ -77,20 +95,56 @@
                                         $subtotal += $item['price'] * $item['quantity'];
                                     @endphp
                                 @endforeach
+                                @php
+                                    $discountAmount = $couponQuote['discount_amount'] ?? 0;
+                                    $total = max(0, $subtotal - $discountAmount);
+                                @endphp
                                 <tr>
                                     <td><strong>Subtotal</strong></td>
                                     <td class="text-end"><strong>KSh {{ number_format($subtotal, 2) }}</strong></td>
                                 </tr>
 
+                                @if($couponQuote)
+                                    <tr>
+                                        <td>
+                                            <strong>Coupon</strong>
+                                            <div class="small text-muted">{{ $couponQuote['code'] }}</div>
+                                        </td>
+                                        <td class="text-end text-success"><strong>- KSh {{ number_format($discountAmount, 2) }}</strong></td>
+                                    </tr>
+                                @endif
+
                                 <tr>
                                     <td><strong>Total</strong></td>
-                                    <td class="text-end"><strong>KSh {{ number_format($subtotal, 2) }}</strong></td>
+                                    <td class="text-end"><strong>KSh {{ number_format($total, 2) }}</strong></td>
                                 </tr>
                             </tbody>
                         </table>
 
                         <input type="hidden" name="subtotal" value="{{ $subtotal }}">
-                        <input type="hidden" name="total" value="{{ $subtotal }}">
+                        <input type="hidden" name="total" value="{{ $total }}">
+
+                        <div class="mb-3">
+                            <label for="coupon_code" class="form-label">Coupon Code</label>
+                            <div class="input-group">
+                                <input
+                                    type="text"
+                                    class="form-control @error('coupon_code') is-invalid @enderror"
+                                    id="coupon_code"
+                                    name="coupon_code"
+                                    value="{{ old('coupon_code', session('coupon_code')) }}"
+                                    placeholder="Enter coupon code"
+                                    form="couponApplyForm"
+                                >
+                                <button class="btn btn-outline-secondary" type="submit" form="couponApplyForm">Apply Coupon</button>
+                            </div>
+                            @error('coupon_code')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                            @if($couponQuote)
+                                <button type="submit" class="btn btn-link px-0 text-danger" form="couponRemoveForm">Remove Coupon</button>
+                            @endif
+                        </div>
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-accent btn-lg">Place your order</button>

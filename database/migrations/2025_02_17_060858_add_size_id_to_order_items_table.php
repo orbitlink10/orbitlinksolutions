@@ -11,6 +11,10 @@ class AddSizeIdToOrderItemsTable extends Migration
      */
     public function up()
     {
+        if (! Schema::hasTable('order_items') || Schema::hasColumn('order_items', 'size_id')) {
+            return;
+        }
+
         Schema::table('order_items', function (Blueprint $table) {
             $table->unsignedBigInteger('size_id')->nullable()->after('product_id');
         });
@@ -21,6 +25,10 @@ class AddSizeIdToOrderItemsTable extends Migration
      */
     public function down()
     {
+        if (! Schema::hasTable('order_items') || ! Schema::hasColumn('order_items', 'size_id')) {
+            return;
+        }
+
         Schema::table('order_items', function (Blueprint $table) {
             $table->dropColumn('size_id');
         });

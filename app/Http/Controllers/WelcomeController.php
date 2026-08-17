@@ -45,13 +45,14 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Services\MpesaService;
+use App\Services\CouponService;
 use Illuminate\Support\Facades\Mail;
 use SmoDav\Mpesa\Laravel\Facades\STK;
 
 class WelcomeController extends Controller
 {
 
-    public function __construct(protected MpesaService $mpesaService)
+    public function __construct(protected MpesaService $mpesaService, protected CouponService $couponService)
     {
     }
 
@@ -1105,37 +1106,103 @@ public function calculators()
 
     public function storeOrder(Request $request)
     {
-    
+        $request->validate([
+            'company_name' => ['nullable', 'string', 'max:255'],
+            'county_id' => ['nullable', 'integer'],
+            'address' => ['required', 'string', 'max:1000'],
+        ]);
 
-        // Create and save order to database
-        $order = new Order();
-        $order->company_name = $request->company_name;
-        $order->user_id = Auth::user()->id;
-        $order->county_id = $request->county_id;
-        $order->address = $request->address;
-        $order->total_amount = $request->total;
+        $user = Auth::user();
 
-        // Save the order
-        $order->save();
-
-        // Save order items
-        foreach ($request->session()->get('cart', []) as $item) {
-            $orderItem = new OrderItem();
-            $orderItem->order_id = $order->id;
-            $orderItem->product_id = $item['id'];
-            $orderItem->quantity = $item['quantity'];
-            $orderItem->price = $item['price'];
-            $orderItem->size_id = $item['size_id'];
-            $orderItem->save();
+        if (! $user) {
+            return redirect()->route('login')->with('error', 'Please log in before checkout.');
         }
 
-        // Clear the cart after placing the order
-        $request->session()->forget('cart');
+        $cart = $request->session()->get('cart', []);
 
+        if (count($cart) === 0) {
+            return redirect()->route('cart.view')->with('error', 'Your cart is empty.');
+        }
 
+        $productIds = collect($cart)->pluck('id')->filter()->unique()->values();
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
-        return redirect()->route('account.orders')->with('success', 'Your order has been placed successfully! Please proceed to make the payments');
+        if ($products->count() !== $productIds->count()) {
+            return redirect()->route('cart.view')->with('error', 'One or more products in your cart are no longer available.');
+        }
 
+        $subtotal = round(collect($cart)->sum(function (array $item) use ($products) {
+            $product = $products->get($item['id']);
+            $quantity = max(1, (int) ($item['quantity'] ?? 1));
+
+            return (float) $product->price * $quantity;
+        }), 2);
+
+        $order = DB::transaction(function () use ($request, $cart, $products, $subtotal, $user) {
+            $nameParts = preg_split('/\s+/', trim((string) $user->name), 2);
+            $firstName = $nameParts[0] ?? $user->name;
+            $lastName = $nameParts[1] ?? '';
+            $firstItem = reset($cart);
+            $total = $subtotal;
+
+            $order = Order::create([
+                'order_reference' => $this->generateOrderReference(),
+                'customer_first_name' => $firstName,
+                'customer_last_name' => $lastName,
+                'customer_email' => $user->email,
+                'customer_phone' => $user->phone ?: '',
+                'user_id' => $user->id,
+                'shipping_address' => $request->address,
+                'subtotal' => $subtotal,
+                'shipping_cost' => 0,
+                'total_amount' => $total,
+                'subtotal_before_discount' => $subtotal,
+                'total_after_discount' => $total,
+                'discount_amount' => 0,
+                'product_id' => $firstItem['id'] ?? null,
+                'status' => 'pending',
+                'company_name' => $request->company_name,
+                'county_id' => $request->county_id,
+                'address' => $request->address,
+            ]);
+
+            foreach ($cart as $item) {
+                $product = $products->get($item['id']);
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => max(1, (int) ($item['quantity'] ?? 1)),
+                    'price' => $product->price,
+                    'size_id' => $item['size_id'] ?? null,
+                ]);
+            }
+
+            if ($request->session()->has('coupon_code')) {
+                $this->couponService->redeemForOrder(
+                    $request->session()->get('coupon_code'),
+                    $user,
+                    $order,
+                    $subtotal
+                );
+            }
+
+            return $order->fresh();
+        });
+
+        $request->session()->forget(['cart', 'coupon_code']);
+
+        return redirect()->route('account.orders.show', $order)->with('success', 'Your order has been placed successfully! Please proceed to make the payments');
+
+    }
+
+    private function generateOrderReference(): string
+    {
+        do {
+            $reference = 'ORD-' . now()->format('YmdHis') . '-' . Str::upper(Str::random(5));
+        } while (Order::where('order_reference', $reference)->exists());
+
+        return $reference;
     }
 
 

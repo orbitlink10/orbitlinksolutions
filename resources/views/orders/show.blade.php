@@ -8,7 +8,8 @@
     });
     $subtotal = (float) $subtotal;
     $shipping = (float) ($order->shipping_cost ?? 0);
-    $total = (float) ($order->total_amount ?? ($subtotal + $shipping));
+    $discount = (float) ($order->discount_amount ?? 0);
+    $total = (float) ($order->total_amount ?? max(0, $subtotal + $shipping - $discount));
     $statusRaw = $order->status ?? 'pending';
     $statusLabel = ucwords(str_replace(['_', '-'], ' ', $statusRaw));
     $statusKey = strtolower(str_replace(['_', ' '], '-', $statusRaw));
@@ -63,6 +64,16 @@
                 <div class="summary-card">
                     <span class="summary-label">Shipping</span>
                     <span class="summary-value">{{ $currency }} {{ number_format($shipping, 2) }}</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-label">Coupon Discount</span>
+                    <span class="summary-value">
+                        @if($order->coupon_code)
+                            {{ $order->coupon_code }} - {{ $currency }} {{ number_format($discount, 2) }}
+                        @else
+                            {{ $currency }} 0.00
+                        @endif
+                    </span>
                 </div>
                 <div class="summary-card">
                     <span class="summary-label">Total</span>

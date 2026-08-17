@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+public function __construct()
+{
+    $this->middleware(['auth', 'admin']);
+}
 
 public function index(Request $request)
 {
@@ -57,7 +61,7 @@ public function index(Request $request)
     public function show($order)
     {
 
-        $order = Order::find($order);
+        $order = Order::with(['user', 'orderItems.product', 'orderItems.size', 'coupon'])->findOrFail($order);
         return view('orders.show', compact('order'));
     }
 

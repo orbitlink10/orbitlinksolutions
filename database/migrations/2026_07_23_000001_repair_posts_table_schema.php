@@ -92,6 +92,10 @@ return new class extends Migration
 
     private function renameColumnIfMissing(string $from, string $to): void
     {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         if (! Schema::hasColumn('posts', $from) || Schema::hasColumn('posts', $to)) {
             return;
         }
@@ -105,6 +109,10 @@ return new class extends Migration
 
     private function makeColumnNullable(string $column, string $type): void
     {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         if (! Schema::hasColumn('posts', $column)) {
             return;
         }

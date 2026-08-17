@@ -14,6 +14,20 @@
         </a>
     </li>
 
+    <li class="nav-item">
+        <a href="{{ route('account.football-predictions.index') }}" class="nav-link {{ request()->routeIs('account.football-predictions.*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-futbol"></i>
+            <p>Football Predictions</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{{ route('account.coupons') }}" class="nav-link {{ request()->routeIs('account.coupons') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-ticket-alt"></i>
+            <p>My Coupons</p>
+        </a>
+    </li>
+
 
 
     <li class="nav-item">
@@ -103,6 +117,18 @@
         <a href="{{ route('orders.index') }}" class="nav-link {{ request()->is('orders*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-shopping-cart"></i>
             <p>Orders</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ route('admin.coupons.index') }}" class="nav-link {{ request()->is('admin/coupons*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-ticket-alt"></i>
+            <p>Coupons</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ route('admin.football-matches.index') }}" class="nav-link {{ request()->is('admin/football-matches*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-futbol"></i>
+            <p>Football Promotions</p>
         </a>
     </li>
     <li class="nav-item">
