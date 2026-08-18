@@ -32,7 +32,7 @@
         border: 1px solid rgba(255, 255, 255, .07);
         border-radius: 8px;
         box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
-        padding: 16px;
+        padding: 12px;
     }
 
     .football-match-card + .football-match-card {
@@ -59,7 +59,7 @@
         font-size: 1.05rem;
         font-weight: 700;
         line-height: 1.35;
-        margin: 10px 0 16px;
+        margin: 8px 0 12px;
     }
 
     .football-pick-grid {
@@ -81,7 +81,7 @@
         position: absolute;
     }
 
-    .football-pick-option span {
+    .football-pick-option > span {
         align-items: center;
         background: #345468;
         border-right: 1px solid rgba(15, 28, 39, .8);
@@ -91,13 +91,13 @@
         flex-direction: column;
         gap: 4px;
         justify-content: center;
-        min-height: 76px;
-        padding: 12px 8px;
+        min-height: 72px;
+        padding: 8px;
         text-align: center;
         transition: background .18s ease, color .18s ease;
     }
 
-    .football-pick-option:last-child span {
+    .football-pick-option:last-child > span {
         border-right: 0;
     }
 
@@ -242,9 +242,9 @@
             padding: 14px;
         }
 
-        .football-pick-option span {
-            min-height: 70px;
-            padding: 10px 6px;
+        .football-pick-option > span {
+            min-height: 60px;
+            padding: 8px 6px;
         }
 
         .football-pick-team {
