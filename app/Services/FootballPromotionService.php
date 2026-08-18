@@ -106,9 +106,17 @@ class FootballPromotionService
 
     private function syncPredictionResults(FootballMatch $match, Coupon $coupon, int $homeScore, int $awayScore): array
     {
+        $winningPick = FootballPrediction::pickForScore($homeScore, $awayScore);
+
         $correctPredictions = FootballPrediction::where('football_match_id', $match->id)
-            ->where('home_score', $homeScore)
-            ->where('away_score', $awayScore)
+            ->where(function ($query) use ($homeScore, $awayScore, $winningPick) {
+                $query->where('prediction_pick', $winningPick)
+                    ->orWhere(function ($query) use ($homeScore, $awayScore) {
+                        $query->whereNull('prediction_pick')
+                            ->where('home_score', $homeScore)
+                            ->where('away_score', $awayScore);
+                    });
+            })
             ->get();
 
         FootballPrediction::where('football_match_id', $match->id)

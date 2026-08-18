@@ -55,7 +55,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     var homeAbbr = @json($match->home_abbreviation);
     var awayAbbr = @json($match->away_abbreviation);
-    var predictions = @json($match->predictions->map(fn ($prediction) => ['home' => $prediction->home_score, 'away' => $prediction->away_score])->values());
+    var predictions = @json($match->predictions->map(fn ($prediction) => ['home' => $prediction->home_score, 'away' => $prediction->away_score, 'pick' => $prediction->prediction_pick])->values());
     var homeInput = document.getElementById('home_score');
     var awayInput = document.getElementById('away_score');
     var codeLabel = document.getElementById('generatedCoupon');
@@ -72,7 +72,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         codeLabel.textContent = (homeAbbr + home + awayAbbr + away).toUpperCase().replace(/[^A-Z0-9]/g, '');
+        var winningPick = home > away ? 'home' : (home < away ? 'away' : 'draw');
+
         winnerLabel.textContent = predictions.filter(function (prediction) {
+            if (prediction.pick) {
+                return prediction.pick === winningPick;
+            }
+
             return parseInt(prediction.home, 10) === home && parseInt(prediction.away, 10) === away;
         }).length;
     };

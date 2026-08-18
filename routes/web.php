@@ -172,6 +172,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/account/orders', [AccountController::class, 'orders'])->name('account.orders');
     Route::get('/account/orders/{order}', [AccountController::class, 'showOrder'])->name('account.orders.show');
     Route::get('/account/football-predictions', [CustomerFootballPredictionController::class, 'index'])->name('account.football-predictions.index');
+    Route::post('/account/football-predictions', [CustomerFootballPredictionController::class, 'storeMany'])->middleware('csrf')->name('account.football-predictions.store-many');
     Route::post('/account/football-predictions/{footballMatch}', [CustomerFootballPredictionController::class, 'store'])->middleware('csrf')->name('account.football-predictions.store');
     Route::get('/account/coupons', [CustomerCouponController::class, 'index'])->name('account.coupons');
     Route::get('/account/payments', [AccountController::class, 'payments'])->name('account.payments');

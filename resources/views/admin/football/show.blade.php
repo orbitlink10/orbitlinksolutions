@@ -64,7 +64,7 @@
                             @forelse($match->predictions as $prediction)
                                 <tr>
                                     <td>{{ $prediction->user->name ?? '-' }}</td>
-                                    <td>{{ $prediction->home_score }}-{{ $prediction->away_score }}</td>
+                                    <td>{{ $prediction->predictionLabel() }}</td>
                                     <td>{{ ucfirst($prediction->status) }}</td>
                                     <td>{{ $prediction->created_at?->format('d M Y H:i') }}</td>
                                 </tr>

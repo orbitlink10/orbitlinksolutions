@@ -189,6 +189,58 @@ class CouponFootballFeatureTest extends TestCase
         ]);
     }
 
+    public function test_customer_can_submit_outcome_prediction_and_win_coupon_from_match_outcome(): void
+    {
+        $admin = User::factory()->create(['user_type' => 'admin']);
+        $customer = User::factory()->create(['user_type' => 'buyer']);
+
+        $match = FootballMatch::create([
+            'home_team' => 'Brentford FC',
+            'away_team' => 'Tottenham Hotspur',
+            'home_abbreviation' => 'BR',
+            'away_abbreviation' => 'TH',
+            'competition' => 'Premier League',
+            'match_date' => now()->addDay()->toDateString(),
+            'kickoff_time' => '19:30',
+            'prediction_closes_at' => now()->addHours(12),
+            'status' => FootballMatch::STATUS_UPCOMING,
+            'is_published' => true,
+            'coupon_discount_type' => Coupon::TYPE_PERCENTAGE,
+            'coupon_discount_value' => 10,
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($customer)
+            ->post(route('account.football-predictions.store-many'), [
+                'predictions' => [
+                    $match->id => FootballPrediction::PICK_HOME,
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('football_predictions', [
+            'football_match_id' => $match->id,
+            'user_id' => $customer->id,
+            'prediction_pick' => FootballPrediction::PICK_HOME,
+            'home_score' => 1,
+            'away_score' => 0,
+        ]);
+
+        $result = app(FootballPromotionService::class)->publishResult($match, 2, 0, $admin);
+
+        $this->assertSame(1, $result['winners_count']);
+        $this->assertDatabaseHas('football_predictions', [
+            'football_match_id' => $match->id,
+            'user_id' => $customer->id,
+            'status' => FootballPrediction::STATUS_CORRECT,
+        ]);
+        $this->assertDatabaseHas('football_coupon_entitlements', [
+            'football_match_id' => $match->id,
+            'user_id' => $customer->id,
+            'coupon_id' => $result['coupon']->id,
+        ]);
+    }
+
     public function test_football_coupon_requires_winning_entitlement_and_can_only_be_redeemed_once(): void
     {
         $admin = User::factory()->create(['user_type' => 'admin']);
