@@ -115,6 +115,24 @@
         opacity: .52;
     }
 
+    .football-pick-option input:checked:disabled + span {
+        opacity: 1;
+    }
+
+    .football-card-actions {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .football-edit-note {
+        color: #a9bdc9;
+        font-size: .88rem;
+        margin: 0;
+    }
+
     .football-pick-label {
         font-size: .82rem;
         font-weight: 800;
@@ -284,8 +302,11 @@
                     @php
                         $existing = $match->predictions->first();
                         $open = $match->predictionsAreOpen();
+                        $locked = $open && $existing;
                         $selectedPick = old('predictions.' . $match->id, $existing->prediction_pick ?? null);
                         $pickLabels = \App\Models\FootballPrediction::pickLabels();
+                        $statusLabel = $open ? ($existing ? 'Saved' : 'Open') : 'Closed';
+                        $statusClass = $open ? ($existing ? 'info' : 'success') : 'secondary';
                     @endphp
                     <article class="football-match-card"
                         data-match-card
@@ -298,7 +319,7 @@
                                 <span>|</span>
                                 <span>{{ $match->competition ?: 'Football' }}</span>
                             </div>
-                            <span class="badge badge-{{ $open ? 'success' : 'secondary' }}">{{ $open ? 'Open' : 'Closed' }}</span>
+                            <span class="badge badge-{{ $statusClass }}" data-match-status>{{ $statusLabel }}</span>
                         </div>
 
                         <div class="football-teams">
@@ -315,7 +336,7 @@
                                     data-match-id="{{ $match->id }}"
                                     data-pick-label="{{ $pickLabels[\App\Models\FootballPrediction::PICK_HOME] }}"
                                     @checked($selectedPick === \App\Models\FootballPrediction::PICK_HOME)
-                                    {{ $open ? '' : 'disabled' }}>
+                                    {{ $open && ! $locked ? '' : 'disabled' }}>
                                 <span>
                                     <span class="football-pick-label">Home</span>
                                     <span class="football-pick-team">{{ $match->home_team }}</span>
@@ -329,7 +350,7 @@
                                     data-match-id="{{ $match->id }}"
                                     data-pick-label="{{ $pickLabels[\App\Models\FootballPrediction::PICK_DRAW] }}"
                                     @checked($selectedPick === \App\Models\FootballPrediction::PICK_DRAW)
-                                    {{ $open ? '' : 'disabled' }}>
+                                    {{ $open && ! $locked ? '' : 'disabled' }}>
                                 <span>
                                     <span class="football-pick-label">Draw</span>
                                     <span class="football-pick-team">Level</span>
@@ -343,7 +364,7 @@
                                     data-match-id="{{ $match->id }}"
                                     data-pick-label="{{ $pickLabels[\App\Models\FootballPrediction::PICK_AWAY] }}"
                                     @checked($selectedPick === \App\Models\FootballPrediction::PICK_AWAY)
-                                    {{ $open ? '' : 'disabled' }}>
+                                    {{ $open && ! $locked ? '' : 'disabled' }}>
                                 <span>
                                     <span class="football-pick-label">Away</span>
                                     <span class="football-pick-team">{{ $match->away_team }}</span>
@@ -356,6 +377,14 @@
                         @enderror
                         @if($existing && ! $existing->prediction_pick)
                             <div class="text-muted mt-2">Saved exact score: {{ $existing->predictionLabel() }}</div>
+                        @endif
+                        @if($open && $existing)
+                            <div class="football-card-actions">
+                                <button class="btn btn-sm btn-outline-light" type="button" data-edit-prediction data-match-id="{{ $match->id }}">
+                                    Edit Prediction
+                                </button>
+                                <p class="football-edit-note">Saved once. Edit is allowed before closing time.</p>
+                            </div>
                         @endif
                     </article>
                 @empty
@@ -378,7 +407,7 @@
                         <dt>Selected:</dt>
                         <dd id="predictionSlipSelected">-</dd>
                     </dl>
-                    <button class="btn btn-primary btn-block font-weight-bold" type="submit" @if(! $hasOpenMatches) disabled @endif>
+                    <button class="btn btn-primary btn-block font-weight-bold" type="submit" id="predictionSubmitButton" @if(! $hasOpenMatches) disabled @endif>
                         Save Predictions
                     </button>
                 </div>
@@ -447,6 +476,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var combinations = document.getElementById('predictionSlipCombinations');
     var selected = document.getElementById('predictionSlipSelected');
     var clearButton = document.getElementById('clearPredictionSlip');
+    var submitButton = document.getElementById('predictionSubmitButton');
+    var editButtons = Array.prototype.slice.call(document.querySelectorAll('[data-edit-prediction]'));
 
     var escapeHtml = function (value) {
         return String(value).replace(/[&<>"']/g, function (character) {
@@ -462,12 +493,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var refreshSlip = function () {
         var checked = radios.filter(function (radio) {
+            return radio.checked;
+        });
+        var saveable = radios.filter(function (radio) {
             return radio.checked && !radio.disabled;
         });
 
         badge.textContent = checked.length;
         combinations.textContent = checked.length;
         selected.textContent = checked.length ? checked.length + ' pick' + (checked.length === 1 ? '' : 's') : '-';
+        submitButton.disabled = saveable.length === 0;
+        submitButton.textContent = editButtons.some(function (button) {
+            return button.disabled;
+        }) ? 'Save Changes' : 'Save Predictions';
 
         if (!checked.length) {
             slip.innerHTML = '<div class="prediction-slip-empty">No picks selected.</div>';
@@ -486,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         '<i class="fas fa-futbol mr-1"></i>',
                         escapeHtml(title),
                     '</div>',
-                    '<p class="prediction-slip-pick">Your Pick: <strong>' + escapeHtml(pick) + '</strong></p>',
+                    '<p class="prediction-slip-pick">Your Pick: <strong>' + escapeHtml(pick) + '</strong>' + (radio.disabled ? ' <span class="text-muted">(saved)</span>' : '') + '</p>',
                 '</div>'
             ].join('');
         }).join('');
@@ -494,6 +532,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     radios.forEach(function (radio) {
         radio.addEventListener('change', refreshSlip);
+    });
+
+    editButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            var card = document.querySelector('[data-match-card][data-match-id="' + button.dataset.matchId + '"]');
+            var status = card ? card.querySelector('[data-match-status]') : null;
+
+            if (!card) {
+                return;
+            }
+
+            card.querySelectorAll('[data-pick-radio]').forEach(function (radio) {
+                radio.disabled = false;
+            });
+
+            if (status) {
+                status.classList.remove('badge-info');
+                status.classList.add('badge-warning');
+                status.textContent = 'Editing';
+            }
+
+            button.disabled = true;
+            button.textContent = 'Editing';
+            refreshSlip();
+        });
     });
 
     clearButton.addEventListener('click', function () {
