@@ -20,6 +20,9 @@ use App\Http\Controllers\RentalController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WeldingProductController;
+use App\Http\Controllers\InstallerProgramController;
+use App\Http\Controllers\BoqSubmissionController;
+use App\Http\Controllers\BrandController;
 
 
 use App\Http\Controllers\SliderController;
@@ -191,6 +194,14 @@ Route::get('/terms', [WelcomeController::class, 'terms'])->name('terms');
 Route::get('/about', [WelcomeController::class, 'about'])->name('about_us');
 Route::get('/services', [WelcomeController::class, 'services'])->name('services');
 Route::get('/shop', [WelcomeController::class, 'products'])->name('product');
+Route::get('/installer-program', [InstallerProgramController::class, 'show'])->name('installer-program.show');
+Route::post('/installer-program', [InstallerProgramController::class, 'store'])->middleware('csrf')->name('installer-program.store');
+Route::get('/installer-program/thank-you', [InstallerProgramController::class, 'thankYou'])->name('installer-program.thank-you');
+Route::get('/send-boq', [BoqSubmissionController::class, 'show'])->name('send-boq.show');
+Route::post('/send-boq', [BoqSubmissionController::class, 'store'])->middleware('csrf')->name('send-boq.store');
+Route::get('/send-boq/thank-you/{reference}', [BoqSubmissionController::class, 'thankYou'])->name('send-boq.thank-you');
+Route::get('/brands', [BrandController::class, 'index'])->name('brands.index');
+Route::get('/brand/{brand}', [BrandController::class, 'show'])->name('brands.show');
 Route::get('/product/preview/{slug}', [WelcomeController::class, 'product_details_preview'])
     ->where('slug', '.*')
     ->name('product_details_preview');
@@ -302,6 +313,12 @@ Route::get('/users', [OrderController::class, 'users'])->name('orders.users');
 Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
 
 Route::middleware(['auth', 'admin', 'csrf'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('installers', [InstallerProgramController::class, 'adminIndex'])->name('installers.index');
+    Route::get('installers/{installerApplication}', [InstallerProgramController::class, 'adminShow'])->name('installers.show');
+    Route::post('installers/{installerApplication}', [InstallerProgramController::class, 'adminUpdate'])->name('installers.update');
+    Route::get('boqs', [BoqSubmissionController::class, 'adminIndex'])->name('boqs.index');
+    Route::get('boqs/{boqSubmission}', [BoqSubmissionController::class, 'adminShow'])->name('boqs.show');
+    Route::post('boqs/{boqSubmission}', [BoqSubmissionController::class, 'adminUpdate'])->name('boqs.update');
     Route::post('coupons/{coupon}/toggle', [AdminCouponController::class, 'toggle'])->name('coupons.toggle');
     Route::resource('coupons', AdminCouponController::class);
 

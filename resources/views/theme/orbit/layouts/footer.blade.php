@@ -10,7 +10,7 @@
         }
         $footerDesc = trim(strip_tags((string) get_option('contact_description')));
         if ($footerDesc === '') {
-            $footerDesc = 'Networking, Starlink, CCTV, WiFi, and ICT solutions across Kenya.';
+            $footerDesc = 'Networking, CCTV, fibre, wireless, PoE, and ICT equipment for installers and technicians in Kenya.';
         }
         $footerResourceLinks = [
             ['label' => 'Starlink Price Kenya', 'path' => 'starlink-price-kenya'],
@@ -35,19 +35,19 @@
             <div class="footer-value-grid">
                 <div class="footer-value">
                     <span class="value-icon"><i class="fas fa-truck"></i></span>
-                    <span class="value-title">Fast Delivery</span>
+                    <span class="value-title">Nationwide Delivery</span>
                 </div>
                 <div class="footer-value">
                     <span class="value-icon"><i class="fas fa-shield-alt"></i></span>
-                    <span class="value-title">Genuine Warranty</span>
+                    <span class="value-title">Genuine Products</span>
                 </div>
                 <div class="footer-value">
                     <span class="value-icon"><i class="fas fa-credit-card"></i></span>
-                    <span class="value-title">Secure Payments</span>
+                    <span class="value-title">Installer Pricing</span>
                 </div>
                 <div class="footer-value">
                     <span class="value-icon"><i class="fas fa-headset"></i></span>
-                    <span class="value-title">7-Day Support</span>
+                    <span class="value-title">Technical Support</span>
                 </div>
             </div>
         </div>
@@ -92,6 +92,9 @@
                     <h5 class="footer-title">Company</h5>
                     <ul class="footer-links">
                         <li><a href="{{ route('about_us') }}">About Us</a></li>
+                        <li><a href="{{ route('installer-program.show') }}">Installer Program</a></li>
+                        <li><a href="{{ route('send-boq.show') }}">Send BOQ</a></li>
+                        <li><a href="{{ route('brands.index') }}">Shop by Brand</a></li>
                         <li><a href="{{ route('faq') }}">FAQs</a></li>
                         <li><a href="{{ url('terms') }}">Terms &amp; Conditions</a></li>
                         <li><a href="{{ url('contact-us') }}">Contact Us</a></li>
@@ -261,7 +264,13 @@
       <li class="nav-item">
         <a class="nav-link text-center" href="{{ Auth::check() ? route('account.dashboard') : route('login') }}">
           <i class="fas fa-user-cog fs-4 d-block"></i>
-          <span class="d-block small">{{ Auth::check() ? 'My Account' : 'Sign in' }}</span>
+          <span class="d-block small">{{ Auth::check() && is_approved_installer(Auth::user()) ? 'Installer' : (Auth::check() ? 'Account' : 'Sign in') }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-center" href="{{ route('send-boq.show') }}">
+          <i class="fas fa-file-upload fs-4 d-block"></i>
+          <span class="d-block small">BOQ</span>
         </a>
       </li>
     </ul>

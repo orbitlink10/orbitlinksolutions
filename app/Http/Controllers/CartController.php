@@ -18,7 +18,7 @@ class CartController extends Controller
     public function addToCart(Request $request)
     {
         $product = Product::findOrFail($request->product_id);
-        $quantity = $request->quantity ?? 1;
+        $quantity = max(1, (int) ($request->quantity ?? 1));
         $size_id = $request->size_id ?? 0;
 
         // Get cart from session
@@ -33,14 +33,17 @@ class CartController extends Controller
                 "id" => $product->id,
                 "name" => $product->name,
                 "quantity" => $quantity,
-                "price" => $product->price,
+                "price" => effective_product_price($product, $quantity, Auth::user()),
+                "retail_price" => (float) $product->price,
+                "installer_price_applied" => installer_price_for_product($product, $quantity, Auth::user()) !== null,
                 "size_id" => $size_id,
-                "photo" => $product->photo
+                "photo" => $product->photo,
+                "slug" => $product->slug,
             ];
         }
 
         // Save cart to session
-        session()->put('cart', $cart);
+        session()->put('cart', $this->refreshCartPrices($cart));
 
         return redirect()->route('cart.view')->with('success', 'Product added to cart successfully!');
     }
@@ -62,7 +65,7 @@ class CartController extends Controller
         }
         
         // Update the session with the new cart data
-        session()->put('cart', $cart);
+        session()->put('cart', $this->refreshCartPrices($cart));
     }
 
     return redirect()->route('cart.view')->with('success', 'Cart updated successfully!');
@@ -72,7 +75,8 @@ class CartController extends Controller
     // View Cart
     public function viewCart()
     {
-        $cart = session()->get('cart', []);
+        $cart = $this->refreshCartPrices(session()->get('cart', []));
+        session()->put('cart', $cart);
         return view('cart.view', compact('cart'));
     }
 
@@ -93,12 +97,14 @@ class CartController extends Controller
     public function checkout()
     {
         $cart = session()->get('cart', []);
+        $cart = $this->refreshCartPrices($cart);
+        session()->put('cart', $cart);
         $couponQuote = null;
         $couponError = null;
 
         if (Auth::check() && session()->has('coupon_code') && count($cart) > 0) {
             try {
-                $subtotal = $this->couponService->cartSubtotal($cart);
+                $subtotal = $this->couponService->cartSubtotal($cart, Auth::user());
                 $couponQuote = $this->couponService->quote(session('coupon_code'), Auth::user(), $subtotal);
             } catch (ValidationException $exception) {
                 session()->forget('coupon_code');
@@ -121,7 +127,10 @@ class CartController extends Controller
             return back()->with('error', 'Add products to your cart before applying a coupon.');
         }
 
-        $subtotal = $this->couponService->cartSubtotal($cart);
+        $cart = $this->refreshCartPrices($cart);
+        session()->put('cart', $cart);
+
+        $subtotal = $this->couponService->cartSubtotal($cart, $request->user());
         $quote = $this->couponService->quote($data['coupon_code'], $request->user(), $subtotal);
 
         session()->put('coupon_code', $quote['code']);
@@ -134,5 +143,38 @@ class CartController extends Controller
         session()->forget('coupon_code');
 
         return back()->with('success', 'Coupon removed.');
+    }
+
+    private function refreshCartPrices(array $cart): array
+    {
+        if (empty($cart)) {
+            return [];
+        }
+
+        $productIds = collect($cart)->pluck('id')->filter()->unique()->values();
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        $user = Auth::user();
+
+        foreach ($cart as $key => $item) {
+            $product = $products->get($item['id'] ?? null);
+
+            if (! $product) {
+                continue;
+            }
+
+            $quantity = max(1, (int) ($item['quantity'] ?? 1));
+            $installerPrice = installer_price_for_product($product, $quantity, $user);
+
+            $cart[$key]['id'] = $product->id;
+            $cart[$key]['name'] = $product->name;
+            $cart[$key]['quantity'] = $quantity;
+            $cart[$key]['price'] = $installerPrice ?: (float) $product->price;
+            $cart[$key]['retail_price'] = (float) $product->price;
+            $cart[$key]['installer_price_applied'] = $installerPrice !== null;
+            $cart[$key]['photo'] = $product->photo;
+            $cart[$key]['slug'] = $product->slug;
+        }
+
+        return $cart;
     }
 }

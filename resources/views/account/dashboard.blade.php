@@ -8,6 +8,54 @@
             <p class="text-muted">Welcome back, <strong>{{ Auth::user()->name }}</strong>!</p>
         </div>
 
+        @php
+            $installerStatus = Auth::user()->installer_status ?: optional($installerApplication)->status;
+            $statusLabel = $installerStatus ? ucwords(str_replace('_', ' ', $installerStatus)) : 'Not applied';
+            $waLink = orbit_whatsapp_url('Hello Orbitlink Solutions, I need help choosing the right equipment for my project.');
+        @endphp
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <span class="badge bg-primary mb-2">Installer Account</span>
+                        <h4 class="mb-1">Installer Dashboard</h4>
+                        <p class="text-muted mb-0">Status: <strong>{{ $statusLabel }}</strong></p>
+                        @if(is_approved_installer(Auth::user()))
+                            <p class="text-muted mb-0">Current discount: <strong>{{ Auth::user()->installer_discount_percent ? Auth::user()->installer_discount_percent . '%' : 'Product-specific pricing' }}</strong></p>
+                        @endif
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ route('send-boq.show') }}" class="btn btn-primary btn-sm">Request Project Quote</a>
+                        <a href="{{ route('send-boq.show') }}" class="btn btn-outline-secondary btn-sm">Submit BOQ</a>
+                        <a href="{{ url('shop') }}" class="btn btn-outline-secondary btn-sm">Shop Installer Products</a>
+                        @if($waLink)
+                            <a href="{{ $waLink }}" target="_blank" rel="noopener" class="btn btn-success btn-sm">WhatsApp Sales</a>
+                        @endif
+                    </div>
+                </div>
+                <div class="row g-3 mt-3">
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-muted small">Total purchases</div>
+                            <strong>KSh {{ number_format($totalPurchases ?? 0, 2) }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-muted small">Open BOQ submissions</div>
+                            <strong>{{ $boqSubmissions->whereNotIn('status', ['closed', 'cancelled'])->count() }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-muted small">Trade access</div>
+                            <strong>{{ is_approved_installer(Auth::user()) ? 'Enabled' : 'Pending approval' }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 <!-- Account Overview -->
 <div class="row g-4 mb-4">
     <div class="col-md-4">
@@ -77,6 +125,28 @@
                         @else
                             <a href="{{ route('account.orders.show', $order) }}" class="btn btn-outline-secondary btn-sm">View Details</a>
                         @endif
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <div class="recent-orders-section mt-5">
+            <h4 class="text-dark mb-3">Recent BOQ Submissions</h4>
+            @if($boqSubmissions->isEmpty())
+                <div class="alert alert-info" role="alert">
+                    No BOQ submissions yet.
+                </div>
+            @else
+                <div class="list-group">
+                    @foreach($boqSubmissions as $boq)
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ $boq->reference }}</h6>
+                                <p class="mb-1 text-muted">{{ $boq->project_type }} | {{ $boq->project_location }}</p>
+                                <p class="mb-0"><strong>Status:</strong> {{ \App\Models\BoqSubmission::statuses()[$boq->status] ?? ucfirst($boq->status) }}</p>
+                            </div>
+                            <span class="badge bg-secondary">{{ $boq->created_at->format('d M Y') }}</span>
                         </div>
                     @endforeach
                 </div>

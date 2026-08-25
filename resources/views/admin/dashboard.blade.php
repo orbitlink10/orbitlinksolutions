@@ -107,6 +107,30 @@
             </div>
 
             <div class="row dashboard-row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="dashboard-metric metric-blue">
+                        <div class="metric-label">New Installer Applications</div>
+                        <div class="metric-value">{{ $pendingInstallerApplications ?? 0 }}</div>
+                        <div class="metric-sub"><a href="{{ route('admin.installers.index', ['status' => 'pending']) }}">Review applications</a></div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="dashboard-metric metric-emerald">
+                        <div class="metric-label">Approved Installers</div>
+                        <div class="metric-value">{{ $approvedInstallers ?? 0 }}</div>
+                        <div class="metric-sub"><a href="{{ route('admin.installers.index', ['status' => 'approved']) }}">View installers</a></div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="dashboard-metric metric-amber">
+                        <div class="metric-label">BOQs Awaiting Review</div>
+                        <div class="metric-value">{{ $boqsAwaitingReview ?? 0 }}</div>
+                        <div class="metric-sub"><a href="{{ route('admin.boqs.index') }}">Open BOQ queue</a></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row dashboard-row">
                 <div class="col-12 mb-4">
                     @include('admin.partials.homepage_product_display_form', [
                         'productDisplayTitle' => 'Homepage Products',
@@ -162,6 +186,20 @@
                                 <span>
                                     <strong>Manage Products</strong>
                                     <small>Update pricing and availability</small>
+                                </span>
+                            </a>
+                            <a href="{{ route('admin.installers.index') }}" class="dashboard-action-link">
+                                <span class="action-icon"><i class="fas fa-id-badge"></i></span>
+                                <span>
+                                    <strong>Installer Applications</strong>
+                                    <small>Approve trade pricing access</small>
+                                </span>
+                            </a>
+                            <a href="{{ route('admin.boqs.index') }}" class="dashboard-action-link">
+                                <span class="action-icon"><i class="fas fa-file-upload"></i></span>
+                                <span>
+                                    <strong>BOQ Requests</strong>
+                                    <small>Review project quote submissions</small>
                                 </span>
                             </a>
                         </div>

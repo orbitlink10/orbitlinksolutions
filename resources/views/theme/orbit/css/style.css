@@ -3632,3 +3632,482 @@ footer.footer-modern a:hover {
         font-size: 1.9rem;
     }
 }
+
+/* Installer/trade positioning */
+.installer-hero .hero-lead {
+    font-size: 1.08rem;
+    line-height: 1.65;
+    color: #334155;
+}
+
+.installer-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.installer-section-header h2 {
+    margin: 4px 0 6px;
+    font-size: clamp(1.55rem, 2.4vw, 2.2rem);
+}
+
+.installer-section-header p {
+    margin: 0;
+    color: #64748b;
+    max-width: 680px;
+}
+
+.section-kicker,
+.trade-kicker {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(11, 18, 32, 0.08);
+    border: 1px solid rgba(11, 18, 32, 0.08);
+    color: #0f172a;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
+.installer-category-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.installer-category-tile {
+    display: grid;
+    gap: 8px;
+    min-height: 168px;
+    padding: 18px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #dde3ec;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    color: #0f172a;
+    text-decoration: none;
+}
+
+.installer-category-tile:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 138, 30, 0.5);
+    color: #0f172a;
+}
+
+.installer-category-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef6ff;
+    color: #0f766e;
+    overflow: hidden;
+}
+
+.installer-category-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.installer-category-name {
+    font-size: 1.03rem;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.installer-category-copy {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.installer-popular-section,
+.installer-conversion-section,
+.brand-home-section,
+.trade-benefits-section,
+.trade-form-section {
+    padding: 46px 0;
+}
+
+.installer-conversion-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.installer-conversion-panel,
+.trade-benefit-panel,
+.trade-form-shell,
+.trade-success {
+    border-radius: 8px;
+    border: 1px solid #dde3ec;
+    background: #ffffff;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+}
+
+.installer-conversion-panel {
+    padding: 24px;
+}
+
+.installer-conversion-panel h2 {
+    margin: 10px 0 8px;
+    font-size: 1.45rem;
+}
+
+.installer-conversion-panel p {
+    color: #475569;
+}
+
+.brand-chip-grid,
+.brand-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.brand-chip,
+.brand-tile {
+    border-radius: 8px;
+    border: 1px solid #dde3ec;
+    background: #ffffff;
+    color: #0f172a;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.brand-chip {
+    min-height: 54px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    font-weight: 800;
+}
+
+.brand-tile {
+    display: grid;
+    gap: 6px;
+    padding: 18px;
+}
+
+.brand-tile-name {
+    font-weight: 800;
+}
+
+.brand-tile-count {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.trade-page-hero {
+    padding: 58px 0 44px;
+    background: linear-gradient(135deg, #f8fbff 0%, #e9f1ff 100%);
+}
+
+.trade-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+    gap: 28px;
+    align-items: center;
+}
+
+.trade-page-hero h1 {
+    margin: 12px 0 12px;
+    font-size: clamp(2rem, 3vw, 3.2rem);
+    line-height: 1.08;
+}
+
+.trade-page-hero p {
+    max-width: 720px;
+    color: #475569;
+    line-height: 1.7;
+}
+
+.trade-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+.trade-benefit-panel {
+    padding: 24px;
+}
+
+.trade-benefit-panel h2 {
+    margin-bottom: 14px;
+    font-size: 1.35rem;
+}
+
+.trade-check-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.trade-check-list li {
+    display: flex;
+    gap: 10px;
+    color: #334155;
+}
+
+.trade-check-list li::before {
+    content: "\f00c";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    color: #0f766e;
+}
+
+.trade-section-header {
+    margin-bottom: 22px;
+}
+
+.trade-section-header h2 {
+    margin: 8px 0 0;
+}
+
+.trade-benefit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.trade-benefit {
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #dde3ec;
+    background: #ffffff;
+}
+
+.trade-benefit-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff7ed;
+    color: var(--accent-color);
+    margin-bottom: 12px;
+}
+
+.trade-benefit h3 {
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+}
+
+.trade-benefit p {
+    color: #64748b;
+    margin: 0;
+}
+
+.trade-form-shell {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.42fr) minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.trade-form-copy {
+    padding: 28px;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.trade-form-copy h2 {
+    color: #ffffff;
+    margin: 12px 0 10px;
+}
+
+.trade-form-copy p {
+    color: #cbd5e1;
+}
+
+.trade-form {
+    padding: 28px;
+}
+
+.trade-form .form-control,
+.trade-form .form-select {
+    min-height: 46px;
+    border-radius: 8px;
+}
+
+.trade-success {
+    max-width: 760px;
+    padding: 34px;
+}
+
+.trade-reference {
+    display: inline-flex;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #ecfdf5;
+    color: #047857 !important;
+    font-weight: 800;
+}
+
+.installer-product-card .product-img-action-wrap {
+    position: relative;
+}
+
+.best-for-badge {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    max-width: calc(100% - 20px);
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.86);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.product-card-meta,
+.homepage-product-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 24px;
+    color: #0f766e;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.product-card-meta span,
+.homepage-product-card-meta span {
+    color: #475569;
+}
+
+.product-key-feature,
+.homepage-product-card-feature,
+.product-key-feature-detail {
+    color: #334155;
+    font-size: 0.88rem;
+    line-height: 1.35;
+}
+
+.product-key-feature-detail {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #eef6ff;
+    margin-bottom: 14px;
+    font-weight: 700;
+}
+
+.product-stock-line,
+.homepage-product-card-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #047857;
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin: 8px 0;
+}
+
+.product-stock-line.out-of-stock {
+    color: #b91c1c;
+}
+
+.product-stock-line.low-stock {
+    color: #b45309;
+}
+
+.product-stock-line i {
+    font-size: 0.45rem;
+}
+
+.installer-price-note,
+.retail-price-note,
+.homepage-product-card-price small {
+    display: block;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.installer-price-note {
+    color: #047857;
+}
+
+.installer-saving {
+    display: block;
+    color: #047857;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.installer-card-actions {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.installer-card-actions form {
+    margin: 0;
+}
+
+.installer-card-actions .action-btn {
+    border: 1px solid #dde3ec;
+}
+
+.installer-card-actions .whatsapp-action {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+@media (max-width: 991.98px) {
+    .installer-section-header,
+    .trade-hero-grid,
+    .trade-form-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .installer-section-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .installer-category-grid,
+    .trade-benefit-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .installer-conversion-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .installer-category-grid,
+    .trade-benefit-grid,
+    .brand-chip-grid,
+    .brand-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .trade-form,
+    .trade-form-copy,
+    .trade-success {
+        padding: 20px;
+    }
+
+    .trade-actions .btn,
+    .hero-cta .btn {
+        width: 100%;
+    }
+}

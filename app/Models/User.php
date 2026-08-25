@@ -24,6 +24,9 @@ class User extends Authenticatable
         'user_type',
         'active_status',
         'phone',
+        'installer_status',
+        'installer_discount_percent',
+        'installer_approved_at',
     ];
 
     /**
@@ -44,6 +47,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'installer_discount_percent' => 'decimal:2',
+        'installer_approved_at' => 'datetime',
     ];
 
     public function is_admin(){
@@ -83,6 +88,21 @@ public function footballCouponEntitlements()
 public function couponRedemptions()
 {
     return $this->hasMany(CouponRedemption::class);
+}
+
+public function installerApplications()
+{
+    return $this->hasMany(InstallerApplication::class);
+}
+
+public function boqSubmissions()
+{
+    return $this->hasMany(BoqSubmission::class);
+}
+
+public function isApprovedInstaller(): bool
+{
+    return $this->installer_status === InstallerApplication::STATUS_APPROVED;
 }
 
 }

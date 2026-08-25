@@ -200,6 +200,11 @@
 @php
     $currency = get_option('currency_symbol', 'KES');
     $hasSale = $product->has_price && $product->marked_price && $product->marked_price > $product->price;
+    $installerPrice = installer_price_for_product($product, 1, Auth::user());
+    $productBrand = orbit_product_brand($product);
+    $productModel = orbit_product_model($product);
+    $productFeature = orbit_product_key_feature($product);
+    $stockLabel = product_stock_status_label($product);
 @endphp
 <div class="page-header breadcrumb-wrap product-breadcrumb-wrap">
     <div class="container">
@@ -340,17 +345,33 @@
                         @if($category)
                             <a class="meta-chip" href="{{ route('view_product_category', ['slug' => $category->slug]) }}">{{ $category->name }}</a>
                         @endif
+                        @if($productBrand)
+                            <span class="meta-chip">{{ $productBrand }}</span>
+                        @endif
+                        @if($productModel)
+                            <span class="meta-chip">{{ $productModel }}</span>
+                        @endif
+                        @if(!empty($product->best_for_label))
+                            <span class="meta-chip">{{ $product->best_for_label }}</span>
+                        @endif
                         @if($product->has_price)
-                            <span class="status-pill {{ $product->quantity > 0 ? 'in-stock' : 'out-stock' }}">
-                                {{ $product->quantity > 0 ? 'In stock' : 'Out of stock' }}
+                            <span class="status-pill {{ $stockLabel !== 'Out of Stock' ? 'in-stock' : 'out-stock' }}">
+                                {{ $stockLabel }}
                             </span>
                         @endif
                     </div>
                     <h1 class="product-title">{{ $product->name }}</h1>
                     <div class="product-price-block">
                         @if($product->has_price)
-                            <span class="price-current">{{ $currency }} {{ number_format($product->price, 2) }}</span>
-                            @if($hasSale)
+                            @if($installerPrice)
+                                <span class="price-current">{{ $currency }} {{ number_format($installerPrice, 2) }}</span>
+                                <span class="price-old">{{ $currency }} {{ number_format($product->price, 2) }}</span>
+                                <span class="price-discount">Installer Price</span>
+                                <span class="installer-saving">You save {{ $currency }} {{ number_format($product->price - $installerPrice, 2) }}</span>
+                            @else
+                                <span class="price-current">{{ $currency }} {{ number_format($product->price, 2) }}</span>
+                            @endif
+                            @if($hasSale && !$installerPrice)
                                 <span class="price-old">{{ $currency }} {{ number_format($product->marked_price, 2) }}</span>
                                 <span class="price-discount">{{ discount($product->id) }}% Off</span>
                             @endif
@@ -362,10 +383,16 @@
                     <div class="product-summary">
                         <p>{{ $productSummaryText }}</p>
                     </div>
+                    @if($productFeature)
+                        <div class="product-key-feature-detail">
+                            <i class="fas fa-microchip"></i>
+                            <span>{{ $productFeature }}</span>
+                        </div>
+                    @endif
                     <div class="product-highlights">
-                        <span class="highlight-item"><i class="fas fa-shipping-fast"></i>Fast delivery</span>
-                        <span class="highlight-item"><i class="fas fa-shield-alt"></i>Warranty support</span>
-                        <span class="highlight-item"><i class="fas fa-headset"></i>Expert help</span>
+                        <span class="highlight-item"><i class="fas fa-tags"></i>Installer pricing on approval</span>
+                        <span class="highlight-item"><i class="fas fa-shipping-fast"></i>Nairobi pickup and delivery</span>
+                        <span class="highlight-item"><i class="fas fa-headset"></i>Technical product advice</span>
                     </div>
                     <div class="product-divider"></div>
 
@@ -392,13 +419,13 @@
                         $rawPhone = get_option('contact_phone');
                         $wa = preg_replace('/\D+/', '', $rawPhone ?? '');
                         if (\Illuminate\Support\Str::startsWith($wa, '0')) { $wa = '254'.\Illuminate\Support\Str::substr($wa, 1); }
-                        $waMessage = urlencode("Hi, I'm interested in {$product->name} - ".url()->current());
+                        $waMessage = urlencode("Hello Orbitlink Solutions, I am interested in {$product->name}. Please confirm installer price and stock availability. ".url()->current());
                         $waLink = $wa ? "https://wa.me/{$wa}?text={$waMessage}" : null;
                     @endphp
 
                     <div class="detail-extralink">
                         <div class="product-extra-link2">
-                            @if($product->quantity > 0)
+                            @if($stockLabel !== 'Out of Stock')
                                 @if($product->has_price)
 <form id="purchase-actions" action="{{ route('cart.add') }}" method="POST" class="d-flex align-items-center flex-wrap gap-3">
     @csrf
@@ -454,7 +481,7 @@
                         @if($product->has_price)
                             <li>
                                 <span>Availability:</span>
-                                <span class="status-pill {{ $product->quantity > 0 ? 'in-stock' : 'out-stock' }}">{{ $product->quantity > 0 ? 'Available in store' : 'Out of stock' }}</span>
+                                <span class="status-pill {{ $stockLabel !== 'Out of Stock' ? 'in-stock' : 'out-stock' }}">{{ $stockLabel }}</span>
                             </li>
                         @endif
                     </ul>
@@ -507,14 +534,17 @@
             <div class="product-cta-card">
                 <div class="product-cta-copy">
                     <span class="product-cta-kicker">Need help?</span>
-                    <h3>Talk to an expert about {{ $product->name }}</h3>
-                    <p>Get guidance on setup, compatibility, and delivery tailored to your needs.</p>
+                    <h3>Need Help Choosing? Ask a Technician</h3>
+                    <p>Get guidance on setup, compatibility, stock, and delivery before buying for your project.</p>
                 </div>
                 <div class="product-cta-actions">
-                    @if($product->has_price && $product->quantity > 0)
+                    @if($product->has_price && $stockLabel !== 'Out of Stock')
                         <a href="#purchase-actions" class="btn btn-accent btn-lg">Buy Now</a>
                     @endif
                     <a href="{{ url('contact-us') }}" class="btn btn-outline-secondary btn-lg">Get expert help</a>
+                    @if($waLink)
+                        <a href="{{ $waLink }}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg"><i class="fab fa-whatsapp me-2"></i>Ask on WhatsApp</a>
+                    @endif
                     @if($ctaPhoneDial)
                         <a href="tel:{{ $ctaPhoneDial }}" class="btn btn-outline-secondary btn-lg">Call {{ $ctaPhone }}</a>
                     @endif
@@ -532,43 +562,7 @@
                 </div>
                 <div class="row product-grid-4 g-4">
                     @foreach($relatedProducts as $ad)
-                        @php
-                            $relatedCategory = $ad->category ?: category($ad->category_id);
-                            $relatedHasSale = isset($ad->marked_price) && $ad->has_price && $ad->marked_price > 0 && $ad->marked_price > ($ad->price ?? 0);
-                        @endphp
-                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6 col-12">
-                            <div class="product-cart-wrap h-100">
-                                <div class="product-img-action-wrap">
-                                    <div class="product-img product-img-zoom">
-                                        <a href="{{ route('product_details', $ad->slug) }}">
-                                            <img class="default-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" width="600" height="600" loading="lazy">
-                                            <img class="hover-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" width="600" height="600" loading="lazy">
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="product-content-wrap">
-                                    @if($relatedHasSale)
-                                        <span class="badge-sale">-{{ discount($ad->id) }}%</span>
-                                    @endif
-                                    @if($relatedCategory)
-                                        <div class="product-category">
-                                            <a href="{{ route('view_product_category', ['slug' => $relatedCategory->slug]) }}">{{ $relatedCategory->name }}</a>
-                                        </div>
-                                    @endif
-                                    <h3><a href="{{ route('product_details', $ad->slug) }}">{{ \Illuminate\Support\Str::limit($ad->name, 40) }}</a></h3>
-                                    <div class="product-price">
-                                        @if($ad->has_price)
-                                            <span>{{ price($ad) }}</span>
-                                        @else
-                                            <span class="text-muted">Request quote</span>
-                                        @endif
-                                    </div>
-                                    <div class="product-action-1 show mt-auto">
-                                        <a aria-label="View more" class="action-btn hover-up" href="{{ route('product_details', $ad->slug) }}"><i class="fas fa-shopping-bag"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        @include('theme.orbit.partials.product_card', ['ad' => $ad])
                     @endforeach
                 </div>
             </div>
@@ -576,12 +570,15 @@
     </div>
 </section>
 
+@include('theme.orbit.modals.quote')
+@include('theme.orbit.modals.notify')
+
 {{-- Sticky CTA Bar --}}
 @php
     $rawPhone = get_option('contact_phone');
     $wa = preg_replace('/\D+/', '', $rawPhone ?? '');
     if (\Illuminate\Support\Str::startsWith($wa, '0')) { $wa = '254'.\Illuminate\Support\Str::substr($wa, 1); }
-    $waMessage = urlencode("Hi, I'm interested in {$product->name} - ".url()->current());
+    $waMessage = urlencode("Hello Orbitlink Solutions, I am interested in {$product->name}. Please confirm installer price and stock availability. ".url()->current());
     $waLinkSticky = $wa ? "https://wa.me/{$wa}?text={$waMessage}" : null;
 @endphp
 <div id="stickyCTA" class="fixed-bottom bg-white border-top shadow-sm py-2 d-none">
@@ -589,13 +586,13 @@
     <div class="d-none d-md-block text-truncate">
       <span class="title text-truncate">{{ $product->name }}</span>
       @if($product->has_price)
-        <span class="ms-2 fw-bold text-brand">{{ number_format($product->price, 2) }}</span>
+        <span class="ms-2 fw-bold text-brand">{{ number_format($installerPrice ?: $product->price, 2) }}</span>
       @else
         <span class="ms-2 text-muted">Get a quote</span>
       @endif
     </div>
     <div class="ms-auto d-flex align-items-center gap-2">
-      @if($product->quantity > 0)
+      @if($stockLabel !== 'Out of Stock')
         @if($product->has_price)
           <a href="#" onclick="document.querySelector('[type=\\'submit\\']')?.click(); return false;" class="btn btn-primary btn-sm"><i class="fas fa-shopping-cart me-1"></i>Buy Now</a>
         @else

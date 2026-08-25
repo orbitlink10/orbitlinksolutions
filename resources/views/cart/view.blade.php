@@ -51,7 +51,13 @@
                                         @else
                                             <span class="cart-title">{{ $item['name'] }}</span>
                                         @endif
-                                        <div class="cart-price">{{ $currency }} {{ number_format($item['price'], 2) }} each</div>
+                                        <div class="cart-price">
+                                            {{ $currency }} {{ number_format($item['price'], 2) }} each
+                                            @if(!empty($item['installer_price_applied']))
+                                                <span class="badge bg-success ms-2">Installer price</span>
+                                                <span class="text-muted d-block">Retail: {{ $currency }} {{ number_format($item['retail_price'] ?? $item['price'], 2) }}</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="cart-qty">

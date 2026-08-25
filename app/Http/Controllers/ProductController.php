@@ -236,8 +236,17 @@ public function store(Request $request)
     // Validate the incoming request data, including the photo if provided
     $validator = Validator::make($request->all(), [
         'name'            => 'required|string|max:255',
+        'brand_name'      => 'nullable|string|max:255',
+        'model_number'    => 'nullable|string|max:255',
+        'key_technical_feature' => 'nullable|string|max:255',
+        'best_for_label'  => 'nullable|string|max:255',
         'price'           => 'required|numeric',
         'marked_price'    => 'nullable|numeric',
+        'installer_price' => 'nullable|numeric|min:0',
+        'installer_discount_percent' => 'nullable|numeric|min:0|max:100',
+        'installer_price_tiers' => 'nullable|string',
+        'installer_deal_label' => 'nullable|string|max:255',
+        'stock_status'    => 'nullable|string|max:100',
         'quantity'        => 'required|integer',
         'category_id'     => 'required|exists:categories,id',
         'sub_category_id' => 'nullable|exists:sub_categories,id',
@@ -260,8 +269,16 @@ public function store(Request $request)
     // Extract fields from the request (excluding photo)
     $data = $request->only([
         'name',
+        'brand_name',
+        'model_number',
+        'key_technical_feature',
+        'best_for_label',
         'price',
         'marked_price',
+        'installer_price',
+        'installer_discount_percent',
+        'installer_deal_label',
+        'stock_status',
         'quantity',
         'category_id',
         'sub_category_id',
@@ -272,6 +289,8 @@ public function store(Request $request)
 
     // Generate a URL-friendly slug from the product name
     $data['slug'] = Str::slug($data['name']);
+    $data['popular_with_installers'] = $request->boolean('popular_with_installers');
+    $data['installer_price_tiers'] = parse_installer_price_tiers($request->input('installer_price_tiers'));
 
     // If a photo file is uploaded, store it and add the file path to the data
     if ($request->hasFile('photo')) {
@@ -329,6 +348,8 @@ public function store(Request $request)
     {
         $product = Product::find($id);
 $product->has_price = $request->has('has_price') ? 1 : 0;
+$product->popular_with_installers = $request->has('popular_with_installers') ? 1 : 0;
+$product->google_merchant = $request->has('google_merchant') ? 1 : 0;
 $product->save();
 
        return $this->productService->update($request,$id);

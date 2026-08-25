@@ -666,6 +666,362 @@ if (! function_exists('save_product_additional_information')) {
     }
 }
 
+if (! function_exists('orbit_trade_category_priority')) {
+    function orbit_trade_category_priority($categoryName)
+    {
+        $name = Str::lower((string) $categoryName);
+        $priorityMap = [
+            10 => ['cctv camera', 'cctv cameras', 'ip camera', 'security camera'],
+            20 => ['poe switch', 'poe switches'],
+            30 => ['network switch', 'network switches', 'switches'],
+            40 => ['mikrotik', 'router', 'routers'],
+            50 => ['access point', 'access points', 'wireless access'],
+            60 => ['ubiquiti', 'wireless equipment', 'wireless'],
+            70 => ['cat6', 'network cable', 'network cables', 'cables'],
+            80 => ['fibre', 'fiber', 'optic'],
+            90 => ['cabinet', 'rack', 'racks'],
+            100 => ['connector', 'connectors', 'accessories'],
+            110 => ['nvr', 'dvr', 'recorders'],
+            120 => ['power', 'backup', 'ecoflow', 'bluetti', 'ups'],
+        ];
+
+        foreach ($priorityMap as $priority => $needles) {
+            foreach ($needles as $needle) {
+                if (Str::contains($name, $needle)) {
+                    return $priority;
+                }
+            }
+        }
+
+        return 500;
+    }
+}
+
+if (! function_exists('orbit_trade_priority_categories')) {
+    function orbit_trade_priority_categories($categories)
+    {
+        return collect($categories)
+            ->sortBy([
+                fn ($a, $b) => orbit_trade_category_priority($a->name ?? '') <=> orbit_trade_category_priority($b->name ?? ''),
+                fn ($a, $b) => strcasecmp((string) ($a->name ?? ''), (string) ($b->name ?? '')),
+            ])
+            ->values();
+    }
+}
+
+if (! function_exists('orbit_find_category_by_keywords')) {
+    function orbit_find_category_by_keywords($categories, array $keywords)
+    {
+        $keywords = collect($keywords)->map(fn ($keyword) => Str::lower($keyword))->all();
+
+        return collect($categories)->first(function ($category) use ($keywords) {
+            $name = Str::lower((string) ($category->name ?? ''));
+            $slug = Str::lower((string) ($category->slug ?? ''));
+
+            foreach ($keywords as $keyword) {
+                if (Str::contains($name, $keyword) || Str::contains($slug, Str::slug($keyword))) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+    }
+}
+
+if (! function_exists('orbit_whatsapp_number')) {
+    function orbit_whatsapp_number($phone = null)
+    {
+        $phone = $phone ?: get_option('whatsapp_phone', get_option('contact_phone'));
+        $phone = preg_replace('/\D+/', '', (string) $phone);
+
+        if (Str::startsWith($phone, '0')) {
+            $phone = '254' . Str::substr($phone, 1);
+        }
+
+        if ($phone !== '' && ! Str::startsWith($phone, '254') && strlen($phone) === 9) {
+            $phone = '254' . $phone;
+        }
+
+        return $phone ?: null;
+    }
+}
+
+if (! function_exists('orbit_whatsapp_url')) {
+    function orbit_whatsapp_url($message, $phone = null)
+    {
+        $number = orbit_whatsapp_number($phone);
+
+        if (! $number) {
+            return null;
+        }
+
+        return 'https://wa.me/' . $number . '?text=' . rawurlencode((string) $message);
+    }
+}
+
+if (! function_exists('orbit_brand_candidates')) {
+    function orbit_brand_candidates()
+    {
+        return [
+            'mikrotik' => 'MikroTik',
+            'ubiquiti' => 'Ubiquiti',
+            'tp-link' => 'TP-Link',
+            'tplink' => 'TP-Link',
+            'hikvision' => 'Hikvision',
+            'dahua' => 'Dahua',
+            'tenda' => 'Tenda',
+            'd-link' => 'D-Link',
+            'dlink' => 'D-Link',
+            'huawei' => 'Huawei',
+            'ruijie' => 'Ruijie',
+            'wi-tek' => 'Wi-Tek',
+            'witek' => 'Wi-Tek',
+            'vsol' => 'VSOL',
+            'cisco' => 'Cisco',
+            'mercusys' => 'Mercusys',
+            'netis' => 'Netis',
+            'grandstream' => 'Grandstream',
+            'ecoflow' => 'EcoFlow',
+            'bluetti' => 'BLUETTI',
+            'starlink' => 'Starlink',
+        ];
+    }
+}
+
+if (! function_exists('orbit_product_brand')) {
+    function orbit_product_brand($product)
+    {
+        if (! $product) {
+            return null;
+        }
+
+        $explicit = trim((string) ($product->brand_name ?? ''));
+        if ($explicit !== '') {
+            return $explicit;
+        }
+
+        $categoryName = '';
+        if (isset($product->category)) {
+            $categoryName = (string) optional($product->category)->name;
+        } elseif (! empty($product->category_id)) {
+            $categoryName = (string) optional(\App\Models\Category::find($product->category_id))->name;
+        }
+
+        $haystack = Str::lower((string) ($product->name ?? '') . ' ' . $categoryName);
+
+        foreach (orbit_brand_candidates() as $needle => $label) {
+            if (Str::contains($haystack, $needle)) {
+                return $label;
+            }
+        }
+
+        return null;
+    }
+}
+
+if (! function_exists('orbit_product_model')) {
+    function orbit_product_model($product)
+    {
+        $explicit = trim((string) ($product->model_number ?? ''));
+        if ($explicit !== '') {
+            return $explicit;
+        }
+
+        $name = (string) ($product->name ?? '');
+        if (preg_match('/\b([A-Z]{1,6}[-+]?[0-9][A-Z0-9+._-]{2,})\b/i', $name, $match)) {
+            return $match[1];
+        }
+
+        return null;
+    }
+}
+
+if (! function_exists('orbit_product_key_feature')) {
+    function orbit_product_key_feature($product)
+    {
+        $explicit = trim((string) ($product->key_technical_feature ?? ''));
+        if ($explicit !== '') {
+            return $explicit;
+        }
+
+        $name = (string) ($product->name ?? '');
+        $patterns = [
+            '/\b\d+\s*[- ]?port\b.*?(?:poe\+?|gigabit|switch|budget|sfp)?/i',
+            '/\b\d+\s*mp\b.*?(?:camera|cctv|ip|turret|bullet|dome)?/i',
+            '/\bcat\s*6\b.*?(?:cable|outdoor|indoor)?/i',
+            '/\b(?:gigabit|sfp|poe\+?|wifi\s*6|wireless|fibre|fiber)\b[^|,]*/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $name, $match)) {
+                return Str::limit(trim($match[0]), 80, '');
+            }
+        }
+
+        return null;
+    }
+}
+
+if (! function_exists('product_stock_status_label')) {
+    function product_stock_status_label($product)
+    {
+        $status = Str::lower(trim((string) ($product->stock_status ?? '')));
+        $labels = [
+            'in_stock' => 'In Stock',
+            'in stock' => 'In Stock',
+            'low_stock' => 'Low Stock',
+            'low stock' => 'Low Stock',
+            'out_of_stock' => 'Out of Stock',
+            'out of stock' => 'Out of Stock',
+            'preorder' => 'Preorder',
+            'available_on_request' => 'Available on Request',
+            'available on request' => 'Available on Request',
+        ];
+
+        if (isset($labels[$status])) {
+            return $labels[$status];
+        }
+
+        $quantity = (int) ($product->quantity ?? 0);
+
+        if ($quantity <= 0) {
+            return 'Out of Stock';
+        }
+
+        if ($quantity <= 3) {
+            return 'Low Stock';
+        }
+
+        return 'In Stock';
+    }
+}
+
+if (! function_exists('is_approved_installer')) {
+    function is_approved_installer($user = null)
+    {
+        $user = $user ?: \Illuminate\Support\Facades\Auth::user();
+
+        return $user && (string) ($user->installer_status ?? '') === \App\Models\InstallerApplication::STATUS_APPROVED;
+    }
+}
+
+if (! function_exists('parse_installer_price_tiers')) {
+    function parse_installer_price_tiers($value)
+    {
+        if (is_array($value)) {
+            $rows = $value;
+        } else {
+            $value = trim((string) $value);
+            if ($value === '') {
+                return [];
+            }
+
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $rows = $decoded;
+            } else {
+                $rows = collect(preg_split('/\r\n|\r|\n/', $value))
+                    ->map(function ($line) {
+                        $line = trim((string) $line);
+                        if ($line === '') {
+                            return null;
+                        }
+
+                        $parts = preg_split('/\s*(?:=>|=|\||,|:)\s*/', $line);
+                        $minQty = isset($parts[0]) ? (int) preg_replace('/\D+/', '', $parts[0]) : 0;
+                        $price = isset($parts[1]) ? (float) preg_replace('/[^\d.]/', '', $parts[1]) : null;
+                        $discount = isset($parts[2]) ? (float) preg_replace('/[^\d.]/', '', $parts[2]) : null;
+
+                        return compact('minQty', 'price', 'discount');
+                    })
+                    ->filter()
+                    ->all();
+            }
+        }
+
+        return collect($rows)
+            ->map(function ($row) {
+                $minQty = (int) ($row['min_qty'] ?? $row['minQty'] ?? $row['quantity'] ?? $row['qty'] ?? 0);
+                $price = $row['price'] ?? $row['installer_price'] ?? null;
+                $discount = $row['discount_percent'] ?? $row['discount'] ?? null;
+
+                return [
+                    'min_qty' => $minQty,
+                    'price' => $price !== null && $price !== '' ? round((float) $price, 2) : null,
+                    'discount_percent' => $discount !== null && $discount !== '' ? round((float) $discount, 2) : null,
+                ];
+            })
+            ->filter(fn ($row) => $row['min_qty'] > 0 && (($row['price'] ?? 0) > 0 || ($row['discount_percent'] ?? 0) > 0))
+            ->sortBy('min_qty')
+            ->values()
+            ->all();
+    }
+}
+
+if (! function_exists('installer_price_for_product')) {
+    function installer_price_for_product($product, $quantity = 1, $user = null)
+    {
+        if (! $product || ! is_approved_installer($user) || ! (bool) ($product->has_price ?? false)) {
+            return null;
+        }
+
+        $retail = (float) ($product->price ?? 0);
+        if ($retail <= 0) {
+            return null;
+        }
+
+        $quantity = max(1, (int) $quantity);
+        $candidates = [];
+
+        $productInstallerPrice = (float) ($product->installer_price ?? 0);
+        if ($productInstallerPrice > 0) {
+            $candidates[] = $productInstallerPrice;
+        }
+
+        $productDiscount = (float) ($product->installer_discount_percent ?? 0);
+        if ($productDiscount > 0) {
+            $candidates[] = $retail * (1 - min($productDiscount, 100) / 100);
+        }
+
+        foreach (parse_installer_price_tiers($product->installer_price_tiers ?? null) as $tier) {
+            if ($quantity < (int) $tier['min_qty']) {
+                continue;
+            }
+
+            if (! empty($tier['price'])) {
+                $candidates[] = (float) $tier['price'];
+            } elseif (! empty($tier['discount_percent'])) {
+                $candidates[] = $retail * (1 - min((float) $tier['discount_percent'], 100) / 100);
+            }
+        }
+
+        $user = $user ?: \Illuminate\Support\Facades\Auth::user();
+        $userDiscount = (float) ($user->installer_discount_percent ?? 0);
+        if ($userDiscount > 0) {
+            $candidates[] = $retail * (1 - min($userDiscount, 100) / 100);
+        }
+
+        $price = collect($candidates)
+            ->filter(fn ($candidate) => is_numeric($candidate) && (float) $candidate > 0)
+            ->map(fn ($candidate) => round((float) $candidate, 2))
+            ->min();
+
+        if (! $price || $price >= $retail) {
+            return null;
+        }
+
+        return max(0, round((float) $price, 2));
+    }
+}
+
+if (! function_exists('effective_product_price')) {
+    function effective_product_price($product, $quantity = 1, $user = null)
+    {
+        return installer_price_for_product($product, $quantity, $user) ?: (float) ($product->price ?? 0);
+    }
+}
+
 
 
 function upload_file_name($photo, $maxBaseLength = 80, $suffix = null){

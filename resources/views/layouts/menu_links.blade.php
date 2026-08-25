@@ -15,6 +15,20 @@
     </li>
 
     <li class="nav-item">
+        <a href="{{ route('installer-program.show') }}" class="nav-link {{ Route::is('installer-program.*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-id-badge"></i>
+            <p>Installer Program</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{{ route('send-boq.show') }}" class="nav-link {{ Route::is('send-boq.*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-file-upload"></i>
+            <p>Send BOQ</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
         <a href="{{ route('account.football-predictions.index') }}" class="nav-link {{ request()->routeIs('account.football-predictions.*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-futbol"></i>
             <p>Football Predictions</p>
@@ -117,6 +131,18 @@
         <a href="{{ route('orders.index') }}" class="nav-link {{ request()->is('orders*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-shopping-cart"></i>
             <p>Orders</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ route('admin.installers.index') }}" class="nav-link {{ request()->is('admin/installers*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-id-badge"></i>
+            <p>Installers</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ route('admin.boqs.index') }}" class="nav-link {{ request()->is('admin/boqs*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-file-upload"></i>
+            <p>BOQs</p>
         </a>
     </li>
     <li class="nav-item">

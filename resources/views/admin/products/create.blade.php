@@ -57,6 +57,51 @@
                                         @endif
                                     </div>
 
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="brandName">Brand</label>
+                                                <input type="text" class="form-control @error('brand_name') is-invalid @enderror"
+                                                       name="brand_name" value="{{ old('brand_name') }}" id="brandName"
+                                                       placeholder="MikroTik, Hikvision, TP-Link">
+                                                @error('brand_name')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="modelNumber">Model Number</label>
+                                                <input type="text" class="form-control @error('model_number') is-invalid @enderror"
+                                                       name="model_number" value="{{ old('model_number') }}" id="modelNumber"
+                                                       placeholder="RB5009UG+S+IN, TL-SG1210P">
+                                                @error('model_number')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="keyTechnicalFeature">Key Technical Feature</label>
+                                        <input type="text" class="form-control @error('key_technical_feature') is-invalid @enderror"
+                                               name="key_technical_feature" value="{{ old('key_technical_feature') }}" id="keyTechnicalFeature"
+                                               placeholder="8-Port Gigabit PoE+ | 120W PoE Budget">
+                                        @error('key_technical_feature')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="bestForLabel">Best For Label</label>
+                                        <input type="text" class="form-control @error('best_for_label') is-invalid @enderror"
+                                               name="best_for_label" value="{{ old('best_for_label') }}" id="bestForLabel"
+                                               placeholder="Best for 8 Camera CCTV">
+                                        @error('best_for_label')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
                                     <!-- Price -->
                                     <div class="form-group">
                                         <label for="productPrice">Price (KES)</label>
@@ -87,6 +132,40 @@
                                         @endif
                                     </div>
 
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="installerPrice">Installer Price (KES)</label>
+                                                <input type="number" step="0.01" min="0" class="form-control @error('installer_price') is-invalid @enderror"
+                                                       name="installer_price" value="{{ old('installer_price') }}" id="installerPrice"
+                                                       placeholder="Optional fixed trade price">
+                                                @error('installer_price')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="installerDiscountPercent">Installer Discount (%)</label>
+                                                <input type="number" step="0.01" min="0" max="100" class="form-control @error('installer_discount_percent') is-invalid @enderror"
+                                                       name="installer_discount_percent" value="{{ old('installer_discount_percent') }}" id="installerDiscountPercent"
+                                                       placeholder="Optional percentage discount">
+                                                @error('installer_discount_percent')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="installerPriceTiers">Installer Quantity Tiers</label>
+                                        <textarea id="installerPriceTiers" name="installer_price_tiers" class="form-control @error('installer_price_tiers') is-invalid @enderror" rows="4" placeholder="5 | 9500&#10;10 | 9000&#10;20 | 8">{{ old('installer_price_tiers') }}</textarea>
+                                        <small class="form-text text-muted">One tier per line. Use min quantity | price, or min quantity | price | discount percent.</small>
+                                        @error('installer_price_tiers')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
                                     <!-- Quantity -->
                                     <div class="form-group">
                                         <label for="productQuantity">Quantity</label>
@@ -100,6 +179,38 @@
                                         @elseif(isset($errors['quantity']))
                                             <span class="invalid-feedback">{{ $errors['quantity'] }}</span>
                                         @endif
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="stockStatus">Stock Status</label>
+                                        <select class="form-control @error('stock_status') is-invalid @enderror" name="stock_status" id="stockStatus">
+                                            <option value="">Auto from quantity</option>
+                                            @foreach(['in_stock' => 'In Stock', 'low_stock' => 'Low Stock', 'out_of_stock' => 'Out of Stock', 'preorder' => 'Preorder', 'available_on_request' => 'Available on Request'] as $value => $label)
+                                                <option value="{{ $value }}" {{ old('stock_status') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('stock_status')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="installerDealLabel">Installer Deal Label</label>
+                                        <input type="text" class="form-control @error('installer_deal_label') is-invalid @enderror"
+                                               name="installer_deal_label" value="{{ old('installer_deal_label') }}" id="installerDealLabel"
+                                               placeholder="Buy 5+ and Save">
+                                        @error('installer_deal_label')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="popular_with_installers" value="1" id="popularWithInstallers" {{ old('popular_with_installers') ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="popularWithInstallers">
+                                                Popular with Installers
+                                            </label>
+                                        </div>
                                     </div>
 
                                     <!-- Category -->

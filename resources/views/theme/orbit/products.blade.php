@@ -185,40 +185,10 @@
                 </div>
                 <div class="row product-grid-4 g-4">
                     @forelse($products as $ad)
-                        <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12">
-                            <div class="product-cart-wrap h-100">
-                                <div class="product-img-action-wrap">
-                                    <div class="product-img product-img-zoom">
-                                        <a href="{{ route('product_details', $ad->slug) }}">
-                                            <img class="default-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
-                                            <img class="hover-img" src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="product-content-wrap">
-                                    @php
-                                        $hasSale = isset($ad->marked_price) && $ad->has_price && $ad->marked_price > 0 && $ad->marked_price > ($ad->price ?? 0);
-                                    @endphp
-                                    @if($hasSale)
-                                        <span class="badge-sale">-{{ discount($ad->id) }}%</span>
-                                    @endif
-                                    <div class="product-category">
-                                        <a href="{{ route('view_product_category', ['slug' => category($ad->category_id)->slug]) }}">{{ category($ad->category_id)->name }}</a>
-                                    </div>
-                                    <h2><a href="{{ route('product_details', $ad->slug) }}">{{ \Illuminate\Support\Str::limit($ad->name, 40) }}</a></h2>
-                                    <div class="product-price">
-                                        @if($ad->has_price)
-                                            <span>{{ price($ad) }} </span>
-                                        @else
-                                            <span class="text-muted">Request quote</span>
-                                        @endif
-                                    </div>
-                                    <div class="product-action-1 show">
-                                        <a aria-label="View more" class="action-btn hover-up" href="{{ route('product_details', $ad->slug) }}"><i class="fas fa-shopping-bag"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        @include('theme.orbit.partials.product_card', [
+                            'ad' => $ad,
+                            'productCardColumn' => 'col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12',
+                        ])
                     @empty
                         <div class="col-12">
                             <div class="category-empty">

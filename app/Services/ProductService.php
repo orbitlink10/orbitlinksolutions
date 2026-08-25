@@ -83,6 +83,7 @@ class ProductService{
         $validationData = $request->all();
         $data = $validationData;
         unset($data['brochure_pdf'], $data['additional_information']);
+        $data['installer_price_tiers'] = parse_installer_price_tiers($request->input('installer_price_tiers'));
         $product =$this->productService->find($id);
         if(!$product){
             return redirect()->route('products.index')->with("errors", "Product Not Found");
@@ -157,9 +158,18 @@ class ProductService{
     {
         return Validator::make($data, [
             "name" => "bail|required|string",
+            'brand_name' => 'nullable|string|max:255',
+            'model_number' => 'nullable|string|max:255',
+            'key_technical_feature' => 'nullable|string|max:255',
+            'best_for_label' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'brochure_pdf' => 'nullable|file|mimes:pdf|max:10240',
             'additional_information' => 'nullable|string',
+            'installer_price' => 'nullable|numeric|min:0',
+            'installer_discount_percent' => 'nullable|numeric|min:0|max:100',
+            'installer_price_tiers' => 'nullable|string',
+            'installer_deal_label' => 'nullable|string|max:255',
+            'stock_status' => 'nullable|string|max:100',
             'photos.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'files.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             "price" => "bail|required",

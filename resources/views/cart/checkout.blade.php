@@ -85,7 +85,12 @@
                                 @endphp
                                 @foreach ($cart as $item)
                                     <tr>
-                                        <td>{{ $item['name'] }}</td>
+                                        <td>
+                                            {{ $item['name'] }}
+                                            @if(!empty($item['installer_price_applied']))
+                                                <div class="small text-success">Installer price applied</div>
+                                            @endif
+                                        </td>
                                         <td class="text-end">KSh {{ number_format($item['price'], 2) }}</td>
 
                                         <input type="hidden" name="product_ids[]" value="{{ $item['id'] }}">

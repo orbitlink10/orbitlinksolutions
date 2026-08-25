@@ -18,6 +18,8 @@ use App\Models\Post;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Media;
+use App\Models\InstallerApplication;
+use App\Models\BoqSubmission;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -60,12 +62,17 @@ public function index()
     $users = User::orderBy('id', 'desc')->get();
     $invoices = Invoice::orderBy('id', 'desc')->get();
     $enquiries = Notification::orderBy('id', 'desc')->get();
+    $installerApplications = InstallerApplication::latest()->limit(5)->get();
+    $boqSubmissions = BoqSubmission::latest()->limit(5)->get();
     $homepageDisplayData = $this->homepageProductDisplayData();
 
     // Additional Metrics
     $totalRevenue = Order::whereStatus('paid')->sum('total_amount');
     $recentOrders = Order::whereStatus('paid')->where('created_at', '>=', now()->subDays(7))->count();
     $newUsers = User::where('created_at', '>=', now()->subDays(30))->count();
+    $pendingInstallerApplications = InstallerApplication::where('status', InstallerApplication::STATUS_PENDING)->count();
+    $approvedInstallers = User::where('installer_status', InstallerApplication::STATUS_APPROVED)->count();
+    $boqsAwaitingReview = BoqSubmission::whereIn('status', [BoqSubmission::STATUS_NEW, BoqSubmission::STATUS_REVIEWING])->count();
     $recentUsers = User::latest()->limit(5)->get();
  $recentActivities = ActivityLog::latest()->limit(5)->get(); 
 
@@ -78,6 +85,11 @@ public function index()
             'totalRevenue',
             'recentOrders',
             'newUsers',
+            'pendingInstallerApplications',
+            'approvedInstallers',
+            'boqsAwaitingReview',
+            'installerApplications',
+            'boqSubmissions',
             'recentUsers',
             'recentActivities'
         ), $homepageDisplayData));

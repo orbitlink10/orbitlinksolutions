@@ -9,6 +9,8 @@ use App\Models\Payment;
 use App\Models\Wishlist;
 use App\Models\WalletTransaction;
 use App\Models\Product;
+use App\Models\InstallerApplication;
+use App\Models\BoqSubmission;
 
 class AccountController extends Controller
 {
@@ -18,14 +20,31 @@ public function dashboard()
     $wishlistCount = Wishlist::where('user_id', Auth::id())->count();
     $accountBalance = WalletTransaction::where('user_id', Auth::id())->sum('balance');
     $recentOrders = Order::where('user_id', Auth::id())->latest()->take(5)->get();
-    $recommendedProducts = Product::take(8)->get(); // Replace with recommendation logic
+    $recommendedProducts = Product::where('product_type', 'product')
+        ->when(\Illuminate\Support\Facades\Schema::hasColumn('products', 'popular_with_installers'), fn ($query) => $query->orderByDesc('popular_with_installers'))
+        ->latest()
+        ->take(8)
+        ->get();
+    $installerApplication = InstallerApplication::where('user_id', Auth::id())
+        ->orWhere('email', Auth::user()->email)
+        ->latest()
+        ->first();
+    $boqSubmissions = BoqSubmission::where('user_id', Auth::id())
+        ->orWhere('email', Auth::user()->email)
+        ->latest()
+        ->take(5)
+        ->get();
+    $totalPurchases = Order::where('user_id', Auth::id())->sum('total_amount');
 
     return view('account.dashboard', compact(
         'ordersCount',
         'wishlistCount',
         'accountBalance',
         'recentOrders',
-        'recommendedProducts'
+        'recommendedProducts',
+        'installerApplication',
+        'boqSubmissions',
+        'totalPurchases'
     ));
 }
 

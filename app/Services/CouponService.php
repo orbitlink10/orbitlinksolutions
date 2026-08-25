@@ -18,7 +18,7 @@ class CouponService
         return strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $code));
     }
 
-    public function cartSubtotal(array $cart): float
+    public function cartSubtotal(array $cart, ?User $user = null): float
     {
         if (empty($cart)) {
             return 0.0;
@@ -35,7 +35,7 @@ class CouponService
         $subtotal = collect($cart)->sum(function (array $item) use ($products) {
             $product = $products->get($item['id'] ?? null);
             $quantity = max(1, (int) ($item['quantity'] ?? 1));
-            $price = $product ? (float) $product->price : (float) ($item['price'] ?? 0);
+            $price = $product ? effective_product_price($product, $quantity, $user) : (float) ($item['price'] ?? 0);
 
             return $price * $quantity;
         });

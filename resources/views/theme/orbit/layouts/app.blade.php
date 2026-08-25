@@ -213,16 +213,16 @@
                             $currency = get_option('currency_symbol', 'KSh');
                             $threshold = (int) get_option('free_shipping_threshold', 10000);
                         @endphp
-                        <i class="fas fa-truck me-2"></i>Free delivery for orders over {{ $currency }} {{ number_format($threshold, 0) }}
+                        <i class="fas fa-tools me-2"></i>Installer pricing, Nairobi pickup, and nationwide delivery
                     @endif
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     @auth
                         <a href="{{ route('wishlist.index') }}" class="text-decoration-none text-muted"><i class="fas fa-heart me-1"></i>Wishlist</a>
-                        <a href="{{ route('account.dashboard') }}" class="text-decoration-none text-muted"><i class="fas fa-user me-1"></i>My Account</a>
+                        <a href="{{ route('account.dashboard') }}" class="text-decoration-none text-muted"><i class="fas fa-user me-1"></i>{{ is_approved_installer(Auth::user()) ? 'Installer Dashboard' : 'My Account' }}</a>
                     @else
                         <a href="{{ route('login') }}" class="text-decoration-none text-muted"><i class="fas fa-user me-1"></i>Sign in</a>
-                        <a href="{{ route('register') }}" class="text-decoration-none text-muted"><i class="fas fa-user-plus me-1"></i>Customer sign up</a>
+                        <a href="{{ route('installer-program.show') }}" class="text-decoration-none text-muted"><i class="fas fa-user-plus me-1"></i>Join Installer Program</a>
                     @endauth
                     <span class="text-muted d-none d-md-inline"><i class="fas fa-headset me-1"></i>{{ get_option('contact_phone') }}</span>
                     
@@ -256,13 +256,23 @@
                     <!-- Search -->
                     <form action="{{ url('shop') }}" method="get" class="ms-lg-3 my-3 my-lg-0 flex-grow-1">
                         <div class="input-group">
-                            <input type="text" name="q" class="form-control" placeholder="Search for products..." aria-label="Search products" required>
+                            <input type="text" name="q" class="form-control" placeholder="Search product, model or brand..." aria-label="Search product, model or brand" required>
                             <button class="btn btn-accent" type="submit"><i class="fas fa-search"></i></button>
                         </div>
                     </form>
 
                     <!-- Icons -->
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+                        <li class="nav-item d-none d-xl-inline">
+                            <a class="btn btn-outline-secondary btn-sm" href="{{ route('send-boq.show') }}">
+                                <i class="fas fa-file-upload me-1"></i>Send BOQ
+                            </a>
+                        </li>
+                        <li class="nav-item d-none d-xl-inline">
+                            <a class="btn btn-accent btn-sm" href="{{ Auth::check() ? route('account.dashboard') : route('installer-program.show') }}">
+                                <i class="fas fa-id-badge me-1"></i>{{ Auth::check() && is_approved_installer(Auth::user()) ? 'Installer Dashboard' : 'Installer Account' }}
+                            </a>
+                        </li>
                         @auth
                             <li class="nav-item d-none d-lg-inline">
                                 <a class="nav-link" href="{{ route('wishlist.index') }}" aria-label="Wishlist">
@@ -282,13 +292,14 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
                                 @auth
-                                    <li><a class="dropdown-item" href="{{ route('account.dashboard') }}">My Account</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('account.dashboard') }}">{{ is_approved_installer(Auth::user()) ? 'Installer Dashboard' : 'My Account' }}</a></li>
                                     <li><a class="dropdown-item" href="{{ route('account.orders') }}">My Orders</a></li>
                                 @else
                                     <li><a class="dropdown-item" href="{{ route('login') }}">Sign in</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('register') }}">Customer sign up</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('installer-program.show') }}">Join Installer Program</a></li>
                                 @endauth
                                 <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('send-boq.show') }}">Send BOQ</a></li>
                                 <li><a class="dropdown-item" href="{{ url('contact-us') }}">Help & Support</a></li>
                             </ul>
                         </li>
@@ -299,6 +310,10 @@
                                 @foreach(\App\Models\Menu::all() as $menu)
                                     <li class="nav-item"><a class="nav-link" href="{{ $menu->url }}">{{ $menu->name }}</a></li>
                                 @endforeach
+                                <li class="nav-item"><a class="nav-link" href="{{ url('shop') }}">Shop</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ route('brands.index') }}">Brands</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ route('installer-program.show') }}">Installer Program</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ route('send-boq.show') }}">Send BOQ</a></li>
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="mobileResourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         Resources
@@ -326,6 +341,11 @@
                             @foreach(\App\Models\Menu::all() as $menu)
                                 <li class="nav-item"><a class="nav-link" href="{{ $menu->url }}">{{ $menu->name }}</a></li>
                             @endforeach
+                            <li class="nav-item"><a class="nav-link" href="{{ url('shop') }}">Shop</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ route('brands.index') }}">Brands</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ route('installer-program.show') }}">Installer Program</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ route('send-boq.show') }}">Send BOQ</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ url('shop?sale=1') }}">Deals</a></li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     Resources
@@ -346,7 +366,7 @@
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="category-scroll" aria-label="Shop categories">
-                        @foreach($categories->take(12) as $cat)
+                        @foreach(orbit_trade_priority_categories($categories)->take(12) as $cat)
                             <a class="category-pill" href="{{ route('view_product_category', ['slug' => $cat->slug]) }}">
                                 <span class="category-pill-icon">
                                     @if(!empty($cat->photo))

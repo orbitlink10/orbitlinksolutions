@@ -1,127 +1,74 @@
 {{-- resources/views/theme/orbit/index.blade.php --}}
 @extends('theme.orbit.layouts.main')
 
-@section('title', 'Networking Equipment in Kenya')
-@section('meta_description', get_option('hero_header_description', 'Shop networking equipment, Starlink kits, CCTV cameras, WiFi extenders, and installation support from Orbitlink Solutions in Kenya.'))
+@section('title', 'Networking & CCTV Equipment Kenya')
+@section('meta_description', 'Shop networking, CCTV, MikroTik, PoE switches, fibre and Wi-Fi equipment in Kenya. Installer pricing, technical support, Nairobi pickup and nationwide delivery.')
 
 @section('main')
 
-<!-- ╭──────────────────────────────╮
-     │ HERO CAROUSEL (auto + video) │
-     ╰──────────────────────────────╯ -->
-<section class="hero-section">
-    <div id="heroCarousel"
-         class="carousel slide"
-         data-bs-ride="carousel"
-         data-bs-interval="6000"   {{-- auto-advance every 6 s --}}
-         data-bs-pause="false"     {{-- ⟸ keep cycling even on hover/focus --}}
-         data-bs-touch="true">
-
-        <!-- Indicators -->
-        <div class="carousel-indicators">
-            @foreach($sliders as $i => $slider)
-                <button type="button"
-                        data-bs-target="#heroCarousel"
-                        data-bs-slide-to="{{ $i }}"
-                        class="{{ $i === 0 ? 'active' : '' }}"
-                        aria-current="{{ $i === 0 ? 'true' : 'false' }}"
-                        aria-label="Slide {{ $i + 1 }}">
-                </button>
-            @endforeach
-        </div>
-
-        <!-- Slides -->
-        <div class="carousel-inner">
-            @foreach($sliders as $i => $slider)
-                <div class="carousel-item {{ $i === 0 ? 'active' : '' }}">
-                    <div class="container">
-                        <div class="row align-items-center py-4">
-
-                            <!-- Text column -->
-                            <div class="col-lg-6">
-                                @if(!empty($slider->h4_title))
-                                    <span class="hero-eyebrow">{{ $slider->h4_title }}</span>
-                                @endif
-                                <h1 class="display-5 fw-bolder mb-2 hero-title">{{ $slider->h1_title }}</h1>
-                                @if(!empty($slider->h2_title))
-                                    <h2 class="h4 fw-semibold mb-2 hero-subtitle">{{ $slider->h2_title }}</h2>
-                                @endif
-                                <p class="mb-3">{{ $slider->description }}</p>
-                                <div class="hero-cta mb-2">
-                                    <a class="btn btn-accent btn-lg" href="{{ $slider->button_url }}">{{ $slider->button_text }}</a>
-                                    <a class="btn btn-outline-secondary btn-lg" href="{{ url('shop') }}">Shop Now</a>
-                                </div>
-                                <div class="hero-badges">
-                                    <span class="hero-badge"><span class="icn"><i class="fas fa-shipping-fast"></i></span>Fast delivery</span>
-                                    <span class="hero-badge"><span class="icn"><i class="fas fa-shield-alt"></i></span>Warranty</span>
-                                    <span class="hero-badge"><span class="icn"><i class="fas fa-headset"></i></span>Support</span>
-                                </div>
-                            </div>
-
-                            <!-- Media (image / local video / YouTube / Vimeo) -->
-                            <div class="col-lg-6 text-center hero-media">
-                                @php
-                                    $rawSrc = trim((string) $slider->img_url);
-                                    $mediaPath = parse_url($rawSrc, PHP_URL_PATH) ?: $rawSrc;
-                                    $isVideoFile = \Illuminate\Support\Str::endsWith($mediaPath, ['.mp4', '.webm', '.ogg']);
-                                    $isYouTube = \Illuminate\Support\Str::contains($rawSrc, ['youtube.com', 'youtu.be']);
-                                    $isVimeo = \Illuminate\Support\Str::contains($rawSrc, 'vimeo.com');
-                                    $mediaSrc = ($isYouTube || $isVimeo) ? $rawSrc : uploaded_image_url($rawSrc);
-                                @endphp
-
-                                <div class="media-frame">
-                                    {{-- Local/hosted video --}}
-                                    @if($isVideoFile)
-                                        <video src="{{ $mediaSrc }}" class="w-100" autoplay muted loop playsinline></video>
-
-                                    {{-- YouTube embed --}}
-                                    @elseif($isYouTube)
-                                        @php
-                                            preg_match('~(youtu\.be/|v=)([^&/]+)~', $rawSrc, $m);
-                                            $ytId = $m[2] ?? '';
-                                        @endphp
-                                        <iframe class="w-100"
-                                                src="https://www.youtube.com/embed/{{ $ytId }}?autoplay=1&mute=1&loop=1&controls=0&playlist={{ $ytId }}"
-                                                frameborder="0"
-                                                allow="autoplay; encrypted-media"
-                                                allowfullscreen></iframe>
-
-                                    {{-- Vimeo embed --}}
-                                    @elseif($isVimeo)
-                                        @php
-                                            preg_match('~vimeo\.com/(?:video/)?(\d+)~', $rawSrc, $m);
-                                            $vmId = $m[1] ?? '';
-                                        @endphp
-                                        <iframe class="w-100"
-                                                src="https://player.vimeo.com/video/{{ $vmId }}?autoplay=1&muted=1&loop=1&background=1"
-                                                frameborder="0"
-                                                allow="autoplay; fullscreen; picture-in-picture"
-                                                allowfullscreen></iframe>
-
-                                    {{-- Fallback image --}}
-                                    @else
-                                        <img src="{{ $mediaSrc }}" alt="Hero media" class="img-fluid" loading="lazy">
-                                    @endif
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
+<!-- Installer-focused hero -->
+@php
+    $heroSlider = collect($sliders ?? [])->first();
+    $rawSrc = trim((string) ($heroSlider->img_url ?? ''));
+    $mediaPath = parse_url($rawSrc, PHP_URL_PATH) ?: $rawSrc;
+    $isVideoFile = \Illuminate\Support\Str::endsWith($mediaPath, ['.mp4', '.webm', '.ogg']);
+    $isYouTube = \Illuminate\Support\Str::contains($rawSrc, ['youtube.com', 'youtu.be']);
+    $isVimeo = \Illuminate\Support\Str::contains($rawSrc, 'vimeo.com');
+    $mediaSrc = $rawSrc !== ''
+        ? (($isYouTube || $isVimeo) ? $rawSrc : uploaded_image_url($rawSrc))
+        : asset('assets/images/orbitlinks-logo.webp');
+    $boqWaLink = orbit_whatsapp_url('Hello Orbitlink Solutions, I would like to send a BOQ for a CCTV/networking project.');
+@endphp
+<section class="hero-section installer-hero">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <span class="hero-eyebrow">Installer supplier in Kenya</span>
+                <h1 class="display-5 fw-bolder mb-3 hero-title">Networking &amp; CCTV Equipment for Installers in Kenya</h1>
+                <p class="mb-3 hero-lead">Genuine networking, CCTV, fibre and PoE equipment at competitive installer prices. Get fast delivery, technical support and project pricing from Orbitlink Solutions.</p>
+                <div class="hero-cta mb-2">
+                    <a class="btn btn-accent btn-lg" href="{{ url('shop') }}">Shop Installer Equipment</a>
+                    <a class="btn btn-outline-secondary btn-lg" href="{{ route('installer-program.show') }}">Join Installer Program</a>
+                    <a class="btn btn-outline-secondary btn-lg" href="{{ route('send-boq.show') }}">Send Your BOQ</a>
                 </div>
-            @endforeach
+                <div class="hero-badges">
+                    <span class="hero-badge"><span class="icn"><i class="fas fa-tags"></i></span>Installer pricing</span>
+                    <span class="hero-badge"><span class="icn"><i class="fas fa-network-wired"></i></span>PoE, CCTV &amp; fibre</span>
+                    @if($boqWaLink)
+                        <a class="hero-badge" href="{{ $boqWaLink }}" target="_blank" rel="noopener"><span class="icn"><i class="fab fa-whatsapp"></i></span>WhatsApp BOQ</a>
+                    @endif
+                </div>
+            </div>
+            <div class="col-lg-6 text-center hero-media">
+                <div class="media-frame">
+                    @if($isVideoFile)
+                        <video src="{{ $mediaSrc }}" class="w-100" autoplay muted loop playsinline></video>
+                    @elseif($isYouTube)
+                        @php
+                            preg_match('~(youtu\.be/|v=)([^&/]+)~', $rawSrc, $m);
+                            $ytId = $m[2] ?? '';
+                        @endphp
+                        <iframe class="w-100"
+                                src="https://www.youtube.com/embed/{{ $ytId }}?autoplay=1&mute=1&loop=1&controls=0&playlist={{ $ytId }}"
+                                frameborder="0"
+                                allow="autoplay; encrypted-media"
+                                allowfullscreen></iframe>
+                    @elseif($isVimeo)
+                        @php
+                            preg_match('~vimeo\.com/(?:video/)?(\d+)~', $rawSrc, $m);
+                            $vmId = $m[1] ?? '';
+                        @endphp
+                        <iframe class="w-100"
+                                src="https://player.vimeo.com/video/{{ $vmId }}?autoplay=1&muted=1&loop=1&background=1"
+                                frameborder="0"
+                                allow="autoplay; fullscreen; picture-in-picture"
+                                allowfullscreen></iframe>
+                    @else
+                        <img src="{{ $mediaSrc }}" alt="Networking and CCTV equipment for installers in Kenya" class="img-fluid" loading="eager">
+                    @endif
+                </div>
+            </div>
         </div>
-
-        <!-- Controls -->
-        <button class="carousel-control-prev" type="button"
-                data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button"
-                data-bs-target="#heroCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
     </div>
 </section>
 
@@ -130,39 +77,57 @@
     <div class="container">
         <div class="trust-stats-card">
             <div class="row g-3">
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg-2">
                     <div class="trust-stat">
-                        <span class="stat-icon"><i class="fas fa-award"></i></span>
+                        <span class="stat-icon"><i class="fas fa-tags"></i></span>
                         <div class="stat-text">
-                            <div class="stat-value">8+ Years</div>
-                            <div class="stat-label">Trusted experience</div>
+                            <div class="stat-value">Installer Pricing</div>
+                            <div class="stat-label">For approved accounts</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="trust-stat">
-                        <span class="stat-icon"><i class="fas fa-users"></i></span>
-                        <div class="stat-text">
-                            <div class="stat-value">5,000+</div>
-                            <div class="stat-label">Happy customers</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6 col-lg-3">
-                    <div class="trust-stat">
-                        <span class="stat-icon"><i class="fas fa-shipping-fast"></i></span>
-                        <div class="stat-text">
-                            <div class="stat-value">Same-day</div>
-                            <div class="stat-label">Dispatch on most orders</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg-2">
                     <div class="trust-stat">
                         <span class="stat-icon"><i class="fas fa-shield-alt"></i></span>
                         <div class="stat-text">
-                            <div class="stat-value">12-Month</div>
-                            <div class="stat-label">Warranty support</div>
+                            <div class="stat-value">Genuine Products</div>
+                            <div class="stat-label">Verified catalogue</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="trust-stat">
+                        <span class="stat-icon"><i class="fas fa-map-marker-alt"></i></span>
+                        <div class="stat-text">
+                            <div class="stat-value">Nairobi Pickup</div>
+                            <div class="stat-label">Lyric House, Kimathi St.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="trust-stat">
+                        <span class="stat-icon"><i class="fas fa-shipping-fast"></i></span>
+                        <div class="stat-text">
+                            <div class="stat-value">Nationwide Delivery</div>
+                            <div class="stat-label">Courier support</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="trust-stat">
+                        <span class="stat-icon"><i class="fas fa-headset"></i></span>
+                        <div class="stat-text">
+                            <div class="stat-value">Technical Support</div>
+                            <div class="stat-label">Product guidance</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <div class="trust-stat">
+                        <span class="stat-icon"><i class="fas fa-tools"></i></span>
+                        <div class="stat-text">
+                            <div class="stat-value">Warranty Support</div>
+                            <div class="stat-label">After-sale help</div>
                         </div>
                     </div>
                 </div>
@@ -243,40 +208,108 @@
 
 <section class="featured homepage-categories position-relative">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-3 categories-header">
-            <h3 class="mb-0">Shop by Category</h3>
-            <div class="controls">
-                <button class="btn btn-outline-secondary btn-sm cat-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
-                <button class="btn btn-outline-secondary btn-sm cat-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+        <div class="installer-section-header">
+            <div>
+                <span class="section-kicker">Installer equipment</span>
+                <h2>Shop by Category</h2>
+                <p>Start with the categories technicians buy most for CCTV, networking, fibre, wireless, and backup projects.</p>
             </div>
+            <a href="{{ route('allcategories') }}" class="btn btn-outline-secondary">View All Categories</a>
         </div>
-        <div class="categories-slider">
-            @foreach($categories->take(18) as $category)
-                <div class="category-slide">
-                    <a href="{{ route('view_product_category', ['slug' => $category->slug]) }}" class="text-decoration-none text-dark d-block h-100">
-                        <div class="card category-card border-0 shadow-sm h-100">
-                            <div class="card-img-top position-relative overflow-hidden">
-                                <img src="{{ uploaded_image_url($category->photo) }}" loading="lazy"
-                                     alt="{{ $category->name }}"
-                                     class="img-fluid w-100 h-100 object-fit-cover">
-                                <div class="overlay d-flex align-items-center justify-content-center">
-                                    <h5 class="text-white fw-bold m-0">{{ $category->name }}</h5>
-                                </div>
-                            </div>
-                            <div class="card-body text-center">
-                                <h6 class="card-title mb-0">{{ $category->name }}</h6>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+        <div class="installer-category-grid">
+            @foreach(orbit_trade_priority_categories($categories)->take(12) as $category)
+                @php
+                    $categoryIcon = 'fas fa-network-wired';
+                    $name = \Illuminate\Support\Str::lower($category->name);
+                    if (\Illuminate\Support\Str::contains($name, ['cctv', 'camera'])) { $categoryIcon = 'fas fa-video'; }
+                    elseif (\Illuminate\Support\Str::contains($name, ['poe', 'switch'])) { $categoryIcon = 'fas fa-ethernet'; }
+                    elseif (\Illuminate\Support\Str::contains($name, ['router', 'mikrotik'])) { $categoryIcon = 'fas fa-route'; }
+                    elseif (\Illuminate\Support\Str::contains($name, ['wireless', 'access point', 'ubiquiti'])) { $categoryIcon = 'fas fa-wifi'; }
+                    elseif (\Illuminate\Support\Str::contains($name, ['fibre', 'fiber'])) { $categoryIcon = 'fas fa-project-diagram'; }
+                    elseif (\Illuminate\Support\Str::contains($name, ['cable', 'cat6'])) { $categoryIcon = 'fas fa-grip-lines'; }
+                    elseif (\Illuminate\Support\Str::contains($name, ['rack', 'cabinet'])) { $categoryIcon = 'fas fa-server'; }
+                    elseif (\Illuminate\Support\Str::contains($name, ['nvr', 'dvr'])) { $categoryIcon = 'fas fa-hdd'; }
+                    elseif (\Illuminate\Support\Str::contains($name, ['power', 'backup', 'ups', 'ecoflow', 'bluetti'])) { $categoryIcon = 'fas fa-battery-full'; }
+                @endphp
+                <a href="{{ route('view_product_category', ['slug' => $category->slug]) }}" class="installer-category-tile" aria-label="Shop {{ $category->name }}">
+                    <span class="installer-category-icon">
+                        @if(!empty($category->photo))
+                            <img src="{{ uploaded_image_url($category->photo) }}" loading="lazy" alt="{{ $category->name }}">
+                        @else
+                            <i class="{{ $categoryIcon }}"></i>
+                        @endif
+                    </span>
+                    <span class="installer-category-name">{{ $category->name }}</span>
+                    <span class="installer-category-copy">Shop {{ $category->name }}</span>
+                </a>
             @endforeach
-        </div>
-        <!-- View All Categories Button -->
-        <div class="text-center mt-4">
-            <a href="{{ route('allcategories') }}" class="btn btn-primary">View All Categories</a>
         </div>
     </div>
     </section>
+
+@if(isset($popularInstallerProducts) && $popularInstallerProducts->isNotEmpty())
+<section class="installer-popular-section">
+    <div class="container">
+        <div class="installer-section-header">
+            <div>
+                <span class="section-kicker">Popular with installers</span>
+                <h2>Fast-moving equipment for project work</h2>
+                <p>PoE switches, routers, CCTV, cabling, access points, and fibre gear commonly needed for installation jobs.</p>
+            </div>
+            <a href="{{ url('shop') }}" class="btn btn-outline-secondary">View All Products</a>
+        </div>
+        <div class="row product-grid-4 g-4">
+            @foreach($popularInstallerProducts->take(8) as $ad)
+                @include('theme.orbit.partials.product_card', ['ad' => $ad])
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+<section class="installer-conversion-section">
+    <div class="container">
+        <div class="installer-conversion-grid">
+            <div class="installer-conversion-panel">
+                <span class="section-kicker">Trade account</span>
+                <h2>Join the Orbitlink Installer Program</h2>
+                <p>Apply for installer pricing, project support, product recommendations, and priority quotation assistance.</p>
+                <a href="{{ route('installer-program.show') }}" class="btn btn-accent">Apply for Installer Pricing</a>
+            </div>
+            <div class="installer-conversion-panel">
+                <span class="section-kicker">Project pricing</span>
+                <h2>Send Your BOQ</h2>
+                <p>Upload a BOQ or send your requirements for CCTV, networking, fibre, Wi-Fi, and structured cabling projects.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ route('send-boq.show') }}" class="btn btn-outline-secondary">Submit BOQ</a>
+                    @if($boqWaLink)
+                        <a href="{{ $boqWaLink }}" target="_blank" rel="noopener" class="btn btn-whatsapp"><i class="fab fa-whatsapp me-2"></i>WhatsApp BOQ</a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if(isset($installerBrands) && $installerBrands->isNotEmpty())
+<section class="brand-home-section">
+    <div class="container">
+        <div class="installer-section-header">
+            <div>
+                <span class="section-kicker">Shop by brand</span>
+                <h2>Brands installers ask for</h2>
+                <p>Browse brands currently represented in the Orbitlink product catalogue.</p>
+            </div>
+            <a href="{{ route('brands.index') }}" class="btn btn-outline-secondary">All Brands</a>
+        </div>
+        <div class="brand-chip-grid">
+            @foreach($installerBrands as $brand)
+                <a href="{{ route('brands.show', \Illuminate\Support\Str::slug($brand)) }}" class="brand-chip">{{ $brand }}</a>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
 
 
 <!-- ╭──────────────────────────────╮
@@ -347,10 +380,23 @@
                                     @php
                                         $productCategory = $ad->category ?: category($ad->category_id);
                                         $productUrl = !empty($ad->slug) ? route('product_details', $ad->slug) : url('shop');
+                                        $productBrand = orbit_product_brand($ad);
+                                        $productModel = orbit_product_model($ad);
+                                        $productFeature = orbit_product_key_feature($ad);
+                                        $stockLabel = product_stock_status_label($ad);
+                                        $installerPrice = installer_price_for_product($ad, 1, Auth::user());
                                     @endphp
                                     <a class="homepage-product-card" href="{{ $productUrl }}">
                                         <span class="homepage-product-card-image">
                                             <img src="{{ product_image_url($ad) }}" alt="{{ $ad->name }}" loading="lazy">
+                                        </span>
+                                        <span class="homepage-product-card-meta">
+                                            @if($productBrand)
+                                                {{ $productBrand }}
+                                            @endif
+                                            @if($productModel)
+                                                <span>{{ $productModel }}</span>
+                                            @endif
                                         </span>
                                         <span class="homepage-product-card-category">
                                             @if($productCategory)
@@ -362,10 +408,19 @@
                                         <span class="homepage-product-card-title">
                                             {{ \Illuminate\Support\Str::limit($ad->name, 48) }}
                                         </span>
+                                        @if($productFeature)
+                                            <span class="homepage-product-card-feature">{{ $productFeature }}</span>
+                                        @endif
+                                        <span class="homepage-product-card-stock">{{ $stockLabel }}</span>
                                         <span class="homepage-product-card-footer">
                                             <span class="homepage-product-card-price">
                                                 @if($ad->has_price)
-                                                    {{ price($ad) }}
+                                                    @if($installerPrice)
+                                                        {{ get_option('currency_symbol', 'KSh') }} {{ number_format($installerPrice, 2) }}
+                                                        <small>Installer</small>
+                                                    @else
+                                                        {{ price($ad) }}
+                                                    @endif
                                                 @endif
                                             </span>
                                             <span class="homepage-product-card-action" aria-hidden="true">
@@ -406,7 +461,7 @@
 <section id="homepage-description">
     <div class="container">
         <div class="description-scroll">
-            {!! get_option('homepage_description') !!}
+            {!! rich_content_html(get_option('homepage_description'), null, true) !!}
         </div>
     </div>
     

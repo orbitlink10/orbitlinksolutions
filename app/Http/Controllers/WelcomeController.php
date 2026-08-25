@@ -201,10 +201,44 @@ $testimonials = Testimonial::all();
 $medias = Media::whereMediaType('installation')->limit(30)->get();
 $medias2 = Media::whereMediaType('media')->limit(30)->get();
 $services = Service::all();
-$categories = Category::orderBy('id', 'desc')->get();
+$categories = orbit_trade_priority_categories(Category::orderBy('name')->get());
+$popularInstallerProducts = Product::with(['mediaFiles', 'category'])
+    ->whereProductType('product')
+    ->when(Schema::hasColumn('products', 'popular_with_installers'), fn ($query) => $query->where('popular_with_installers', true))
+    ->latest('id')
+    ->limit(12)
+    ->get();
+
+if ($popularInstallerProducts->isEmpty()) {
+    $popularInstallerProducts = Product::with(['mediaFiles', 'category'])
+        ->whereProductType('product')
+        ->where(function ($query) {
+            $query->where('name', 'like', '%PoE%')
+                ->orWhere('name', 'like', '%MikroTik%')
+                ->orWhere('name', 'like', '%CCTV%')
+                ->orWhere('name', 'like', '%NVR%')
+                ->orWhere('name', 'like', '%DVR%')
+                ->orWhere('name', 'like', '%Cat6%')
+                ->orWhere('name', 'like', '%Ubiquiti%')
+                ->orWhere('name', 'like', '%Access Point%');
+        })
+        ->latest('id')
+        ->limit(12)
+        ->get();
+}
+
+$installerBrands = Product::with('category')
+    ->whereProductType('product')
+    ->get()
+    ->map(fn ($product) => orbit_product_brand($product))
+    ->filter()
+    ->unique()
+    ->sort()
+    ->take(12)
+    ->values();
 
 
-        return view('theme.'.get_option('theme').'.index', compact('pages','posts', 'tags', 'new','options', 'products','homepageProductCategories','testimonials', 'services', 'medias','medias2', 'categories', 'sliders'));
+        return view('theme.'.get_option('theme').'.index', compact('pages','posts', 'tags', 'new','options', 'products','homepageProductCategories','popularInstallerProducts','installerBrands','testimonials', 'services', 'medias','medias2', 'categories', 'sliders'));
     }
 
     private function postColumns(): array
@@ -455,13 +489,33 @@ public function calculators()
     {
         // Start with the query builder
         $query = Product::with(['mediaFiles', 'category'])->where('product_type', 'product');
+        $productColumns = Schema::hasTable('products') ? Schema::getColumnListing('products') : [];
+        $hasBrandColumn = in_array('brand_name', $productColumns, true);
+        $hasModelColumn = in_array('model_number', $productColumns, true);
+        $hasKeyFeatureColumn = in_array('key_technical_feature', $productColumns, true);
+        $searchTerm = trim((string) $request->q);
 
         // Apply search filter if a query exists
         if ($request->filled('q')) {
-            $searchTerm = $request->q;
-            $query->where(function ($subQuery) use ($searchTerm) {
+            $query->where(function ($subQuery) use ($searchTerm, $hasBrandColumn, $hasModelColumn, $hasKeyFeatureColumn) {
                 $subQuery->where('name', 'like', "%{$searchTerm}%")
-                         ->orWhere('description', 'like', "%{$searchTerm}%");
+                    ->orWhere('sku', 'like', "%{$searchTerm}%")
+                    ->orWhere('description', 'like', "%{$searchTerm}%")
+                    ->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
+                        $categoryQuery->where('name', 'like', "%{$searchTerm}%");
+                    });
+
+                if ($hasBrandColumn) {
+                    $subQuery->orWhere('brand_name', 'like', "%{$searchTerm}%");
+                }
+
+                if ($hasModelColumn) {
+                    $subQuery->orWhere('model_number', 'like', "%{$searchTerm}%");
+                }
+
+                if ($hasKeyFeatureColumn) {
+                    $subQuery->orWhere('key_technical_feature', 'like', "%{$searchTerm}%");
+                }
             });
         }
 
@@ -503,6 +557,21 @@ public function calculators()
         }
 
         $sort = $request->input('sort', 'newest');
+
+        if ($request->filled('q') && $sort === 'newest') {
+            if ($hasModelColumn) {
+                $query->orderByRaw(
+                    'CASE WHEN sku = ? THEN 0 WHEN model_number = ? THEN 1 WHEN name = ? THEN 2 WHEN name LIKE ? THEN 3 ELSE 4 END',
+                    [$searchTerm, $searchTerm, $searchTerm, $searchTerm . '%']
+                );
+            } else {
+                $query->orderByRaw(
+                    'CASE WHEN sku = ? THEN 0 WHEN name = ? THEN 1 WHEN name LIKE ? THEN 2 ELSE 3 END',
+                    [$searchTerm, $searchTerm, $searchTerm . '%']
+                );
+            }
+        }
+
         switch ($sort) {
             case 'price_asc':
                 $query->orderBy('price', 'asc');
@@ -1131,11 +1200,11 @@ public function calculators()
             return redirect()->route('cart.view')->with('error', 'One or more products in your cart are no longer available.');
         }
 
-        $subtotal = round(collect($cart)->sum(function (array $item) use ($products) {
+        $subtotal = round(collect($cart)->sum(function (array $item) use ($products, $user) {
             $product = $products->get($item['id']);
             $quantity = max(1, (int) ($item['quantity'] ?? 1));
 
-            return (float) $product->price * $quantity;
+            return effective_product_price($product, $quantity, $user) * $quantity;
         }), 2);
 
         $order = DB::transaction(function () use ($request, $cart, $products, $subtotal, $user) {
@@ -1173,7 +1242,7 @@ public function calculators()
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'quantity' => max(1, (int) ($item['quantity'] ?? 1)),
-                    'price' => $product->price,
+                    'price' => effective_product_price($product, max(1, (int) ($item['quantity'] ?? 1)), $user),
                     'size_id' => $item['size_id'] ?? null,
                 ]);
             }
