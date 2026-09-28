@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Option extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\ZivoTransactionalWrites;
     protected $guarded = [];
     public $timestamps = false;
 }

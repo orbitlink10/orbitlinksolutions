@@ -23,6 +23,20 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
+        $this->renderable(function (Throwable $e, \Illuminate\Http\Request $request) {
+            if (! $request->is('api/zivo/*')) {
+                return null;
+            }
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                return response()->json(['message' => 'Invalid request.', 'errors' => $e->errors()], 422)
+                    ->header('Cache-Control', 'private, no-store');
+            }
+            $status = $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface ? $e->getStatusCode() : 500;
+            $headers = $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface ? $e->getHeaders() : [];
+            return response()->json(['message' => \Symfony\Component\HttpFoundation\Response::$statusTexts[$status] ?? 'Request failed.'], $status, $headers)
+                ->header('Cache-Control', 'private, no-store');
+        });
+
         $this->reportable(function (Throwable $e) {
             //
         });

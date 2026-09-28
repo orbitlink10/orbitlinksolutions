@@ -655,7 +655,7 @@ if (! function_exists('save_product_additional_information')) {
         $key = product_additional_information_option_key($productId);
 
         if (empty($rows)) {
-            \App\Models\Option::where('option_key', $key)->delete();
+            \App\Models\Option::where('option_key', $key)->get()->each->delete();
             return;
         }
 

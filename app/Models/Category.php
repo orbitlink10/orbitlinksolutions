@@ -14,7 +14,7 @@ class Category extends Model
         'meta_description',
         'photo',
     ];
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\ZivoTransactionalWrites;
 
     public function posts()
     {

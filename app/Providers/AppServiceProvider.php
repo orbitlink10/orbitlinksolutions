@@ -20,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
+        \App\Models\Product::observe(\App\Observers\ZivoProductObserver::class);
+        foreach ([\App\Models\Size::class, \App\Models\Media::class, \App\Models\Category::class, \App\Models\Option::class] as $model) {
+            $model::observe(\App\Observers\ZivoRelatedProductObserver::class);
+        }
     }
 }

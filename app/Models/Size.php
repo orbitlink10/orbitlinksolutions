@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Size extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Models\Concerns\ZivoTransactionalWrites;
 
     /**
      * The attributes that are mass assignable.
