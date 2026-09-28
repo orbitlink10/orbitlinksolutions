@@ -126,7 +126,7 @@ class ZivoIntegrationTest extends TestCase
         $size = Size::create(['product_id' => $product->id, 'name' => '8 ports']);
         $response = $this->withToken($this->token)->getJson($this->url('/products/'.$product->id));
         $response->assertOk()->assertJsonPath('data.price', null)
-            ->assertJsonPath('data.stock_quantity', null)->assertJsonPath('data.availability', null)
+            ->assertJsonPath('data.stock_quantity', null)->assertJsonPath('data.availability', 'unknown')
             ->assertJsonPath('data.image_url', null)->assertJsonPath('data.variants.0.id', (string) $size->id)
             ->assertJsonPath('data.variants.0.sku', null)->assertJsonPath('data.variants.0.price', null)
             ->assertJsonPath('data.variants.0.availability', null)
@@ -148,7 +148,7 @@ class ZivoIntegrationTest extends TestCase
             ->assertJsonPath('meta.last_page', 2)->assertJsonPath('data.0.id', (string) $first->id);
         $this->getJson($this->url().'?search=ROUTER-001')->assertJsonCount(1, 'data');
         $this->getJson($this->url().'?search=%25')->assertJsonCount(0, 'data');
-        $this->getJson($this->url().'?page=2&per_page=1')->assertJsonPath('meta.page', 2)->assertJsonCount(1, 'data');
+        $this->getJson($this->url().'?page=2&per_page=1')->assertJsonPath('meta.current_page', 2)->assertJsonCount(1, 'data');
     }
 
     public function test_incremental_window_and_cursor_do_not_skip_unmodified_rows(): void
@@ -168,6 +168,19 @@ class ZivoIntegrationTest extends TestCase
             ->assertOk()->assertJsonCount(2, 'data');
         $this->getJson($this->url().'?updated_since=2026-09-28T10%3A00%3A10Z')
             ->assertJsonCount(2, 'data');
+    }
+
+    public function test_feed_is_capped_at_configured_maximum(): void
+    {
+        config(['zivo.max_products' => 3]);
+        $first = $this->product();
+        $this->product();
+        $this->product();
+        $this->product();
+        $this->withToken($this->token)->getJson($this->url().'?per_page=100')
+            ->assertOk()->assertJsonCount(3, 'data')
+            ->assertJsonPath('meta.total', 3)->assertJsonPath('meta.last_page', 1)
+            ->assertJsonPath('data.0.id', (string) $first->id);
     }
 
     public function test_rejects_invalid_parameters_with_json_errors(): void

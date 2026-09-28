@@ -14,7 +14,7 @@ return [
     ],
     'payment_methods' => null,
     'warranty' => null,
-    'returns_policy' => null,
-    'business_hours' => null,
+    'returns' => null,
+    'opening_hours' => null,
     'timezone' => 'Africa/Nairobi',
 ];

@@ -108,7 +108,7 @@ Product detail response (illustrative data):
 - IDs and prices are strings. Prices use two decimal places and public catalogue pricing; installer discounts are excluded. A hidden price (`has_price=false`) returns `null`. A known zero remains `"0.00"`.
 - `description` is plain text. Specifications come from the store's structured additional information. An empty specifications object is `{}`; no variants is `[]`.
 - `stock_quantity` uses `quantity`, matching the storefront's inventory helper; the separate legacy `stock` column is not substituted for an unknown quantity.
-- Availability uses explicit `stock_status` when recognised, otherwise known quantity: zero is `out_of_stock`, 1–3 is `low_stock`, and larger values are `in_stock`. Explicit `preorder` and `available_on_request` are also supported. Unknown quantity/status returns `null`.
+- Availability is one of `in_stock`, `out_of_stock`, `preorder` or `unknown`. Explicit `stock_status` values are recognised (`in_stock`, `low_stock` → `in_stock`, `out_of_stock`, `preorder`); `available_on_request` and an unknown quantity/status map to `unknown`. Otherwise known quantity is used: zero is `out_of_stock`, positive is `in_stock`.
 - `tax_included` stays `null` until an approved value is configured using `ZIVO_TAX_INCLUDED=true` or `false`.
 - Existing size records have their own IDs and option names but no independent SKU, price or availability source. Those variant fields return `null`; the parent values are not invented as variant values. Populating independent variant values requires extending the catalogue's variant data model.
 - Missing product images return `null`; category pictures or placeholders are not represented as product images.
@@ -122,7 +122,7 @@ List envelope (the `data` array contains the product objects described above):
   "data": [],
   "meta": {
     "store_id": "orbitlinksolutions",
-    "page": 1,
+    "current_page": 1,
     "per_page": 20,
     "total": 0,
     "last_page": 1,
@@ -132,7 +132,7 @@ List envelope (the `data` array contains the product objects described above):
 }
 ```
 
-`search` searches name, SKU, description, brand and model; it accepts at most 200 characters. `%` and `_` are literal search characters. `page` starts at 1 (maximum 1,000,000), `per_page` defaults to 20 (maximum 100). Invalid parameters return 422 with an `errors` object. Unknown product IDs return 404. Non-read methods return 405. Errors always use JSON and do not include debug traces.
+`search` searches name, SKU, description, brand and model; it accepts at most 200 characters. `%` and `_` are literal search characters. `page` starts at 1 (maximum 1,000,000), `per_page` defaults to 20 (maximum 100). The feed is capped at 5,000 products (`ZIVO_MAX_PRODUCTS`), taken by ascending id, so pagination stays deterministic. Invalid parameters return 422 with an `errors` object. Unknown product IDs return 404. Non-read methods return 405. Errors always use JSON and do not include debug traces.
 
 ### Reliable synchronisation
 
@@ -162,8 +162,8 @@ Related size, image, category and specification edits update product timestamps.
     ],
     "payment_methods": null,
     "warranty": null,
-    "returns_policy": null,
-    "business_hours": null,
+    "returns": null,
+    "opening_hours": null,
     "timezone": "Africa/Nairobi",
     "store_id": "orbitlinksolutions",
     "support_contacts": {
@@ -211,9 +211,9 @@ Events are recorded for `product.created`, `product.updated`, `product.deleted` 
 {
   "event_id": "57f70eca-a124-4e37-86c2-f32fa6c3d203",
   "store_id": "orbitlinksolutions",
-  "type": "inventory.updated",
+  "event": "inventory.updated",
   "product_id": "123",
-  "timestamp": "2026-09-28T10:00:00Z"
+  "occurred_at": "2026-09-28T10:00:00Z"
 }
 ```
 
@@ -233,7 +233,7 @@ $expected = 'sha256=' . hash_hmac('sha256', $timestamp . '.' . $rawBody, $shared
 $valid = hash_equals($expected, $signatureHeader);
 ```
 
-Zivo should validate a timestamp tolerance such as five minutes with synchronised clocks, verify the signature before parsing/trusting the event, check the expected store ID, and deduplicate authenticated event IDs. Do not re-encode JSON before verification. The event's body timestamp is its creation time; the header timestamp changes on retries. Return a 2xx response after accepting a valid event durably, including an already accepted duplicate.
+Zivo should validate a timestamp tolerance such as five minutes with synchronised clocks, verify the signature before parsing/trusting the event, check the expected store ID, and deduplicate authenticated event IDs. Do not re-encode JSON before verification. The event's body `occurred_at` is its creation time; the header timestamp changes on retries. Return a 2xx response after accepting a valid event durably, including an already accepted duplicate.
 
 All non-2xx results, connection errors and timeouts retry. Redirects are not followed. Delivery uses HTTPS with normal certificate verification, a 5-second connection timeout and a 15-second overall timeout. There are at most eight attempts, with delays of 60, 300, 900, 3,600, 10,800, 21,600 and 43,200 seconds. Scheduler frequency can increase these delays. A worker crash releases its lease after two minutes, allowing at-least-once redelivery.
 

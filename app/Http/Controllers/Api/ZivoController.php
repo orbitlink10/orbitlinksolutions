@@ -42,6 +42,12 @@ class ZivoController extends Controller
 
         $query = Product::withTrashed()->where('product_type', 'product');
         $maxId = $input['max_id'] ?? ((clone $query)->max('id') ?? 0);
+        // Cap the feed at the first N products by ascending id so full syncs stay deterministic.
+        $cap = max(1, (int) config('zivo.max_products', 5000));
+        $capId = (clone $query)->orderBy('id')->offset($cap - 1)->value('id');
+        if ($capId !== null) {
+            $maxId = min($maxId, $capId);
+        }
         $query->where('id', '<=', $maxId)->where('updated_at', '<=', $until->format('Y-m-d H:i:s'));
         if ($since) {
             // Inclusive seconds deliberately replay boundary updates instead of losing them.
@@ -79,7 +85,7 @@ class ZivoController extends Controller
             'data' => $payload->collection($products),
             'meta' => [
                 'store_id' => config('zivo.store_id'),
-                'page' => $page,
+                'current_page' => $page,
                 'per_page' => $perPage,
                 'total' => $total,
                 'last_page' => max(1, (int) ceil($total / $perPage)),

@@ -57,17 +57,25 @@ class ProductPayload
         return rtrim(config('zivo.public_url'), '/').'/'.ltrim($path, '/');
     }
 
-    private function availability(Product $product): ?string
+    private function availability(Product $product): string
     {
         $status = str_replace(' ', '_', strtolower(trim((string) $product->stock_status)));
-        if (in_array($status, ['in_stock', 'low_stock', 'out_of_stock', 'preorder', 'available_on_request'], true)) {
-            return $status;
+        switch ($status) {
+            case 'in_stock':
+            case 'low_stock':
+                return 'in_stock';
+            case 'out_of_stock':
+                return 'out_of_stock';
+            case 'preorder':
+                return 'preorder';
+            case 'available_on_request':
+                return 'unknown';
         }
         if ($product->quantity === null || $product->quantity < 0) {
-            return null;
+            return 'unknown';
         }
 
-        return $product->quantity == 0 ? 'out_of_stock' : ($product->quantity <= 3 ? 'low_stock' : 'in_stock');
+        return $product->quantity == 0 ? 'out_of_stock' : 'in_stock';
     }
 
     private function plainText(?string $html): ?string

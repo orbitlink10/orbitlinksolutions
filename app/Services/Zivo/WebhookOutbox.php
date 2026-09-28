@@ -17,9 +17,9 @@ class WebhookOutbox
         $payload = [
             'event_id' => $id,
             'store_id' => config('zivo.store_id'),
-            'type' => $type,
+            'event' => $type,
             'product_id' => (string) $product->id,
-            'timestamp' => now()->utc()->toIso8601ZuluString(),
+            'occurred_at' => now()->utc()->toIso8601ZuluString(),
         ];
         ZivoWebhookEvent::create([
             'id' => $id,

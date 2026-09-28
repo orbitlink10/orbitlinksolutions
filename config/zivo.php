@@ -6,6 +6,7 @@ return [
     'public_url' => env('ZIVO_PUBLIC_URL', env('APP_URL', 'http://localhost')),
     'allow_local_http' => (bool) env('ZIVO_ALLOW_LOCAL_HTTP', false),
     'rate_limit' => (int) env('ZIVO_RATE_LIMIT', 60),
+    'max_products' => (int) env('ZIVO_MAX_PRODUCTS', 5000),
     'currency' => 'KES',
     'tax_included' => env('ZIVO_TAX_INCLUDED', null),
     'webhooks' => [
